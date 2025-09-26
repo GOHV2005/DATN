@@ -5,7 +5,7 @@ using TMPro;
 public class ScreenSettings : MonoBehaviour
 {
     [Header("UI")]
-    public Toggle fullscreenToggle;        // Toggle để bật/tắt fullscreen
+    public Toggle fullscreenToggle;         // Toggle để bật/tắt fullscreen
     public TMP_Dropdown resolutionDropdown; // Dùng TMP_Dropdown thay vì Dropdown
 
     private Resolution[] resolutions;
@@ -22,12 +22,12 @@ public class ScreenSettings : MonoBehaviour
 
         for (int i = 0; i < resolutions.Length; i++)
         {
-            string option = resolutions[i].width + " x " + resolutions[i].height ;
+            string option = resolutions[i].width + " x " + resolutions[i].height;
             options.Add(option);
 
             if (resolutions[i].width == Screen.currentResolution.width &&
                 resolutions[i].height == Screen.currentResolution.height &&
-                resolutions[i].refreshRate == Screen.currentResolution.refreshRate)
+                resolutions[i].refreshRateRatio.value == Screen.currentResolution.refreshRateRatio.value)
             {
                 currentResolutionIndex = i;
             }
@@ -48,7 +48,7 @@ public class ScreenSettings : MonoBehaviour
     public void SetResolution(int resolutionIndex)
     {
         Resolution res = resolutions[resolutionIndex];
-        Screen.SetResolution(res.width, res.height, Screen.fullScreen, res.refreshRate);
+        Screen.SetResolution(res.width, res.height, Screen.fullScreenMode, res.refreshRateRatio);
     }
 
     // Bật / tắt fullscreen

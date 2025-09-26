@@ -6,14 +6,24 @@ public class QualitySettingsManager : MonoBehaviour
     [Header("UI")]
     public TMP_Dropdown qualityDropdown; // Dropdown chọn chất lượng
 
+    // Bảng dịch Anh → Việt
+    private readonly string[] vietnameseNames = { "Rất Thấp", "Thấp", "Trung Bình", "Cao", "Rất Cao" };
+
     void Start()
     {
         // Xóa options cũ
         qualityDropdown.ClearOptions();
 
-        // Lấy danh sách quality từ Unity (Project Settings → Quality)
+        // Lấy danh sách quality gốc
         string[] qualityNames = QualitySettings.names;
-        var options = new System.Collections.Generic.List<string>(qualityNames);
+
+
+        // Nếu số lượng khớp, thay bằng tên tiếng Việt
+        var options = new System.Collections.Generic.List<string>();
+        for (int i = 0; i < qualityNames.Length && i < vietnameseNames.Length; i++)
+        {
+            options.Add(vietnameseNames[i]);
+        }
 
         // Thêm vào dropdown
         qualityDropdown.AddOptions(options);
@@ -31,6 +41,6 @@ public class QualitySettingsManager : MonoBehaviour
     public void SetQuality(int index)
     {
         QualitySettings.SetQualityLevel(index, true);
-        Debug.Log("Đổi chất lượng: " + QualitySettings.names[index]);
+        Debug.Log("Đổi chất lượng: " + vietnameseNames[index]);
     }
 }
