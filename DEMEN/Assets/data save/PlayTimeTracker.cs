@@ -24,13 +24,6 @@ public class PlayTimeTracker : MonoBehaviour
         playTime += Time.deltaTime;
     }
 
-    public float GetPlayTime()
-    {
-        return playTime;
-    }
-
-    public void ResetTime()
-    {
-        playTime = 0f;
-    }
+    public float GetPlayTime() => playTime;
+    public void ResetTime() => playTime = 0f;
 }

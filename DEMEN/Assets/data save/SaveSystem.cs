@@ -1,34 +1,43 @@
-﻿using System.IO;
+﻿// SaveSystem.cs
 using UnityEngine;
+using System.IO;
 
 public static class SaveSystem
 {
-    public static void SaveGame(SaveData data, int slot)
+    private static string GetPath(int slotIndex)
     {
-        string path = Application.persistentDataPath + $"/save{slot}.json";
-        string json = JsonUtility.ToJson(data, true);
-        File.WriteAllText(path, json);
-        Debug.Log("Game Saved: " + path);
+        return $"{Application.persistentDataPath}/save{slotIndex}.json";
     }
 
-    public static SaveData LoadGame(int slot)
+    public static void SaveGame(SaveData data, int slotIndex)
     {
-        string path = Application.persistentDataPath + $"/save{slot}.json";
+        string json = JsonUtility.ToJson(data);
+        File.WriteAllText(GetPath(slotIndex), json);
+        Debug.Log($"[SAVE] Ghi file {GetPath(slotIndex)}");
+        PlayerPrefs.SetInt("CurrentSlot", slotIndex);
+    }
+
+    public static SaveData LoadGame(int slotIndex)
+    {
+        string path = GetPath(slotIndex);
         if (File.Exists(path))
         {
             string json = File.ReadAllText(path);
-            return JsonUtility.FromJson<SaveData>(json);
+            SaveData data = JsonUtility.FromJson<SaveData>(json);
+            Debug.Log($"[LOAD] Slot {slotIndex} load thành công");
+            return data;
         }
-        return null; // slot trống
+        Debug.Log($"[LOAD] Slot {slotIndex} chưa có dữ liệu.");
+        return null;
     }
 
-    public static void DeleteSave(int slot)
+    public static void DeleteSlot(int slotIndex)
     {
-        string path = Application.persistentDataPath + $"/save{slot}.json";
+        string path = GetPath(slotIndex);
         if (File.Exists(path))
         {
             File.Delete(path);
-            Debug.Log("Save Deleted: " + path);
+            Debug.Log($"[DELETE] Xóa slot {slotIndex} tại {path}");
         }
     }
 }
