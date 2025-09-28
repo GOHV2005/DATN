@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public class SaveMenuManager : MonoBehaviour
 {
-    public SaveSlotUI[] slots; // gán 4 slots trong Inspector
+    public SaveSlotUI[] slots; // gán trong Inspector
     public Button deleteButton;
 
     private SaveSlotUI selectedSlot;
@@ -18,30 +18,24 @@ public class SaveMenuManager : MonoBehaviour
     public void SelectSlot(SaveSlotUI slot)
     {
         selectedSlot = slot;
-
-        // Nếu slot có dữ liệu mới cho xóa
-        deleteButton.gameObject.SetActive(selectedSlot.HasData());
-    }
-
-    public SaveSlotUI GetSelectedSlot()
-    {
-        return selectedSlot;
+        deleteButton.gameObject.SetActive(true);
     }
 
     private void OnDeleteButtonClick()
     {
-        if (selectedSlot != null && selectedSlot.HasData())
+        if (selectedSlot != null)
         {
             int index = selectedSlot.GetSlotIndex();
             SaveSystem.DeleteSlot(index);
 
-            // Nếu đang xóa slot hiện tại → reset PlayerPrefs
             if (PlayerPrefs.GetInt("CurrentSlot", -1) == index)
                 PlayerPrefs.DeleteKey("CurrentSlot");
 
+            selectedSlot.Deselect();
             selectedSlot = null;
-            deleteButton.gameObject.SetActive(false);
+
             RefreshAllSlots();
+            deleteButton.gameObject.SetActive(false);
         }
     }
 

@@ -3,7 +3,6 @@ using UnityEngine;
 public class PlayTimeTracker : MonoBehaviour
 {
     public static PlayTimeTracker Instance;
-
     private float playTime;
 
     void Awake()
