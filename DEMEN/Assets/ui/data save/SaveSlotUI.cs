@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
+using System.Collections;
 using TMPro;
 
 public class SaveSlotUI : MonoBehaviour
@@ -41,7 +42,7 @@ public class SaveSlotUI : MonoBehaviour
         if (!isSelected)
         {
             if (menuManager != null) menuManager.SelectSlot(this);
-            isSelected = true; // chỉ để track lần chọn đầu
+            isSelected = true; // chọn lần đầu
         }
         else
         {
@@ -52,9 +53,11 @@ public class SaveSlotUI : MonoBehaviour
             if (data != null && data.scenes.Count > 0)
                 sceneName = data.scenes[data.scenes.Count - 1].sceneName;
 
-            SceneManager.LoadScene(sceneName);
+            // Dùng SceneLoader thay vì load trực tiếp
+            SceneLoader.LoadScene(sceneName);
         }
     }
+
 
     public void Deselect()
     {
