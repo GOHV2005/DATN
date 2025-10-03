@@ -13,6 +13,8 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
     public string itemDescription;
     public Sprite emptySprite;
 
+    [SerializeField]
+    private int maxNumberOfItems;
 
     //=====ITEM SLOT=====//
     [SerializeField]
@@ -39,17 +41,43 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
     }
 
 
-    public void Additem(string itemName, int quantity, Sprite itemSprite, string itemDescription)
+    public int Additem(string itemName, int quantity, Sprite itemSprite, string itemDescription)
     {
+        //Chefck to see if the slot is already full
+        if (isFull)
+            return quantity;
+        
+        //UPDATE NAME
         this.itemName = itemName;
-        this.quantity = quantity;
-        this.itemSprite = itemSprite;
-        this.itemDescription = itemDescription;
-        isFull = true;
 
-        quantityText.text = quantity.ToString();
-        quantityText.enabled = true;
+        //UPDATE IMAGE
+        this.itemSprite = itemSprite;
         itemImage.sprite = itemSprite;
+        
+        //UPDATE DESCRIPTION
+        this.itemDescription = itemDescription;
+
+        //UPDATE QUATITY
+        this.quantity += quantity;
+        if(this.quantity >= maxNumberOfItems)
+        {
+            quantityText.text = maxNumberOfItems.ToString();
+            quantityText.enabled = true;
+            isFull = true;
+            
+            //Return the LEFTOVERS
+            int extraItems = this.quantity - maxNumberOfItems;
+            this.quantity = maxNumberOfItems;
+            return extraItems;
+        };
+
+        //UPDATE QUANTITY TEXT
+        quantityText.text =this.quantity.ToString();
+        quantityText.enabled = true;
+
+        return 0;
+
+
     }
 
     public void OnPointerClick(PointerEventData eventData)
