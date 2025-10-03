@@ -29,7 +29,7 @@ public class PlayerController2D : MonoBehaviour
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.gameObject.CompareTag("SceneTrigger"))
+        if (collision.gameObject.tag == "SceneTrigger")
         {
             UnityEngine.SceneManagement.SceneManager.LoadScene("NextScene");
         }
