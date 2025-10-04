@@ -1,40 +1,56 @@
-using Unity.VisualScripting;
+﻿using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
-public class item : MonoBehaviour
+public class Item : MonoBehaviour
 {
     [SerializeField]
-    private string itemName;
+    public string itemName;
 
     [SerializeField]
-    private int quantity;
+    public int quantity;
 
     [SerializeField]
-    private Sprite sprite;
+    public Sprite sprite;
 
     [TextArea]
     [SerializeField]
-    private string itemDescription;
+    public string itemDescription;
 
     private  InventoryManager inventoryManager;
+    private bool isPlayerInRange = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         inventoryManager = GameObject.Find("InventoryPanel").GetComponent<InventoryManager>();
     }
-
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void Update()
     {
-        if(collision.gameObject.tag == "Player")
+        if (isPlayerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            int LeftOverItem = inventoryManager.AddItem(itemName,quantity, sprite, itemDescription);
+            int LeftOverItem = inventoryManager.AddItem(itemName, quantity, sprite, itemDescription);
             if (LeftOverItem <= 0)
                 Destroy(gameObject);
             else
                 quantity = LeftOverItem;
             Destroy(gameObject);
-
         }
     }
-    
+    private void OnTriggerEnter2D(UnityEngine.Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            isPlayerInRange = true;
+            Debug.Log("Player vào vùng item, nhấn E để nhặt");
+        }
+    }
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            isPlayerInRange = false;
+            Debug.Log("Player rời vùng item");
+        }
+    }
+
 }
