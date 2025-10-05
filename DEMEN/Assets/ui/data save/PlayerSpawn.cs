@@ -16,9 +16,7 @@ public class PlayerSpawn : MonoBehaviour
 
     public void SpawnPlayer()
     {
-        // Tìm Player trong scene
         GameObject player = GameObject.FindWithTag("Player");
-
         int slotIndex = PlayerPrefs.GetInt("CurrentSlot", -1);
 
         if (slotIndex != -1)
@@ -26,34 +24,24 @@ public class PlayerSpawn : MonoBehaviour
             SaveData data = SaveSystem.LoadGame(slotIndex);
             if (data != null)
             {
+                // Load vị trí player
                 SceneSaveData sceneData = data.GetScene(SceneManager.GetActiveScene().name);
-                if (sceneData != null)
+                if (sceneData != null && player != null)
                 {
-                    // Dịch chuyển Player tới vị trí đã lưu
-                    if (player != null)
-                    {
-                        player.transform.position = sceneData.position;
-                        Debug.Log($"[SPAWN] Dịch chuyển Player tới {sceneData.position}");
-                    }
-                    else
-                    {
-                        Instantiate(playerPrefab, sceneData.position, Quaternion.identity);
-                        Debug.Log($"[SPAWN] Spawn Player tại {sceneData.position}");
-                    }
-                    return;
+                    player.transform.position = sceneData.position;
+                }
+
+                // Load inventory
+                InventoryManager invMgr = GameObject.Find("InventoryPanel")?.GetComponent<InventoryManager>();
+                if (invMgr != null)
+                {
+                    invMgr.LoadInventoryData(data.inventory);
                 }
             }
         }
 
-        // Nếu không có save → giữ nguyên vị trí đặt trong scene
         if (player == null)
-        {
-            Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
-            Debug.Log("[SPAWN] Spawn Player mới tại (0,0,0) (không có SaveData)");
-        }
-        else
-        {
-            Debug.Log("[SPAWN] Không có SaveData, giữ nguyên vị trí gốc của Player trong scene");
-        }
+            player = Instantiate(playerPrefab, Vector3.zero, Quaternion.identity);
+
     }
 }

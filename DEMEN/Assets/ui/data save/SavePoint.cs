@@ -9,45 +9,46 @@ public class SavePoint : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-            playerInRange = true;
+        if (collision.CompareTag("Player")) playerInRange = true;
     }
 
     private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.CompareTag("Player"))
-            playerInRange = false;
+        if (collision.CompareTag("Player")) playerInRange = false;
     }
 
     void Update()
     {
-        if (playerInRange && Keyboard.current != null && Keyboard.current.eKey.wasPressedThisFrame)
+        if (playerInRange && Keyboard.current.eKey.wasPressedThisFrame)
         {
             int slotIndex = PlayerPrefs.GetInt("CurrentSlot", 0);
             SaveData data = SaveSystem.LoadGame(slotIndex) ?? new SaveData();
 
+            // Save scene
             GameObject player = GameObject.FindWithTag("Player");
-            if (player == null)
+            if (player != null)
             {
-                Debug.LogError("[SavePoint] Không tìm thấy Player!");
-                return;
+                SceneSaveData sceneData = new SceneSaveData
+                {
+                    sceneName = SceneManager.GetActiveScene().name,
+                    position = player.transform.position,
+                    playTime = PlayTimeTracker.Instance != null ? PlayTimeTracker.Instance.GetPlayTime() : 0f
+                };
+                data.AddScene(sceneData);
             }
 
-            SceneSaveData sceneData = new SceneSaveData
+            // Save inventory
+            InventoryManager invMgr = InventoryManager.Instance;
+            if (invMgr != null)
             {
-                sceneName = SceneManager.GetActiveScene().name,
-                position = player.transform.position,
-                playTime = PlayTimeTracker.Instance != null ? PlayTimeTracker.Instance.GetPlayTime() : 0f
-            };
+                data.inventory = invMgr.GetInventoryData();
+            }
 
-            // Thêm hoặc cập nhật scene trong SaveData
-            data.AddScene(sceneData);
-
-            // Lưu dữ liệu
             SaveSystem.SaveGame(slotIndex, data);
             PlayerPrefs.SetInt("CurrentSlot", slotIndex);
 
-            Debug.Log($"[SAVE] Slot {slotIndex} lưu scene {sceneData.sceneName} | Pos={sceneData.position} | Time={sceneData.playTime:F2}s");
+            Debug.Log($"[SAVE] Slot {slotIndex} saved scene {SceneManager.GetActiveScene().name} + inventory {data.inventory.items.Count} items");
         }
     }
+    
 }

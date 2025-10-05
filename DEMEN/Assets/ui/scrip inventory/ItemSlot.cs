@@ -13,7 +13,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
     public string itemDescription;
     public Sprite emptySprite;
 
-    [SerializeField] private int maxNumberOfItems;
+    [SerializeField] private int maxNumberOfItems = 99;
 
     //=====UI SLOT=====//
     [SerializeField] private TMP_Text quantityText;
@@ -43,21 +43,19 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
 
     private void Start()
     {
-        inventoryManager = GameObject.Find("InventoryPanel").GetComponent<InventoryManager>();
-        actionPanel.SetActive(false);
-
         parentCanvas = GetComponentInParent<Canvas>();
+        inventoryManager = GetComponentInParent<InventoryManager>();
+        UpdateSlotUI();
     }
 
-    public void Update()
+
+    private void Update()
     {
-        // Nếu action panel đang bật
+        // Nếu action panel đang bật, click ngoài sẽ tắt
         if (actionPanel != null && actionPanel.activeSelf)
         {
-            // Nếu nhấn chuột trái
             if (Input.GetMouseButtonDown(0))
             {
-                // Kiểm tra vị trí chuột có nằm ngoài panel không
                 if (!RectTransformUtility.RectangleContainsScreenPoint(
                     actionPanel.GetComponent<RectTransform>(),
                     Input.mousePosition,
@@ -69,53 +67,82 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         }
     }
 
-
-    public int Additem(string itemName, int quantity, Sprite itemSprite, string itemDescription)
+    //================== ADD ITEM ==================//
+    public int Additem(string name, int qty, Sprite sprite, string desc)
     {
-        if (isFull) return quantity;
+        Debug.Log($"[DEBUG] AddItem called: {name}, qty: {qty}");
+        if (isFull) return qty;
 
-        this.itemName = itemName;
-        this.itemSprite = itemSprite;
-        itemImage.sprite = itemSprite;
-        this.itemDescription = itemDescription;
+        itemName = name;
+        itemSprite = sprite;
+        itemImage.sprite = sprite;
+        itemDescription = desc;
 
-        this.quantity += quantity;
-        if (this.quantity >= maxNumberOfItems)
+        quantity += qty;
+        if (quantity >= maxNumberOfItems)
         {
-            quantityText.text = maxNumberOfItems.ToString();
-            quantityText.enabled = true;
+            int extra = quantity - maxNumberOfItems;
+            quantity = maxNumberOfItems;
             isFull = true;
-
-            int extraItems = this.quantity - maxNumberOfItems;
-            this.quantity = maxNumberOfItems;
-            return extraItems;
+            UpdateSlotUI();
+            return extra;
         }
-
-        quantityText.text = this.quantity.ToString();
-        quantityText.enabled = true;
-
+        inventoryManager?.OnSlotChanged();
+        UpdateSlotUI();
         return 0;
     }
 
+    //================== UI ==================//
+    public void UpdateSlotUI()
+    {
+        if (itemImage != null)
+            itemImage.sprite = itemSprite != null ? itemSprite : emptySprite;
+
+        if (quantityText != null)
+        {
+            quantityText.enabled = quantity > 1;
+            quantityText.text = quantity > 1 ? quantity.ToString() : "";
+        }
+    }
+
+    public void UpdateDescription()
+    {
+        if (itemDescriptionNameText != null)
+            itemDescriptionNameText.text = itemName;
+        if (itemDescriptionText != null)
+            itemDescriptionText.text = itemDescription;
+        if (itemDescriptionImage != null)
+            itemDescriptionImage.sprite = itemSprite != null ? itemSprite : emptySprite;
+    }
+
+    private void ClearDescription()
+    {
+        if (itemDescriptionNameText != null) itemDescriptionNameText.text = "";
+        if (itemDescriptionText != null) itemDescriptionText.text = "";
+        if (itemDescriptionImage != null) itemDescriptionImage.sprite = emptySprite;
+    }
+
+    public void UpdateActionPanel()
+    {
+        if (actionPanel != null)
+        {
+            actionPanel.SetActive(true);
+            Button useBtn = actionPanel.transform.Find("UseButton")?.GetComponent<Button>();
+            Button dropBtn = actionPanel.transform.Find("DropButton")?.GetComponent<Button>();
+
+            if (useBtn != null) useBtn.interactable = quantity > 0;
+            if (dropBtn != null) dropBtn.interactable = quantity > 0;
+        }
+    }
+
+    //================== SLOT SELECTION ==================//
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button == PointerEventData.InputButton.Left)
-        {
-            OnLeftClick();
-        }
-    }
-
-    public void OnLeftClick()
-    {
-        // Nếu chưa chọn slot
+        // Nếu slot chưa được chọn → lần click đầu tiên
         if (!thisItemSelected)
         {
-            if (inventoryManager != null)
-                inventoryManager.DeselectAllSlots();
-
-            if (selectedShader != null)
-                selectedShader.SetActive(true);
-
+            inventoryManager?.DeselectAllSlots();
+            selectedShader?.SetActive(true);
             thisItemSelected = true;
 
             if (!string.IsNullOrEmpty(itemName))
@@ -123,101 +150,100 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
             else
                 ClearDescription();
 
-            if (actionPanel != null)
-                actionPanel.SetActive(false); // không bật panel khi slot trống
-        }
-        else
-        {
-            // Chỉ toggle panel nếu slot có item
-            if (!string.IsNullOrEmpty(itemName) && actionPanel != null)
-                actionPanel.SetActive(!actionPanel.activeSelf);
-        }
-    }
-
-
-    //================= DRAG & DROP =================//
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        if (quantity <= 0) return;
-
-        // Nếu slot chưa được select, vẫn select nó
-        if (!thisItemSelected)
-        {
-            if (inventoryManager != null)
-                inventoryManager.DeselectAllSlots();
-
-            if (selectedShader != null)
-                selectedShader.SetActive(true);
-
-            thisItemSelected = true;
-
-            // Cập nhật description
-            if (!string.IsNullOrEmpty(itemName))
-                UpdateDescription();
-            else
-                ClearDescription();
-
-            // Lần drag đầu tiên không bật panel
+            // Không bật actionPanel lần đầu, chỉ chọn slot
             if (actionPanel != null)
                 actionPanel.SetActive(false);
         }
+        else
+        {
+            // Slot đã được chọn → lần click thứ hai
+            if (!string.IsNullOrEmpty(itemName) && actionPanel != null)
+            {
+                actionPanel.SetActive(!actionPanel.activeSelf);
+                UpdateActionPanel();
+            }
+        }
+    }
 
-        // Tạo ghost icon
+    //================== DRAG & DROP ==================//
+    public void OnBeginDrag(PointerEventData eventData)
+    {
+        if (!thisItemSelected || quantity <= 0 || string.IsNullOrEmpty(itemName))
+        {
+            eventData.pointerDrag = null;
+            return;
+        }
+
         dragIcon = Instantiate(Resources.Load<GameObject>("DragItemUI"), parentCanvas.transform);
         dragItemUI = dragIcon.GetComponent<DragItem>();
         dragItemUI.Setup(itemSprite, quantity);
+
+        CanvasGroup cg = dragIcon.AddComponent<CanvasGroup>();
+        cg.blocksRaycasts = false;
+
+        RectTransform rt = dragIcon.GetComponent<RectTransform>();
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentCanvas.transform as RectTransform,
+            eventData.position,
+            parentCanvas.worldCamera,
+            out localPoint);
+        rt.localPosition = localPoint;
     }
-
-
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (dragIcon != null)
-        {
-            dragIcon.transform.position = eventData.position;
-        }
+        if (dragIcon == null) return;
+
+        RectTransform rt = dragIcon.GetComponent<RectTransform>();
+        Vector2 localPoint;
+        RectTransformUtility.ScreenPointToLocalPointInRectangle(
+            parentCanvas.transform as RectTransform,
+            eventData.position,
+            parentCanvas.worldCamera,
+            out localPoint);
+        rt.localPosition = localPoint;
     }
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        if (dragIcon != null)
-        {
-            Destroy(dragIcon);
-        }
+        if (dragIcon != null) Destroy(dragIcon);
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        ItemSlot draggedSlot = eventData.pointerDrag.GetComponent<ItemSlot>();
+        ItemSlot draggedSlot = eventData.pointerDrag?.GetComponent<ItemSlot>();
         if (draggedSlot == null || draggedSlot == this) return;
 
-        // Nếu slot này trống, chuyển toàn bộ
+        inventoryManager?.DeselectAllSlots();
+        selectedShader?.SetActive(true);
+        thisItemSelected = true;
+
+        if (!string.IsNullOrEmpty(itemName)) UpdateDescription();
+        else ClearDescription();
+
+        // Nếu slot trống
         if (quantity <= 0)
         {
             Additem(draggedSlot.itemName, draggedSlot.quantity, draggedSlot.itemSprite, draggedSlot.itemDescription);
             draggedSlot.EmptySlot();
         }
-        // Nếu cùng loại item
+        // Cùng loại
         else if (itemName == draggedSlot.itemName)
         {
             int total = quantity + draggedSlot.quantity;
             if (total <= maxNumberOfItems)
             {
-                // đủ chứa -> gộp hết
                 quantity = total;
-                quantityText.text = quantity.ToString();
                 draggedSlot.EmptySlot();
             }
             else
             {
-                // slot này full -> đặt max, còn dư lại cho draggedSlot
                 quantity = maxNumberOfItems;
-                quantityText.text = quantity.ToString();
                 draggedSlot.quantity = total - maxNumberOfItems;
-                draggedSlot.quantityText.text = draggedSlot.quantity.ToString();
             }
         }
-        // Nếu khác loại item -> đổi chỗ
+        // Đổi chỗ
         else
         {
             string tempName = itemName;
@@ -230,36 +256,46 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
             itemDescription = draggedSlot.itemDescription;
             quantity = draggedSlot.quantity;
             itemImage.sprite = itemSprite;
-            quantityText.text = quantity > 0 ? quantity.ToString() : "";
+            UpdateSlotUI();
 
             draggedSlot.itemName = tempName;
             draggedSlot.itemSprite = tempSprite;
             draggedSlot.itemDescription = tempDesc;
             draggedSlot.quantity = tempQty;
             draggedSlot.itemImage.sprite = tempSprite;
-            draggedSlot.quantityText.text = tempQty > 0 ? tempQty.ToString() : "";
+            draggedSlot.UpdateSlotUI();
         }
+
+        UpdateSlotUI();
+        draggedSlot.UpdateSlotUI();
     }
 
-
+    //================== USE & DROP ==================//
     public void UseItem()
     {
+        inventoryManager?.OnSlotChanged();
+
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
+
         bool usable = inventoryManager.UseItem(itemName);
         if (usable)
         {
             quantity -= 1;
-            quantityText.text = quantity > 0 ? quantity.ToString() : "";
             if (quantity <= 0) EmptySlot();
+            else UpdateSlotUI();
         }
+
         if (actionPanel != null) actionPanel.SetActive(false);
     }
 
     public void DropItem()
     {
+        inventoryManager?.OnSlotChanged();
         if (quantity <= 0 || string.IsNullOrEmpty(itemName)) return;
 
-        // 1. Tạo GameObject item trên mặt đất
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player == null) return;
+
         GameObject itemToDrop = new GameObject(itemName);
         Item newItem = itemToDrop.AddComponent<Item>();
         newItem.quantity = 1;
@@ -279,73 +315,52 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         rb.gravityScale = 0f;
         rb.constraints = RigidbodyConstraints2D.FreezeRotation;
 
-        // 2. Đặt vị trí item trước player
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
-        {
-            Vector3 dropPosition = player.transform.position;
-            float facingDir = player.transform.localScale.x > 0 ? 1f : -1f;
-            dropPosition += new Vector3(facingDir * 1.0f, 0f, 0f);
-            itemToDrop.transform.position = dropPosition;
-            itemToDrop.transform.localScale = dropScale;
-        }
+        float facingDir = player.transform.localScale.x > 0 ? 1f : -1f;
+        itemToDrop.transform.position = player.transform.position + new Vector3(facingDir * 1f, 0f, 0f);
+        itemToDrop.transform.localScale = dropScale;
 
-        // 3. Trừ số lượng trong slot
         quantity -= 1;
-        quantityText.text = quantity > 0 ? quantity.ToString() : "";
         if (quantity <= 0) EmptySlot();
+        else UpdateSlotUI();
 
         if (actionPanel != null) actionPanel.SetActive(false);
     }
 
-    private void EmptySlot()
+    //================== EMPTY SLOT ==================//
+    public void EmptySlot()
     {
+        inventoryManager?.OnSlotChanged();
         quantity = 0;
         isFull = false;
         itemName = "";
         itemSprite = emptySprite;
+        itemImage.sprite = emptySprite;
         itemDescription = "";
-
-        if (quantityText != null) quantityText.enabled = false;
-        if (itemImage != null) itemImage.sprite = emptySprite;
-
-        if (selectedShader != null) selectedShader.SetActive(false);
         thisItemSelected = false;
-        if (actionPanel != null) actionPanel.SetActive(false);
+        selectedShader?.SetActive(false);
+        actionPanel?.SetActive(false);
+        UpdateSlotUI();
+        ClearDescription();
     }
-
-    // Tạo 1 hàm riêng để update Description khi click slot
-    private void UpdateDescription()
+    public void SafeUpdateUI()
     {
-        if (itemDescriptionNameText != null)
-            itemDescriptionNameText.text = itemName;
-        if (itemDescriptionText != null)
-            itemDescriptionText.text = itemDescription;
+        // kiểm tra null trước khi set UI
+        if (itemImage != null)
+            itemImage.sprite = itemSprite != null ? itemSprite : emptySprite;
+
+        if (quantityText != null)
+        {
+            quantityText.enabled = quantity > 1;
+            quantityText.text = quantity > 1 ? quantity.ToString() : "";
+        }
+
         if (itemDescriptionImage != null)
             itemDescriptionImage.sprite = itemSprite != null ? itemSprite : emptySprite;
-    }
 
-    private void ClearDescription()
-    {
         if (itemDescriptionNameText != null)
-            itemDescriptionNameText.text = "";
+            itemDescriptionNameText.text = itemName;
+
         if (itemDescriptionText != null)
-            itemDescriptionText.text = "";
-        if (itemDescriptionImage != null)
-            itemDescriptionImage.sprite = emptySprite;
+            itemDescriptionText.text = itemDescription;
     }
-    public void UpdateActionPanel()
-    {
-        if (actionPanel != null)
-        {
-            actionPanel.SetActive(true);
-            Button useBtn = actionPanel.transform.Find("UseButton")?.GetComponent<Button>();
-            Button dropBtn = actionPanel.transform.Find("DropButton")?.GetComponent<Button>();
-
-            if (useBtn != null) useBtn.interactable = quantity > 0;
-            if (dropBtn != null) dropBtn.interactable = quantity > 0;
-        }
-    }
-
-
 }
