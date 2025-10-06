@@ -54,6 +54,7 @@ public class SaveSlotUI : MonoBehaviour
         }
     }
 
+
     public void Deselect() => isSelected = false;
     public int GetSlotIndex() => slotIndex;
 }

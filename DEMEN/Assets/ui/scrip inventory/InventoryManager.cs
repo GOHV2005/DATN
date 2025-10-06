@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -6,32 +7,43 @@ public class InventoryManager : MonoBehaviour
 {
     [Header("Item Slots")]
     public ItemSlot[] itemSlots;
-
     public itemSO[] itemSOs;
 
     public static InventoryManager Instance;
+
+    [Header("Giữ item khi qua level?")]
+    public bool persistAcrossLevels = true;
 
     private InventoryData currentInventoryData;
 
     private void Awake()
     {
-        // Singleton
+        // 🔒 Singleton pattern — chỉ có 1 InventoryManager tồn tại
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
 
-            // Gán ItemSlot nếu chưa có
             if (itemSlots == null || itemSlots.Length == 0)
-                itemSlots = GetComponentsInChildren<ItemSlot>();
+                itemSlots = GetComponentsInChildren<ItemSlot>(true);
         }
         else
         {
             Destroy(gameObject);
             return;
         }
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
 
-        // Đăng ký scene loaded
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        // Ngăn bị gắn event nhiều lần
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SceneManager.sceneLoaded += OnSceneLoaded;
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
@@ -40,22 +52,49 @@ public class InventoryManager : MonoBehaviour
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
+    // 🔥 Khi scene mới được load
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        // Nếu scene có player → bật canvas
-        bool hasPlayer = GameObject.FindWithTag("Player") != null;
-        gameObject.SetActive(hasPlayer);  // chỉ bật nếu scene có player
+        string sceneName = scene.name;
 
-        // Gán lại ItemSlot (trường hợp UI canvas được rebuild)
+        // 🔸 Nếu là menu → clear inventory
+        if (sceneName == "UI Start Test 3==D")
+        {
+            Debug.Log($"[InventoryManager] Scene {sceneName} là menu → giữ inventory (không clear).");
+            gameObject.SetActive(false);
+            return;
+        }
+
+
+        // 🔸 Nếu không có UIManager → tạm ẩn Inventory
+        var uiManagers = Object.FindObjectsByType<UIManager>(FindObjectsSortMode.None);
+        if (uiManagers.Length == 0)
+        {
+            Debug.LogWarning($"[InventoryManager] Scene {sceneName} KHÔNG có UIManager → Inventory tạm ẩn.");
+            gameObject.SetActive(false);
+            return;
+        }
+
+        // 🔸 Kích hoạt lại inventory
+        gameObject.SetActive(true);
+
+        // 🔸 Gán lại itemSlots nếu canvas bị rebuild
         if (itemSlots == null || itemSlots.Length == 0)
-            itemSlots = GetComponentsInChildren<ItemSlot>();
+            itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
-        // Load lại inventory nếu có dữ liệu
-        if (currentInventoryData != null && hasPlayer)
+        // ✅ KHÔNG clear ở đây nữa, chỉ load lại nếu có data
+        if (persistAcrossLevels && currentInventoryData != null && currentInventoryData.items.Count > 0)
+        {
+            Debug.Log($"[InventoryManager] Restore inventory ({currentInventoryData.items.Count} items) sau khi scene {sceneName} load xong.");
             LoadInventoryData(currentInventoryData);
+        }
+        else
+        {
+            Debug.Log($"[InventoryManager] Scene {sceneName} load xong, chưa có inventory data.");
+        }
     }
 
-    // ==================== ITEM MANAGEMENT ====================
+    // ==================== ITEM LOGIC ====================
 
     public bool UseItem(string itemName)
     {
@@ -71,23 +110,27 @@ public class InventoryManager : MonoBehaviour
     {
         for (int i = 0; i < itemSlots.Length; i++)
         {
-            if (itemSlots[i].quantity == 0 || (itemSlots[i].itemName == name && !itemSlots[i].isFull))
+            if (itemSlots[i].quantity == 0 ||
+                (itemSlots[i].itemName == name && !itemSlots[i].isFull))
             {
                 int leftover = itemSlots[i].Additem(name, qty, sprite, desc);
-                if (leftover > 0) return AddItem(name, leftover, sprite, desc);
+                if (leftover > 0)
+                    return AddItem(name, leftover, sprite, desc);
                 return 0;
             }
         }
         return qty;
     }
 
+    // ✅ CHỈNH HÀM NÀY để lưu đúng vị trí từng item
     public InventoryData GetInventoryData()
     {
         InventoryData data = new InventoryData();
+
         for (int i = 0; i < itemSlots.Length; i++)
         {
-            var slot = itemSlots[i];
-            if (!string.IsNullOrEmpty(slot.itemName))
+            ItemSlot slot = itemSlots[i];
+            if (!string.IsNullOrEmpty(slot.itemName) && slot.quantity > 0)
             {
                 data.items.Add(new ItemData
                 {
@@ -95,29 +138,39 @@ public class InventoryManager : MonoBehaviour
                     quantity = slot.quantity,
                     spriteName = slot.itemSprite != null ? slot.itemSprite.name : "",
                     itemDescription = slot.itemDescription,
-                    slotIndex = i
+                    slotIndex = i // ✅ lưu lại đúng vị trí slot
                 });
             }
         }
+
         return data;
     }
 
+    // ✅ Load lại inventory, giữ đúng slot
     public void LoadInventoryData(InventoryData data)
     {
-        foreach (var item in data.items)
-        {
-            int i = item.slotIndex;
-            if (i >= 0 && i < itemSlots.Length)
-            {
-                Sprite sprite = null;
-                if (!string.IsNullOrEmpty(item.spriteName))
-                    sprite = Resources.Load<Sprite>("Sprites/Items/" + item.spriteName);
+        if (itemSlots == null || itemSlots.Length == 0)
+            itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
-                itemSlots[i].Additem(item.itemName, item.quantity, sprite ?? itemSlots[i].emptySprite, item.itemDescription);
-                itemSlots[i].UpdateSlotUI();
-                itemSlots[i].UpdateDescription();
-            }
+        // 🔹 Bước 1: clear sạch toàn bộ slot trước khi load
+        foreach (var slot in itemSlots)
+            slot.EmptySlot();
+
+        // 🔹 Bước 2: load dữ liệu từ save
+        for (int i = 0; i < data.items.Count && i < itemSlots.Length; i++)
+        {
+            var itemData = data.items[i];
+            Sprite sprite = GetSpriteByName(itemData.spriteName);
+
+            itemSlots[i].SetItem(
+                itemData.itemName,
+                itemData.quantity,
+                sprite,
+                itemData.itemDescription
+            );
         }
+
+        Debug.Log($"[InventoryManager] Inventory loaded: {data.items.Count} items");
     }
 
     public void DeselectAllSlots()
@@ -133,4 +186,45 @@ public class InventoryManager : MonoBehaviour
     {
         currentInventoryData = GetInventoryData();
     }
+
+    public void ClearInventory()
+    {
+        if (itemSlots == null || itemSlots.Length == 0)
+            itemSlots = GetComponentsInChildren<ItemSlot>(true);
+
+        foreach (var slot in itemSlots)
+        {
+            slot.itemName = "";
+            slot.quantity = 0;
+            slot.itemSprite = slot.emptySprite;
+            slot.itemDescription = "";
+            slot.isFull = false;
+            slot.UpdateSlotUI();
+        }
+
+        currentInventoryData = new InventoryData();
+        Debug.Log("[InventoryManager] Inventory cleared");
+    }
+    private Sprite GetSpriteByName(string spriteName)
+    {
+        if (string.IsNullOrEmpty(spriteName))
+            return null;
+
+        // 🔍 Tìm tất cả sprite có thể load từ Resources
+        Sprite sprite = Resources.Load<Sprite>(spriteName);
+        if (sprite != null)
+            return sprite;
+
+        // 🔍 Nếu không tìm được, thử tìm trong tất cả sprite đã load
+        Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
+        foreach (var s in allSprites)
+        {
+            if (s.name == spriteName)
+                return s;
+        }
+
+        Debug.LogWarning($"[InventoryManager] Không tìm thấy sprite '{spriteName}'!");
+        return null;
+    }
+
 }

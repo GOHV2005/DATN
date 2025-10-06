@@ -14,6 +14,7 @@ public class LoadingManager : MonoBehaviour
 
     void Start()
     {
+
         string sceneToLoad = SceneLoader.GetTargetScene();
         StartCoroutine(LoadAsync(sceneToLoad));
     }

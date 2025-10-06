@@ -3,9 +3,9 @@ using TMPro;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 
-public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler, IDropHandler
+public class ItemSlot : MonoBehaviour, IPointerClickHandler
 {
-    //=====ITEM DATA=====//
+    // ===== ITEM DATA =====
     public string itemName;
     public int quantity;
     public Sprite itemSprite;
@@ -15,11 +15,11 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
 
     [SerializeField] private int maxNumberOfItems = 99;
 
-    //=====UI SLOT=====//
+    // ===== UI SLOT =====
     [SerializeField] private TMP_Text quantityText;
     [SerializeField] private Image itemImage;
 
-    //=====ITEM DESCRIPTION=====//
+    // ===== ITEM DESCRIPTION =====
     public Image itemDescriptionImage;
     public TMP_Text itemDescriptionNameText;
     public TMP_Text itemDescriptionText;
@@ -36,41 +36,30 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
     [SerializeField] private Vector3 dropScale = new Vector3(0.3f, 0.3f, 0.3f);
     [SerializeField] private int dropOrderInLayer = 5;
 
-    // Drag ghost
-    private GameObject dragIcon;
-    private DragItem dragItemUI;
-    private Canvas parentCanvas;
-
     private void Start()
     {
-        parentCanvas = GetComponentInParent<Canvas>();
         inventoryManager = GetComponentInParent<InventoryManager>();
         UpdateSlotUI();
     }
 
-
     private void Update()
     {
-        // Nếu action panel đang bật, click ngoài sẽ tắt
-        if (actionPanel != null && actionPanel.activeSelf)
+        // Tắt action panel nếu click ngoài
+        if (actionPanel != null && actionPanel.activeSelf && Input.GetMouseButtonDown(0))
         {
-            if (Input.GetMouseButtonDown(0))
+            if (!RectTransformUtility.RectangleContainsScreenPoint(
+                actionPanel.GetComponent<RectTransform>(),
+                Input.mousePosition,
+                null))
             {
-                if (!RectTransformUtility.RectangleContainsScreenPoint(
-                    actionPanel.GetComponent<RectTransform>(),
-                    Input.mousePosition,
-                    parentCanvas.worldCamera))
-                {
-                    actionPanel.SetActive(false);
-                }
+                actionPanel.SetActive(false);
             }
         }
     }
 
-    //================== ADD ITEM ==================//
+    // ================== ADD ITEM ==================
     public int Additem(string name, int qty, Sprite sprite, string desc)
     {
-        Debug.Log($"[DEBUG] AddItem called: {name}, qty: {qty}");
         if (isFull) return qty;
 
         itemName = name;
@@ -87,12 +76,13 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
             UpdateSlotUI();
             return extra;
         }
+
         inventoryManager?.OnSlotChanged();
         UpdateSlotUI();
         return 0;
     }
 
-    //================== UI ==================//
+    // ================== UI ==================
     public void UpdateSlotUI()
     {
         if (itemImage != null)
@@ -107,12 +97,9 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
 
     public void UpdateDescription()
     {
-        if (itemDescriptionNameText != null)
-            itemDescriptionNameText.text = itemName;
-        if (itemDescriptionText != null)
-            itemDescriptionText.text = itemDescription;
-        if (itemDescriptionImage != null)
-            itemDescriptionImage.sprite = itemSprite != null ? itemSprite : emptySprite;
+        if (itemDescriptionNameText != null) itemDescriptionNameText.text = itemName;
+        if (itemDescriptionText != null) itemDescriptionText.text = itemDescription;
+        if (itemDescriptionImage != null) itemDescriptionImage.sprite = itemSprite != null ? itemSprite : emptySprite;
     }
 
     private void ClearDescription()
@@ -135,28 +122,22 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         }
     }
 
-    //================== SLOT SELECTION ==================//
+    // ================== SLOT SELECTION ==================
     public void OnPointerClick(PointerEventData eventData)
     {
-        // Nếu slot chưa được chọn → lần click đầu tiên
         if (!thisItemSelected)
         {
             inventoryManager?.DeselectAllSlots();
             selectedShader?.SetActive(true);
             thisItemSelected = true;
 
-            if (!string.IsNullOrEmpty(itemName))
-                UpdateDescription();
-            else
-                ClearDescription();
+            if (!string.IsNullOrEmpty(itemName)) UpdateDescription();
+            else ClearDescription();
 
-            // Không bật actionPanel lần đầu, chỉ chọn slot
-            if (actionPanel != null)
-                actionPanel.SetActive(false);
+            if (actionPanel != null) actionPanel.SetActive(false);
         }
         else
         {
-            // Slot đã được chọn → lần click thứ hai
             if (!string.IsNullOrEmpty(itemName) && actionPanel != null)
             {
                 actionPanel.SetActive(!actionPanel.activeSelf);
@@ -165,116 +146,9 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         }
     }
 
-    //================== DRAG & DROP ==================//
-    public void OnBeginDrag(PointerEventData eventData)
-    {
-        if (!thisItemSelected || quantity <= 0 || string.IsNullOrEmpty(itemName))
-        {
-            eventData.pointerDrag = null;
-            return;
-        }
-
-        dragIcon = Instantiate(Resources.Load<GameObject>("DragItemUI"), parentCanvas.transform);
-        dragItemUI = dragIcon.GetComponent<DragItem>();
-        dragItemUI.Setup(itemSprite, quantity);
-
-        CanvasGroup cg = dragIcon.AddComponent<CanvasGroup>();
-        cg.blocksRaycasts = false;
-
-        RectTransform rt = dragIcon.GetComponent<RectTransform>();
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            parentCanvas.transform as RectTransform,
-            eventData.position,
-            parentCanvas.worldCamera,
-            out localPoint);
-        rt.localPosition = localPoint;
-    }
-
-    public void OnDrag(PointerEventData eventData)
-    {
-        if (dragIcon == null) return;
-
-        RectTransform rt = dragIcon.GetComponent<RectTransform>();
-        Vector2 localPoint;
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(
-            parentCanvas.transform as RectTransform,
-            eventData.position,
-            parentCanvas.worldCamera,
-            out localPoint);
-        rt.localPosition = localPoint;
-    }
-
-    public void OnEndDrag(PointerEventData eventData)
-    {
-        if (dragIcon != null) Destroy(dragIcon);
-    }
-
-    public void OnDrop(PointerEventData eventData)
-    {
-        ItemSlot draggedSlot = eventData.pointerDrag?.GetComponent<ItemSlot>();
-        if (draggedSlot == null || draggedSlot == this) return;
-
-        inventoryManager?.DeselectAllSlots();
-        selectedShader?.SetActive(true);
-        thisItemSelected = true;
-
-        if (!string.IsNullOrEmpty(itemName)) UpdateDescription();
-        else ClearDescription();
-
-        // Nếu slot trống
-        if (quantity <= 0)
-        {
-            Additem(draggedSlot.itemName, draggedSlot.quantity, draggedSlot.itemSprite, draggedSlot.itemDescription);
-            draggedSlot.EmptySlot();
-        }
-        // Cùng loại
-        else if (itemName == draggedSlot.itemName)
-        {
-            int total = quantity + draggedSlot.quantity;
-            if (total <= maxNumberOfItems)
-            {
-                quantity = total;
-                draggedSlot.EmptySlot();
-            }
-            else
-            {
-                quantity = maxNumberOfItems;
-                draggedSlot.quantity = total - maxNumberOfItems;
-            }
-        }
-        // Đổi chỗ
-        else
-        {
-            string tempName = itemName;
-            Sprite tempSprite = itemSprite;
-            string tempDesc = itemDescription;
-            int tempQty = quantity;
-
-            itemName = draggedSlot.itemName;
-            itemSprite = draggedSlot.itemSprite;
-            itemDescription = draggedSlot.itemDescription;
-            quantity = draggedSlot.quantity;
-            itemImage.sprite = itemSprite;
-            UpdateSlotUI();
-
-            draggedSlot.itemName = tempName;
-            draggedSlot.itemSprite = tempSprite;
-            draggedSlot.itemDescription = tempDesc;
-            draggedSlot.quantity = tempQty;
-            draggedSlot.itemImage.sprite = tempSprite;
-            draggedSlot.UpdateSlotUI();
-        }
-
-        UpdateSlotUI();
-        draggedSlot.UpdateSlotUI();
-    }
-
-    //================== USE & DROP ==================//
+    // ================== USE & DROP ==================
     public void UseItem()
     {
-        inventoryManager?.OnSlotChanged();
-
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
 
         bool usable = inventoryManager.UseItem(itemName);
@@ -286,11 +160,11 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         }
 
         if (actionPanel != null) actionPanel.SetActive(false);
+        inventoryManager?.OnSlotChanged();
     }
 
     public void DropItem()
     {
-        inventoryManager?.OnSlotChanged();
         if (quantity <= 0 || string.IsNullOrEmpty(itemName)) return;
 
         GameObject player = GameObject.FindWithTag("Player");
@@ -324,9 +198,10 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         else UpdateSlotUI();
 
         if (actionPanel != null) actionPanel.SetActive(false);
+        inventoryManager?.OnSlotChanged();
     }
 
-    //================== EMPTY SLOT ==================//
+    // ================== EMPTY SLOT ==================
     public void EmptySlot()
     {
         inventoryManager?.OnSlotChanged();
@@ -342,25 +217,15 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler, IBeginDragHandler, 
         UpdateSlotUI();
         ClearDescription();
     }
-    public void SafeUpdateUI()
+
+    public void SetItem(string name, int qty, Sprite sprite, string desc)
     {
-        // kiểm tra null trước khi set UI
-        if (itemImage != null)
-            itemImage.sprite = itemSprite != null ? itemSprite : emptySprite;
+        itemName = name;
+        quantity = qty;
+        itemSprite = sprite;
+        itemDescription = desc;
 
-        if (quantityText != null)
-        {
-            quantityText.enabled = quantity > 1;
-            quantityText.text = quantity > 1 ? quantity.ToString() : "";
-        }
-
-        if (itemDescriptionImage != null)
-            itemDescriptionImage.sprite = itemSprite != null ? itemSprite : emptySprite;
-
-        if (itemDescriptionNameText != null)
-            itemDescriptionNameText.text = itemName;
-
-        if (itemDescriptionText != null)
-            itemDescriptionText.text = itemDescription;
+        UpdateSlotUI();
+        UpdateDescription();
     }
 }
