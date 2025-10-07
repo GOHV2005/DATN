@@ -32,7 +32,7 @@ public class SaveSlotUI : MonoBehaviour
             var lastScene = data.scenes[data.scenes.Count - 1];
             sceneNameText.text = string.IsNullOrEmpty(lastScene.sceneName) ? "Unknown" : lastScene.sceneName;
             playTimeText.text = lastScene.GetPlayTimeString();
-        }
+        }        
     }
 
     public void OnClickSlot()

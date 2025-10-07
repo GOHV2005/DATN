@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -16,86 +15,110 @@ public class InventoryManager : MonoBehaviour
 
     private InventoryData currentInventoryData;
 
+    // ========================== INIT ==========================
     private void Awake()
     {
-        // 🔒 Singleton pattern — chỉ có 1 InventoryManager tồn tại
+        int lastSlot = PlayerPrefs.GetInt("LastUsedSlot", 0);
+        Debug.Log($"[InventoryManager] Using last saved slot: {lastSlot}");
+
+        InventoryData data = SaveSystem.LoadInventory(lastSlot);
+        if (data != null)
+        {
+            LoadInventoryData(data);
+            Debug.Log($"[InventoryManager] Inventory loaded: {data.items.Count} items");
+        }
+        else
+        {
+            Debug.Log("[InventoryManager] No saved inventory found on startup.");
+        }
         if (Instance == null)
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
-            if (itemSlots == null || itemSlots.Length == 0)
-                itemSlots = GetComponentsInChildren<ItemSlot>(true);
+            SceneManager.activeSceneChanged += OnActiveSceneChanged;
+            SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // ✅ Tự động load lại inventory khi khởi động game
+            int currentSlot = PlayerPrefs.GetInt("LastSaveSlot", 0);
+            InventoryData invData = SaveSystem.LoadInventory(currentSlot);
+            if (invData != null && invData.items.Count > 0)
+            {
+                currentInventoryData = invData;
+                LoadInventoryData(invData);
+                Debug.Log($"[InventoryManager] Auto-loaded inventory on startup ({invData.items.Count} items).");
+            }
+            else
+            {
+                Debug.Log("[InventoryManager] No saved inventory found on startup.");
+            }
         }
         else
         {
             Destroy(gameObject);
-            return;
         }
-        if (Instance != null && Instance != this)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-
-        // Ngăn bị gắn event nhiều lần
-        SceneManager.sceneLoaded -= OnSceneLoaded;
-        SceneManager.sceneLoaded += OnSceneLoaded;
-        SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
     private void OnDestroy()
     {
+        SceneManager.activeSceneChanged -= OnActiveSceneChanged;
         SceneManager.sceneLoaded -= OnSceneLoaded;
     }
 
-    // 🔥 Khi scene mới được load
-    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    // ========================== SCENE HANDLING ==========================
+    private void OnActiveSceneChanged(Scene oldScene, Scene newScene)
     {
-        string sceneName = scene.name;
+        string newName = newScene.name;
+        Debug.Log($"[InventoryManager] Active scene changed → {newName}");
 
-        // 🔸 Nếu là menu → clear inventory
-        if (sceneName == "UI Start Test 3==D")
+        if (newName.Contains("UI Start") || newName.StartsWith("UI Start Test 3==D"))
         {
-            Debug.Log($"[InventoryManager] Scene {sceneName} là menu → giữ inventory (không clear).");
             gameObject.SetActive(false);
             return;
         }
 
-
-        // 🔸 Nếu không có UIManager → tạm ẩn Inventory
-        var uiManagers = Object.FindObjectsByType<UIManager>(FindObjectsSortMode.None);
-        if (uiManagers.Length == 0)
-        {
-            Debug.LogWarning($"[InventoryManager] Scene {sceneName} KHÔNG có UIManager → Inventory tạm ẩn.");
-            gameObject.SetActive(false);
-            return;
-        }
-
-        // 🔸 Kích hoạt lại inventory
         gameObject.SetActive(true);
 
-        // 🔸 Gán lại itemSlots nếu canvas bị rebuild
         if (itemSlots == null || itemSlots.Length == 0)
             itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
-        // ✅ KHÔNG clear ở đây nữa, chỉ load lại nếu có data
         if (persistAcrossLevels && currentInventoryData != null && currentInventoryData.items.Count > 0)
         {
-            Debug.Log($"[InventoryManager] Restore inventory ({currentInventoryData.items.Count} items) sau khi scene {sceneName} load xong.");
             LoadInventoryData(currentInventoryData);
+            Debug.Log($"[InventoryManager] Inventory restored ({currentInventoryData.items.Count} items)");
         }
         else
         {
-            Debug.Log($"[InventoryManager] Scene {sceneName} load xong, chưa có inventory data.");
+            Debug.Log("[InventoryManager] No inventory data found to restore.");
         }
     }
 
-    // ==================== ITEM LOGIC ====================
+    // ✅ Bổ sung hàm này để tránh lỗi "The name 'OnSceneLoaded' does not exist"
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        string sceneName = scene.name;
+        Debug.Log($"[InventoryManager] Scene loaded: {sceneName}");
 
+        if (sceneName.Contains("UI Start"))
+        {
+            gameObject.SetActive(false);
+            return;
+        }
+
+        gameObject.SetActive(true);
+
+        if (itemSlots == null || itemSlots.Length == 0)
+            itemSlots = GetComponentsInChildren<ItemSlot>(true);
+
+        if (persistAcrossLevels && currentInventoryData != null && currentInventoryData.items.Count > 0)
+        {
+            LoadInventoryData(currentInventoryData);
+            Debug.Log($"[InventoryManager] Restore inventory ({currentInventoryData.items.Count} items) after scene load.");
+        }
+    }
+
+    // ========================== ITEM LOGIC ==========================
     public bool UseItem(string itemName)
     {
         foreach (var so in itemSOs)
@@ -122,7 +145,7 @@ public class InventoryManager : MonoBehaviour
         return qty;
     }
 
-    // ✅ CHỈNH HÀM NÀY để lưu đúng vị trí từng item
+    // ========================== SAVE / LOAD ==========================
     public InventoryData GetInventoryData()
     {
         InventoryData data = new InventoryData();
@@ -138,31 +161,37 @@ public class InventoryManager : MonoBehaviour
                     quantity = slot.quantity,
                     spriteName = slot.itemSprite != null ? slot.itemSprite.name : "",
                     itemDescription = slot.itemDescription,
-                    slotIndex = i // ✅ lưu lại đúng vị trí slot
+                    slotIndex = i
                 });
             }
         }
 
+        currentInventoryData = data;
         return data;
     }
 
-    // ✅ Load lại inventory, giữ đúng slot
     public void LoadInventoryData(InventoryData data)
     {
+        if (data == null)
+        {
+            Debug.LogWarning("[InventoryManager] LoadInventoryData() → data is null!");
+            return;
+        }
+
         if (itemSlots == null || itemSlots.Length == 0)
             itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
-        // 🔹 Bước 1: clear sạch toàn bộ slot trước khi load
         foreach (var slot in itemSlots)
             slot.EmptySlot();
 
-        // 🔹 Bước 2: load dữ liệu từ save
-        for (int i = 0; i < data.items.Count && i < itemSlots.Length; i++)
+        foreach (var itemData in data.items)
         {
-            var itemData = data.items[i];
+            if (itemData.slotIndex < 0 || itemData.slotIndex >= itemSlots.Length)
+                continue;
+
             Sprite sprite = GetSpriteByName(itemData.spriteName);
 
-            itemSlots[i].SetItem(
+            itemSlots[itemData.slotIndex].SetItem(
                 itemData.itemName,
                 itemData.quantity,
                 sprite,
@@ -170,9 +199,11 @@ public class InventoryManager : MonoBehaviour
             );
         }
 
+        currentInventoryData = data;
         Debug.Log($"[InventoryManager] Inventory loaded: {data.items.Count} items");
     }
 
+    // ========================== SLOT MANAGEMENT ==========================
     public void DeselectAllSlots()
     {
         foreach (var slot in itemSlots)
@@ -205,17 +236,17 @@ public class InventoryManager : MonoBehaviour
         currentInventoryData = new InventoryData();
         Debug.Log("[InventoryManager] Inventory cleared");
     }
+
+    // ========================== SPRITE HELPER ==========================
     private Sprite GetSpriteByName(string spriteName)
     {
         if (string.IsNullOrEmpty(spriteName))
             return null;
 
-        // 🔍 Tìm tất cả sprite có thể load từ Resources
         Sprite sprite = Resources.Load<Sprite>(spriteName);
         if (sprite != null)
             return sprite;
 
-        // 🔍 Nếu không tìm được, thử tìm trong tất cả sprite đã load
         Sprite[] allSprites = Resources.FindObjectsOfTypeAll<Sprite>();
         foreach (var s in allSprites)
         {
@@ -226,5 +257,4 @@ public class InventoryManager : MonoBehaviour
         Debug.LogWarning($"[InventoryManager] Không tìm thấy sprite '{spriteName}'!");
         return null;
     }
-
 }

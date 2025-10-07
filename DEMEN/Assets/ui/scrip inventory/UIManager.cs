@@ -5,7 +5,6 @@ public class UIManager : MonoBehaviour
     [Header("Panels")]
     public GameObject ButtonPanel;
     public GameObject panelInventory;
-    public GameObject panelCraft;
     public GameObject panelMap;
     public GameObject panelHealth; // Slider máu
 
@@ -43,8 +42,6 @@ public class UIManager : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.I))
             ShowPanel(panelInventory);
-        else if (Input.GetKeyDown(KeyCode.C))
-            ShowPanel(panelCraft);
         else if (Input.GetKeyDown(KeyCode.M))
             ShowPanel(panelMap);
         else if (Input.GetKeyDown(KeyCode.Escape))
@@ -52,7 +49,6 @@ public class UIManager : MonoBehaviour
     }
 
     public void ShowInventory() => ShowPanel(panelInventory);
-    public void ShowCraft() => ShowPanel(panelCraft);
     public void ShowMap() => ShowPanel(panelMap);
 
     private void ShowPanel(GameObject targetPanel)
@@ -76,7 +72,6 @@ public class UIManager : MonoBehaviour
     {
         if (ButtonPanel != null) ButtonPanel.SetActive(false);
         if (panelInventory != null) panelInventory.SetActive(false);
-        if (panelCraft != null) panelCraft.SetActive(false);
         if (panelMap != null) panelMap.SetActive(false);
 
         IsUIOpen = false;
