@@ -278,7 +278,7 @@ Transform:
   m_GameObject: {fileID: 717317237}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -1.61946, y: -3.47, z: 0}
+  m_LocalPosition: {x: -1.61946, y: -3.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -608,7 +608,7 @@ Transform:
   m_GameObject: {fileID: 1336897572}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 6.4005404, y: -3.47, z: 0}
+  m_LocalPosition: {x: 6.4005404, y: -3.39, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -661,18 +661,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b9e12c88eabc16f4489c5116872c6555, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 2
-  jumpForce: 13
-  detectRange: 5
-  attackRange: 5
   pointA: {fileID: 717317238}
   pointB: {fileID: 1336897573}
-  player: {fileID: 1309297448}
-  groundLayer:
+  patrolDistance: 5
+  viewAngle: 120
+  obstacleLayer:
     serializedVersion: 2
     m_Bits: 8
-  showTrajectory: 1
-  trajectorySteps: 30
+  stepJumpDistance: 1.5
+  stepJumpHeight: 5
+  idleTime: 1
+  detectionRange: 6
+  groundTolerance: 0.5
+  chargeTime: 2
+  attackJumpTime: 0.8
+  player: {fileID: 1309297448}
 --- !u!50 &1841674417
 Rigidbody2D:
   serializedVersion: 5
