@@ -17,27 +17,40 @@ public class LarvaAI : MonoBehaviour
 
     [Header("=== SÁT THƯƠNG ===")]
     public float damage = 10f;
-    public float damageCooldown = 1.5f; // Thời gian giữa các lần gây sát thương
+    public float damageCooldown = 1.5f;
 
     [Header("=== TUẦN TRA ===")]
     public Transform pointA;
     public Transform pointB;
 
+    public string idleAnim = "nam(autrung)";
+    public string crawlAnim = "let(autrung)";
+
     private bool isGrounded = false;
     private float lastDamageTime = 0f;
     private Coroutine currentCoroutine;
     private bool facingRight = true;
+    private Animator anim;
+    private SpriteRenderer sr; // 👈 THÊM
 
     void Start()
     {
-        currentState = LarvaState.Idle;
-        currentCoroutine = StartCoroutine(MovementCycle());
-        if (player == null)
+        sr = GetComponent<SpriteRenderer>(); // 👈 THÊM
+        anim = GetComponent<Animator>();
+        if (anim == null)
         {
-            GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
-            if (playerObj != null)
-                player = playerObj.transform;
+            Debug.LogError("[Larva] Thiếu component Animator!");
+            enabled = false;
+            return;
         }
+
+        currentState = LarvaState.Idle;
+        PlayAnim(idleAnim);
+
+        if (player == null)
+            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+        currentCoroutine = StartCoroutine(MovementCycle());
     }
 
     void Update()
@@ -50,35 +63,33 @@ public class LarvaAI : MonoBehaviour
         isGrounded = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, obstacleLayer).collider != null;
     }
 
-    // ================== GÂY SÁT THƯƠNG KHI CHẠM ==================
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
         {
-            Debug.Log("[Larva] Player chạm vào → gây sát thương!");
-            // 🩸 GÂY SÁT THƯƠNG
+            Debug.Log("[Larva] Gây sát thương!");
             collision.collider.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
             lastDamageTime = Time.time;
         }
     }
-    
 
-    // ================== TUẦN TRA ==================
     IEnumerator MovementCycle()
     {
         while (true)
         {
             if (currentState == LarvaState.Idle)
             {
+                PlayAnim(idleAnim);
                 yield return new WaitForSeconds(idleTime);
+
                 if (currentState == LarvaState.Idle)
                 {
-                    if (facingRight && transform.position.x >= pointB.position.x)
+                    if (facingRight && pointB != null && transform.position.x >= pointB.position.x)
                         facingRight = false;
-                    else if (!facingRight && transform.position.x <= pointA.position.x)
+                    else if (!facingRight && pointA != null && transform.position.x <= pointA.position.x)
                         facingRight = true;
 
-                    FlipSprite(facingRight);
+                    FlipSprite(facingRight); // 👈 GỌI HÀM MỚI
                     Vector3 target = transform.position + (facingRight ? Vector3.right : Vector3.left) * crawlDistance;
                     SetState(LarvaState.Crawl);
                     StartCoroutine(CrawlTo(target));
@@ -90,9 +101,11 @@ public class LarvaAI : MonoBehaviour
 
     IEnumerator CrawlTo(Vector3 target)
     {
+        PlayAnim(crawlAnim);
         float startTime = Time.time;
         Vector3 startPos = transform.position;
-        float duration = Vector3.Distance(startPos, target) / crawlSpeed;
+        float distance = Vector3.Distance(startPos, target);
+        float duration = distance / crawlSpeed;
 
         while (Time.time - startTime < duration)
         {
@@ -100,33 +113,26 @@ public class LarvaAI : MonoBehaviour
             transform.position = Vector3.Lerp(startPos, target, (Time.time - startTime) / duration);
             yield return null;
         }
+
+        transform.position = target;
         SetState(LarvaState.Idle);
     }
 
-    // ================== TIỆN ÍCH ==================
+    // ✅ SỬA HÀM NÀY
     void FlipSprite(bool faceRight)
     {
         facingRight = faceRight;
-        Vector3 scale = transform.localScale;
-        scale.x = faceRight ? Mathf.Abs(scale.x) : -Mathf.Abs(scale.x);
-        transform.localScale = scale;
+        sr.flipX = !faceRight; // Vì sprite gốc nhìn phải
+    }
+
+    void PlayAnim(string animName)
+    {
+        anim.Play(animName);
     }
 
     void SetState(LarvaState newState)
     {
         if (currentState == newState) return;
         currentState = newState;
-        if (newState == LarvaState.Idle && currentCoroutine == null)
-        {
-            currentCoroutine = StartCoroutine(MovementCycle());
-        }
-    }
-
-    // ================== DEBUG ==================
-    void OnDrawGizmosSelected()
-    {
-        // Vòng va chạm (phụ thuộc vào Collider2D của bạn)
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, 0.3f); // Ước lượng
     }
 }
