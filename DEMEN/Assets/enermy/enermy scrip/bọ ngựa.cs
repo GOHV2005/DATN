@@ -165,9 +165,15 @@ public class MantisAI : MonoBehaviour
     {
         if (player == null) return;
         FacePlayer();
-        anim.Play("DiBo(BoNgua)");
+
+        // 👇 CHỈ CHƠI ANIMATION "DiBo" KHI KHÔNG ĐANG TẤN CÔNG
+        if (!isAttacking)
+        {
+            anim.Play("DiBo(BoNgua)");
+        }
+
         SetBodyVisibility(true);
-        // Kiểm tra thoát
+
         if (distance > visionRange)
         {
             currentState = MantisState.ReturnToIdle;
@@ -175,10 +181,8 @@ public class MantisAI : MonoBehaviour
             return;
         }
 
-        // Tấn công trong Reveal
         if (distance <= revealAttackRange && !isAttacking && Time.time - lastAttackTime >= attackCooldown)
         {
-            Debug.Log("🩸 [Bọ ngựa] Vồ tấn công trực diện!");
             PerformRevealAttack();
         }
     }
@@ -191,8 +195,7 @@ public class MantisAI : MonoBehaviour
         lastAttackTime = Time.time;
         FacePlayer();
 
-        // 👇 DÙNG ĐÚNG TÊN ANIMATION MÀ "TẤN CÔNG CHỚP NHOÁNG" DÙNG
-        anim.Play("TanCong(BoNgua)"); // hoặc tên khác nếu bạn đặt khác
+        anim.Play("TanCong(BoNgua)",0,0f);
 
         rb.linearVelocity = (player.position - transform.position).normalized * (attackSpeed * 1.2f);
         Invoke(nameof(EndRevealAttack), 0.4f);
