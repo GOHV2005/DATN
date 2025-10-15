@@ -1,16 +1,15 @@
-// WebProjectile.cs
 using UnityEngine;
 
 public class WebProjectile : MonoBehaviour
 {
     public float speed = 5f;
     public float lifetime = 2.5f;
-    private Vector2 direction;
-    private bool hasHit = false; // 👈 tránh hủy nhiều lần
+    private bool hasHit = false;
 
-    public void Initialize(Vector2 dir)
+    public void Initialize(Vector2 direction)
     {
-        direction = dir.normalized;
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        transform.rotation = Quaternion.Euler(0, 0, angle);
     }
 
     void Start()
@@ -20,25 +19,35 @@ public class WebProjectile : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(direction * speed * Time.deltaTime);
+        transform.Translate(Vector2.right * speed * Time.deltaTime);
     }
 
     void OnTriggerEnter2D(Collider2D col)
     {
-        if (hasHit) return; // 👈 chỉ xử lý 1 lần
+        if (hasHit) return;
         hasHit = true;
+
+        // 👇 DEBUG: XEM VA CHẠM VỚI CÁI GÌ
+        Debug.Log($"[Web] Va chạm với: {col.name} | Tag: '{col.tag}' | IsTrigger: {col.isTrigger}");
 
         if (col.CompareTag("Player"))
         {
             var spider = Object.FindAnyObjectByType<EnemySpider>();
-            spider?.OnWebHitPlayer();
-            Debug.Log("[Web] Trúng player!");
+            if (spider == null)
+            {
+                Debug.LogError("[Web] ❌ KHÔNG TÌM THẤY NHỆN! (EnemySpider không tồn tại)");
+            }
+            else
+            {
+                spider.OnWebHitPlayer();
+                Debug.Log("[Web] ✅ TRÚNG PLAYER! Gọi OnWebHitPlayer()");
+            }
         }
         else
         {
-            Debug.Log("[Web] Dính vật cản: " + col.name);
+            Debug.Log("[Web] 💥 Dính vật cản, tự hủy");
         }
 
-        //Destroy(gameObject);
+        
     }
 }
