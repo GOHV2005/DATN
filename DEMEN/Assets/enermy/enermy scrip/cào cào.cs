@@ -288,6 +288,7 @@ public class EnemyGrasshopper : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + (Vector3)(dir1 * detectionRange));
         Gizmos.DrawLine(transform.position, transform.position + (Vector3)(dir2 * detectionRange));
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+        
     }
     IEnumerator ScanAfterLanding()
     {
