@@ -6,7 +6,7 @@ public class EnemySpider : MonoBehaviour
     public float maxLowerDistance = 3f;
     public float detectionRange = 4f;
     public GameObject webPrefab;
-    public GameObject webLine;
+
     public Transform muzzlePoint;
     public float shootInterval = 1.2f;
     public int maxShots = 10;
@@ -16,6 +16,7 @@ public class EnemySpider : MonoBehaviour
     public string prepareShootAnim = "phinbungbandan(nhen)";
     public Transform player;
     public LayerMask obstacleLayer;
+    private Rigidbody2D playerRb; // 👈 THÊM
 
     private Vector3 originalPosition;
     private Vector3 originalLocalScale;
@@ -28,15 +29,13 @@ public class EnemySpider : MonoBehaviour
 
     void Start()
     {
+        if (player != null)
+        {
+            playerRb = player.GetComponent<Rigidbody2D>();
+        }
         anim = GetComponent<Animator>();
         originalPosition = transform.position;
         originalLocalScale = transform.localScale;
-
-        if (webLine != null)
-        {
-            webLineRenderer = webLine.GetComponent<SpriteRenderer>();
-            webLine.SetActive(false);
-        }
 
         if (muzzlePoint == null)
             muzzlePoint = transform;
@@ -68,16 +67,26 @@ public class EnemySpider : MonoBehaviour
             }
         }
     }
+    Vector2 PredictPlayerPosition()
+    {
+        if (player == null || playerRb == null)
+            return player != null ? player.position : Vector2.zero;
 
+        // Vận tốc hiện tại của player
+        Vector2 playerVelocity = playerRb.linearVelocity;
+
+        // Khoảng cách từ nhện đến player
+        float distance = Vector2.Distance(transform.position, player.position);
+
+        // Thời gian đạn bay đến player (ước lượng)
+        float timeToReach = distance / 5f; // 5f = speed của đạn
+
+        // Dự đoán vị trí tương lai
+        return (Vector2)player.position + playerVelocity * timeToReach;
+    }
     IEnumerator LowerDown()
     {
         SetState(State.Lowering);
-
-        if (webLine != null)
-        {
-            webLine.SetActive(true);
-            webLine.transform.position = originalPosition;
-        }
 
         Vector3 targetPos = originalPosition + Vector3.down * maxLowerDistance;
         float elapsedTime = 0f;
@@ -87,15 +96,14 @@ public class EnemySpider : MonoBehaviour
         {
             transform.position = Vector2.Lerp(originalPosition, targetPos, elapsedTime / duration);
 
-            if (webLine != null && webLineRenderer != null && webLineRenderer.sprite != null)
+            if ( webLineRenderer != null && webLineRenderer.sprite != null)
             {
                 float currentLength = Vector2.Distance(originalPosition, transform.position);
                 float originalHeight = webLineRenderer.sprite.rect.height / webLineRenderer.sprite.pixelsPerUnit;
                 if (originalHeight <= 0) originalHeight = 1f;
 
                 float scaleY = currentLength / originalHeight;
-                webLine.transform.localScale = new Vector3(1, scaleY, 1);
-                webLine.transform.position = Vector3.Lerp(originalPosition, transform.position, 0.5f);
+
             }
 
             elapsedTime += Time.deltaTime;
@@ -156,20 +164,14 @@ public class EnemySpider : MonoBehaviour
     {
         if (webPrefab == null || player == null) return;
 
-        Vector2 direction = (player.position - transform.position).normalized;
-        Vector3 spawnPos = muzzlePoint.position + (Vector3)direction * 0.3f;
+        // 👇 LẤY VỊ TRÍ PLAYER NGAY LÚC NÀY
+        Vector2 playerPosition = player.position;
+        Vector2 direction = (playerPosition - (Vector2)transform.position).normalized;
 
+        Vector3 spawnPos = muzzlePoint.position + (Vector3)direction * 0.5f;
         GameObject web = Instantiate(webPrefab, spawnPos, Quaternion.identity);
-
-        Collider2D selfCollider = GetComponent<Collider2D>();
-        Collider2D webCollider = web.GetComponent<Collider2D>();
-        if (selfCollider != null && webCollider != null)
-        {
-            Physics2D.IgnoreCollision(selfCollider, webCollider);
-        }
-
         web.GetComponent<WebProjectile>().Initialize(direction);
-        Debug.Log("[Spider] 🔫 Bắn đạn");
+        Debug.Log($"[Spider] 🔫 Bắn vào vị trí player: {playerPosition}");
     }
 
     public void OnWebHitPlayer()
@@ -204,8 +206,6 @@ public class EnemySpider : MonoBehaviour
             shootCoroutine = null;
         }
 
-        if (webLine != null)
-            webLine.SetActive(false);
 
         Rigidbody2D rb = GetComponent<Rigidbody2D>();
         if (rb != null) Destroy(rb);

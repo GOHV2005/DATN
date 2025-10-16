@@ -5,6 +5,7 @@ public class WebProjectile : MonoBehaviour
     public float speed = 5f;
     public float lifetime = 2.5f;
     private bool hasHit = false;
+    private Collider2D webCollider;
 
     public void Initialize(Vector2 direction)
     {
@@ -14,7 +15,20 @@ public class WebProjectile : MonoBehaviour
 
     void Start()
     {
+        webCollider = GetComponent<Collider2D>();
+        if (webCollider != null)
+        {
+            // 👇 TẮT COLLIDER 1 FRAME ĐỂ TRÁNH VA CHẠM TỨC THÌ
+            webCollider.enabled = false;
+            Invoke(nameof(EnableCollider), 0.5f);
+        }
         Destroy(gameObject, lifetime);
+    }
+
+    void EnableCollider()
+    {
+        if (webCollider != null)
+            webCollider.enabled = true;
     }
 
     void Update()
@@ -27,27 +41,19 @@ public class WebProjectile : MonoBehaviour
         if (hasHit) return;
         hasHit = true;
 
-        // 👇 DEBUG: XEM VA CHẠM VỚI CÁI GÌ
-        Debug.Log($"[Web] Va chạm với: {col.name} | Tag: '{col.tag}' | IsTrigger: {col.isTrigger}");
+        Debug.Log($"[Web] Va chạm với: {col.name} | Tag: '{col.tag}'");
 
         if (col.CompareTag("Player"))
         {
             var spider = Object.FindAnyObjectByType<EnemySpider>();
-            if (spider == null)
+            if (spider != null)
             {
-                Debug.LogError("[Web] ❌ KHÔNG TÌM THẤY NHỆN! (EnemySpider không tồn tại)");
+                
+                Debug.Log("[Web] ✅ TRÚNG PLAYER!");
             }
-            else
-            {
-                spider.OnWebHitPlayer();
-                Debug.Log("[Web] ✅ TRÚNG PLAYER! Gọi OnWebHitPlayer()");
-            }
-        }
-        else
-        {
-            Debug.Log("[Web] 💥 Dính vật cản, tự hủy");
+            Destroy(gameObject);
         }
 
-        
+        Destroy(gameObject);
     }
 }
