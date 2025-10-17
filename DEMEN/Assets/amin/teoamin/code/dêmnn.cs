@@ -9,7 +9,7 @@ public class PlayerController2D : MonoBehaviour
     public float dashSpeed = 20f;
     public float dashDuration = 0.2f;
 
-    [Header("Ground Check")]
+    [Header("Ground Check (Optional - Visual Only)")]
     public Transform groundCheck;
     public float groundCheckRadius = 0.2f;
     public LayerMask groundLayer;
@@ -31,35 +31,33 @@ public class PlayerController2D : MonoBehaviour
 
     void Update()
     {
-        // Ground check
-        isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-
         // === DI CHUYỂN TRÁI/PHẢI (A/D) ===
         float horizontal = 0f;
         if (Input.GetKey(KeyCode.A)) horizontal = -1f;
         if (Input.GetKey(KeyCode.D)) horizontal = 1f;
 
-        // Flip character
+        // Flip hướng nhân vật
         if ((horizontal > 0 && !facingRight) || (horizontal < 0 && facingRight))
         {
             Flip();
         }
 
-        // Animation: Running
+        // Animation: chạy
         anim.SetBool("isRunning", horizontal != 0 && isGrounded && !isDashing);
 
         // === NHẢY (K) ===
         if (Input.GetKeyDown(KeyCode.K) && isGrounded)
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            isGrounded = false; // Chờ đến khi chạm đất lại
+            anim.SetBool("isJumping", true);
         }
-        anim.SetBool("isJumping", !isGrounded); // Tự động bật khi bay
 
         // === ĐÁNH (J) ===
         if (Input.GetKeyDown(KeyCode.J))
         {
             anim.SetBool("isAttacking", true);
-            Invoke("ResetAttack", 0.3f); // Giả sử animation attack dài 0.3s
+            Invoke("ResetAttack", 0.3f);
         }
 
         // === DASH (L) ===
@@ -87,7 +85,6 @@ public class PlayerController2D : MonoBehaviour
         isDashing = true;
         anim.SetBool("isDashing", true);
 
-        // Tạm tắt gravity để dash mượt
         float originalGravity = rb.gravityScale;
         rb.gravityScale = 0f;
 
@@ -116,5 +113,33 @@ public class PlayerController2D : MonoBehaviour
     void ResetAttack()
     {
         anim.SetBool("isAttacking", false);
+    }
+
+    // === VA CHẠM MẶT ĐẤT (Thay cho OverlapCircle) ===
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        {
+            isGrounded = true;
+            anim.SetBool("isJumping", false);
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        {
+            isGrounded = true;
+            anim.SetBool("isJumping", false);
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (((1 << collision.gameObject.layer) & groundLayer) != 0)
+        {
+            isGrounded = false;
+            anim.SetBool("isJumping", true);
+        }
     }
 }
