@@ -1,6 +1,12 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
+public enum AttackDirection
+{
+    Front,
+    Back
+}
+
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
@@ -37,15 +43,20 @@ public class PlayerController : MonoBehaviour
     public float currentHealth = 100f;
     public float damageOnTouch = 20f;
 
-    [Header("Knockback")]
-    public float knockbackHorizontal = 10f; // lực đẩy ngang
-    public float knockbackVertical = 8f;    // lực hất lên
+    [Header("Knockback - Parabol")]
+    public float knockbackForce = 12f; // Dùng cho cả ngang và dọc → góc ~45° ban đầu
 
     // Invincibility frames
     [Header("Invincibility")]
     public float invincibleTime = 0.5f;
     private bool isInvincible = false;
     private float invincibleTimer = 0f;
+
+    // ====== Knockback Lock ======
+    [Header("Knockback Settings")]
+    public float knockbackDuration = 0.35f; // Thời gian khóa input → đủ để thấy parabol
+    private bool isKnockbacked = false;
+    private float knockbackTimer = 0f;
 
     // ====== Mana ======
     [Header("Mana")]
@@ -105,17 +116,27 @@ public class PlayerController : MonoBehaviour
     {
         CheckGround();
 
+        // Invincibility
         if (isInvincible)
         {
             invincibleTimer -= Time.deltaTime;
             if (invincibleTimer <= 0f) isInvincible = false;
         }
 
+        // Knockback timer
+        if (isKnockbacked)
+        {
+            knockbackTimer -= Time.deltaTime;
+            if (knockbackTimer <= 0f) isKnockbacked = false;
+        }
+
+        // Dash
         if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
         if (dashTimer > 0f) dashTimer -= Time.deltaTime;
         else if (isDashing) EndDash();
 
-        if (!isDashing)
+        // Input (bị khóa nếu đang knockback/dash)
+        if (!isDashing && !isKnockbacked)
         {
             horizontalInput = Input.GetAxisRaw("Horizontal");
             HandleJumpInput();
@@ -128,7 +149,7 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!isDashing)
+        if (!isDashing && !isKnockbacked)
             HandleMovement();
     }
 
@@ -149,6 +170,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Space) && jumpCount < maxJumpCount)
         {
+            // Reset vertical velocity trước khi nhảy
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             jumpCount++;
@@ -207,8 +229,24 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
-    // ---------------- Health & Knockback ----------------
-    public void TakeDamage(float amount)
+    // ---------------- Direction Detection ----------------
+    AttackDirection GetAttackDirection(Vector2 enemyPosition)
+    {
+        float playerX = transform.position.x;
+        float enemyX = enemyPosition.x;
+
+        if (facingRight)
+        {
+            return (enemyX >= playerX) ? AttackDirection.Front : AttackDirection.Back;
+        }
+        else
+        {
+            return (enemyX <= playerX) ? AttackDirection.Front : AttackDirection.Back;
+        }
+    }
+
+    // ---------------- Health & Knockback (Parabol) ----------------
+    public void TakeDamage(float amount, AttackDirection direction)
     {
         if (isInvincible) return;
 
@@ -220,15 +258,31 @@ public class PlayerController : MonoBehaviour
         healthDelayDropping = true;
         healthMainHealing = false;
 
-        // Knockback: hất lên + đẩy ra sau
-        rb.linearVelocity = new Vector2(facingRight ? -knockbackHorizontal : knockbackHorizontal, knockbackVertical);
+        // Tính lực bật lùi
+        float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
+        float knockbackX = (direction == AttackDirection.Front)
+            ? (facingRight ? -knockbackForce : knockbackForce)
+            : (facingRight ? knockbackForce : -knockbackForce);
 
+        float knockbackY = knockbackForce * forceMultiplier; // Có thể cao hơn nếu bị đánh sau lưng
+
+        // 🔥 SET VẬN TỐC MỘT LẦN → TRỌNG LỰC SẼ TỰ TẠO QUỸ ĐẠO PARABOL
+        rb.linearVelocity = new Vector2(knockbackX * forceMultiplier, knockbackY);
+
+        // Kích hoạt trạng thái knockback để khóa input
+        isKnockbacked = true;
+        knockbackTimer = knockbackDuration;
+
+        // Bất khả xâm phạm
         isInvincible = true;
         invincibleTimer = invincibleTime;
+
+        Debug.Log($"Bị đánh từ {(direction == AttackDirection.Front ? "TRƯỚC MẶT" : "SAU LƯNG")}!");
 
         if (currentHealth <= 0f) Die();
     }
 
+    // ---------------- UI & Mana ----------------
     public void Heal(float amount)
     {
         if (amount <= 0f) return;
@@ -354,13 +408,16 @@ public class PlayerController : MonoBehaviour
     void Die()
     {
         Debug.Log("Player died");
+        // TODO: Gọi hệ thống respawn
     }
 
+    // ---------------- Va chạm ----------------
     private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.collider != null && collision.collider.CompareTag("Enemy"))
         {
-            TakeDamage(damageOnTouch);
+            AttackDirection dir = GetAttackDirection(collision.transform.position);
+            TakeDamage(damageOnTouch, dir);
         }
     }
 
@@ -368,7 +425,8 @@ public class PlayerController : MonoBehaviour
     {
         if (other != null && other.CompareTag("Enemy"))
         {
-            TakeDamage(damageOnTouch);
+            AttackDirection dir = GetAttackDirection(other.transform.position);
+            TakeDamage(damageOnTouch, dir);
         }
     }
 
