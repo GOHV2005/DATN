@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
+using System.Collections.Generic;
+using System.Linq;
 
 public enum AttackDirection
 {
@@ -18,13 +20,7 @@ public class PlayerController : MonoBehaviour
     public int maxJumpCount = 2;
     private int jumpCount = 0;
 
-    // Ground check
-    [Header("Ground Check")]
-    public Transform groundCheck;
-    public float groundCheckRadius = 0.12f;
-    public LayerMask groundLayer;
-    private bool isGrounded;
-    public float groundRaycastDistance = 0.15f;
+    private bool isGrounded = false;
 
     // ====== Dash ======
     [Header("Dash")]
@@ -43,8 +39,9 @@ public class PlayerController : MonoBehaviour
     public float currentHealth = 100f;
     public float damageOnTouch = 20f;
 
-    [Header("Knockback - Parabol")]
-    public float knockbackForce = 12f; // Dùng cho cả ngang và dọc → góc ~45° ban đầu
+    [Header("Knockback")]
+    public float knockbackForce = 12f;
+    public float knockbackAirTime = 0.6f;
 
     // Invincibility frames
     [Header("Invincibility")]
@@ -54,7 +51,7 @@ public class PlayerController : MonoBehaviour
 
     // ====== Knockback Lock ======
     [Header("Knockback Settings")]
-    public float knockbackDuration = 0.35f; // Thời gian khóa input → đủ để thấy parabol
+    public float knockbackDuration = 0.3f;
     private bool isKnockbacked = false;
     private float knockbackTimer = 0f;
 
@@ -81,6 +78,16 @@ public class PlayerController : MonoBehaviour
     public float manaDelayDropSpeed = 0.6f;
     public float manaBarHealSpeed = 0.9f;
 
+    // ====== Animation ======
+    [Header("Animation")]
+    public Animator animator;
+
+    // ====== Invincibility Flash (Multi-Sprite Support) ======
+    [Header("Invincibility Flash")]
+    public float flashFrequency = 10f;
+    private List<SpriteRenderer> spriteRenderers;
+    private float flashTimer = 0f;
+
     // ====== Internal ======
     private Rigidbody2D rb;
     private float horizontalInput;
@@ -99,8 +106,13 @@ public class PlayerController : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        // LẤY TẤT CẢ SPRITERENDERER CON (KỂ CẢ TRONG CÁC CHILD BỊ DISABLE)
+        spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
+
         if (rb == null)
             Debug.LogError("Rigidbody2D not found on Player!");
+        if (spriteRenderers.Count == 0)
+            Debug.LogWarning("No SpriteRenderers found on Player or its children!");
     }
 
     void Start()
@@ -114,28 +126,53 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        CheckGround();
-
-        // Invincibility
+        // ====== HIỆU ỨNG NHẤP NHÁY CHO NHIỀU SPRITE ======
         if (isInvincible)
         {
             invincibleTimer -= Time.deltaTime;
-            if (invincibleTimer <= 0f) isInvincible = false;
+            flashTimer += Time.deltaTime;
+
+            if (flashTimer >= 1f / flashFrequency)
+            {
+                flashTimer = 0f;
+                if (spriteRenderers.Count > 0)
+                {
+                    bool currentState = spriteRenderers[0].enabled;
+                    foreach (var sr in spriteRenderers)
+                    {
+                        sr.enabled = !currentState;
+                    }
+                }
+            }
+
+            if (invincibleTimer <= 0f)
+            {
+                isInvincible = false;
+                foreach (var sr in spriteRenderers)
+                {
+                    sr.enabled = true;
+                }
+            }
+        }
+        else
+        {
+            foreach (var sr in spriteRenderers)
+            {
+                if (!sr.enabled) sr.enabled = true;
+            }
         }
 
-        // Knockback timer
+        // ====== CÁC LOGIC KHÁC ======
         if (isKnockbacked)
         {
             knockbackTimer -= Time.deltaTime;
             if (knockbackTimer <= 0f) isKnockbacked = false;
         }
 
-        // Dash
         if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
         if (dashTimer > 0f) dashTimer -= Time.deltaTime;
         else if (isDashing) EndDash();
 
-        // Input (bị khóa nếu đang knockback/dash)
         if (!isDashing && !isKnockbacked)
         {
             horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -145,12 +182,53 @@ public class PlayerController : MonoBehaviour
 
         if (!isDashing) RegenerateMana(Time.deltaTime * manaRegenRate);
         UpdateUI();
+        UpdateAnimation();
     }
 
     void FixedUpdate()
     {
         if (!isDashing && !isKnockbacked)
             HandleMovement();
+    }
+
+    // ---------------- Animation ----------------
+    void UpdateAnimation()
+    {
+        if (animator == null) return;
+
+        if (isKnockbacked)
+        {
+            animator.Play("Hurt");
+            return;
+        }
+
+        if (isDashing)
+        {
+            animator.Play("Dash");
+            return;
+        }
+
+        if (!isGrounded)
+        {
+            if (rb.linearVelocity.y > 0.01f)
+            {
+                animator.Play("Jump");
+            }
+            else if (rb.linearVelocity.y < -0.01f)
+            {
+                animator.Play("Fall");
+            }
+            return;
+        }
+
+        if (Mathf.Abs(horizontalInput) > 0.1f)
+        {
+            animator.Play("Run");
+        }
+        else
+        {
+            animator.Play("Idle");
+        }
     }
 
     // ---------------- Movement ----------------
@@ -168,34 +246,18 @@ public class PlayerController : MonoBehaviour
 
     void HandleJumpInput()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && jumpCount < maxJumpCount)
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded && jumpCount < maxJumpCount)
         {
-            // Reset vertical velocity trước khi nhảy
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             jumpCount++;
         }
     }
 
-    void CheckGround()
-    {
-        if (groundCheck != null)
-            isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
-        else
-        {
-            RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, groundRaycastDistance, groundLayer);
-            isGrounded = hit.collider != null;
-        }
-
-        if (isGrounded) jumpCount = 0;
-    }
-
     void Flip()
     {
         facingRight = !facingRight;
-        Vector3 s = transform.localScale;
-        s.x *= -1f;
-        transform.localScale = s;
+        transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
     }
 
     // ---------------- Dash ----------------
@@ -203,7 +265,9 @@ public class PlayerController : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Q) && dashCooldownTimer <= 0f && currentMana >= dashManaCost)
         {
-            Vector2 dir = Mathf.Abs(horizontalInput) > 0.1f ? new Vector2(Mathf.Sign(horizontalInput), 0f) : (facingRight ? Vector2.right : Vector2.left);
+            Vector2 dir = Mathf.Abs(horizontalInput) > 0.1f
+                ? new Vector2(Mathf.Sign(horizontalInput), 0f)
+                : (facingRight ? Vector2.right : Vector2.left);
             StartDash(dir.normalized);
         }
     }
@@ -229,23 +293,55 @@ public class PlayerController : MonoBehaviour
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
     }
 
-    // ---------------- Direction Detection ----------------
+    // ---------------- Ground Collision ----------------
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider != null && collision.collider.CompareTag("Enemy"))
+        {
+            AttackDirection dir = GetAttackDirection(collision.transform.position);
+            TakeDamage(damageOnTouch, dir);
+        }
+
+        if (!isKnockbacked && collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+            jumpCount = 0;
+        }
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        if (!isKnockbacked && collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = true;
+        }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            isGrounded = false;
+        }
+    }
+
     AttackDirection GetAttackDirection(Vector2 enemyPosition)
     {
         float playerX = transform.position.x;
         float enemyX = enemyPosition.x;
-
         if (facingRight)
-        {
             return (enemyX >= playerX) ? AttackDirection.Front : AttackDirection.Back;
-        }
         else
-        {
             return (enemyX <= playerX) ? AttackDirection.Front : AttackDirection.Back;
-        }
     }
 
-    // ---------------- Health & Knockback (Parabol) ----------------
+    // ---------------- Knockback ----------------
+    float CalculateKnockbackUpForce()
+    {
+        float gravityMagnitude = Mathf.Abs(Physics2D.gravity.y * rb.gravityScale);
+        return (gravityMagnitude * knockbackAirTime) / 2f;
+    }
+
     public void TakeDamage(float amount, AttackDirection direction)
     {
         if (isInvincible) return;
@@ -258,22 +354,19 @@ public class PlayerController : MonoBehaviour
         healthDelayDropping = true;
         healthMainHealing = false;
 
-        // Tính lực bật lùi
         float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
         float knockbackX = (direction == AttackDirection.Front)
-            ? (facingRight ? -knockbackForce : knockbackForce)
-            : (facingRight ? knockbackForce : -knockbackForce);
+            ? (facingRight ? -knockbackForce * forceMultiplier : knockbackForce * forceMultiplier)
+            : (facingRight ? knockbackForce * forceMultiplier : -knockbackForce * forceMultiplier);
 
-        float knockbackY = knockbackForce * forceMultiplier; // Có thể cao hơn nếu bị đánh sau lưng
+        float knockbackY = CalculateKnockbackUpForce();
 
-        // 🔥 SET VẬN TỐC MỘT LẦN → TRỌNG LỰC SẼ TỰ TẠO QUỸ ĐẠO PARABOL
-        rb.linearVelocity = new Vector2(knockbackX * forceMultiplier, knockbackY);
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(new Vector2(knockbackX, knockbackY), ForceMode2D.Impulse);
 
-        // Kích hoạt trạng thái knockback để khóa input
         isKnockbacked = true;
         knockbackTimer = knockbackDuration;
 
-        // Bất khả xâm phạm
         isInvincible = true;
         invincibleTimer = invincibleTime;
 
@@ -342,7 +435,6 @@ public class PlayerController : MonoBehaviour
         healthTargetRatio = currentHealth / maxHealth;
         manaTargetRatio = currentMana / maxMana;
 
-        // HEALTH MAIN
         if (healthFill != null)
         {
             if (healthMainHealing)
@@ -350,21 +442,23 @@ public class PlayerController : MonoBehaviour
                 healthFill.fillAmount = Mathf.MoveTowards(healthFill.fillAmount, healthTargetRatio, mainBarHealSpeed * Time.deltaTime);
                 if (Mathf.Approximately(healthFill.fillAmount, healthTargetRatio)) healthMainHealing = false;
             }
-            else healthFill.fillAmount = healthTargetRatio;
+            else
+            {
+                healthFill.fillAmount = healthTargetRatio;
+            }
         }
 
-        // HEALTH DELAY
         if (healthDelay != null && healthFill != null)
         {
             if (healthDelay.fillAmount > healthTargetRatio && healthDelayDropping)
             {
-                if (healthDelayTimer > 0f) healthDelayTimer -= Time.deltaTime;
+                if (healthDelayTimer > 0f)
+                    healthDelayTimer -= Time.deltaTime;
                 else
                     healthDelay.fillAmount = Mathf.MoveTowards(healthDelay.fillAmount, healthTargetRatio, delayDropSpeed * Time.deltaTime);
             }
         }
 
-        // MANA MAIN
         if (manaFill != null)
         {
             if (manaMainHealing)
@@ -372,15 +466,18 @@ public class PlayerController : MonoBehaviour
                 manaFill.fillAmount = Mathf.MoveTowards(manaFill.fillAmount, manaTargetRatio, manaBarHealSpeed * Time.deltaTime);
                 if (Mathf.Approximately(manaFill.fillAmount, manaTargetRatio)) manaMainHealing = false;
             }
-            else manaFill.fillAmount = manaTargetRatio;
+            else
+            {
+                manaFill.fillAmount = manaTargetRatio;
+            }
         }
 
-        // MANA DELAY
         if (manaDelay != null && manaFill != null)
         {
             if (manaDelay.fillAmount > manaTargetRatio && manaDelayDropping)
             {
-                if (manaDelayTimer > 0f) manaDelayTimer -= Time.deltaTime;
+                if (manaDelayTimer > 0f)
+                    manaDelayTimer -= Time.deltaTime;
                 else
                     manaDelay.fillAmount = Mathf.MoveTowards(manaDelay.fillAmount, manaTargetRatio, manaDelayDropSpeed * Time.deltaTime);
             }
@@ -407,18 +504,16 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
-        Debug.Log("Player died");
-        // TODO: Gọi hệ thống respawn
-    }
-
-    // ---------------- Va chạm ----------------
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        if (collision.collider != null && collision.collider.CompareTag("Enemy"))
+        isInvincible = false;
+        foreach (var sr in spriteRenderers)
         {
-            AttackDirection dir = GetAttackDirection(collision.transform.position);
-            TakeDamage(damageOnTouch, dir);
+            sr.enabled = true; // hoặc false nếu muốn ẩn toàn bộ
         }
+
+        if (animator != null)
+            animator.enabled = false;
+
+        Debug.Log("Player died");
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -427,20 +522,6 @@ public class PlayerController : MonoBehaviour
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
-        }
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        if (groundCheck != null)
-        {
-            Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-        }
-        else
-        {
-            Gizmos.color = Color.cyan;
-            Gizmos.DrawLine(transform.position, transform.position + Vector3.down * groundRaycastDistance);
         }
     }
 }
