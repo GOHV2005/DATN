@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using System.Collections;
 
 public class PlayerCombat : MonoBehaviour
 {
@@ -9,6 +10,10 @@ public class PlayerCombat : MonoBehaviour
     public int attackDamage = 20;         // Sát thương mỗi đòn
 
     public LayerMask enemyLayers;         // Layer của Enemy
+
+    [Header("Visual Feedback")]
+    public GameObject attackVisual;       // GameObject hiển thị vùng đánh (có renderer)
+    public float visualDuration = 0.1f;   // Thời gian hiển thị vùng đánh
 
     private float nextAttackTime = 0f;
 
@@ -26,8 +31,12 @@ public class PlayerCombat : MonoBehaviour
 
     void Attack()
     {
-        // Nếu có animator, thêm trigger animation ở đây
-        // animator.SetTrigger("Attack");
+        // Hiển thị vùng đánh nếu có
+        if (attackVisual != null)
+        {
+            attackVisual.SetActive(true);
+            StartCoroutine(HideAttackVisual());
+        }
 
         // Kiểm tra kẻ địch trong vùng đánh
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
@@ -39,6 +48,13 @@ public class PlayerCombat : MonoBehaviour
         }
 
         Debug.Log("Player attacked!");
+    }
+
+    IEnumerator HideAttackVisual()
+    {
+        yield return new WaitForSeconds(visualDuration);
+        if (attackVisual != null)
+            attackVisual.SetActive(false);
     }
 
     void OnDrawGizmosSelected()
