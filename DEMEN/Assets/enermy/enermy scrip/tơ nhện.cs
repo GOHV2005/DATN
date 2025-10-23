@@ -1,59 +1,44 @@
+// WebProjectile.cs
 using UnityEngine;
 
 public class WebProjectile : MonoBehaviour
 {
     public float speed = 5f;
     public float lifetime = 2.5f;
-    private bool hasHit = false;
-    private Collider2D webCollider;
+    private Vector2 direction;
+    private bool hasHit = false; // 👈 tránh hủy nhiều lần
 
-    public void Initialize(Vector2 direction)
+    public void Initialize(Vector2 dir)
     {
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, angle);
+        direction = dir.normalized;
     }
 
     void Start()
     {
-        webCollider = GetComponent<Collider2D>();
-        if (webCollider != null)
-        {
-            // 👇 TẮT COLLIDER 1 FRAME ĐỂ TRÁNH VA CHẠM TỨC THÌ
-            webCollider.enabled = false;
-            Invoke(nameof(EnableCollider), 0.5f);
-        }
         Destroy(gameObject, lifetime);
-    }
-
-    void EnableCollider()
-    {
-        if (webCollider != null)
-            webCollider.enabled = true;
     }
 
     void Update()
     {
-        transform.Translate(Vector2.right * speed * Time.deltaTime);
+        transform.Translate(direction * speed * Time.deltaTime);
     }
 
     void OnTriggerEnter2D(Collider2D col)
     {
-        if (hasHit) return;
+        if (hasHit) return; // 👈 chỉ xử lý 1 lần
         hasHit = true;
-
-        Debug.Log($"[Web] Va chạm với: {col.name} | Tag: '{col.tag}'");
 
         if (col.CompareTag("Player"))
         {
             var spider = Object.FindAnyObjectByType<EnemySpider>();
-            if (spider != null)
-            {
-                
-                Debug.Log("[Web] ✅ TRÚNG PLAYER!");
-            }
-            Destroy(gameObject);
+            spider?.OnWebHitPlayer();
+            Debug.Log("[Web] Trúng player!");
+        }
+        else
+        {
+            Debug.Log("[Web] Dính vật cản: " + col.name);
         }
 
-        Destroy(gameObject);
+        //Destroy(gameObject);
     }
 }

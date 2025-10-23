@@ -11,31 +11,31 @@ public class EnemyAnt : MonoBehaviour
 
     // === ĐUỔI & TẤN CÔNG ===
     public float chaseSpeed = 3.5f;
-    public float detectionRange = 2.5f;
-    public float groundTolerance = 0.3f;
+    public float detectionRange = 2.5f;      // Kiến chỉ thấy gần
+    public float groundTolerance = 0.3f;     // Sai khác Y tối đa
 
     // === PHẢN XẠ SAU KHI ĐÁNH HỤT ===
-    public float scanDuration = 0.8f;
+    public float scanDuration = 0.8f;        // Thời gian quét sau khi quay đầu
 
     // === THAM CHIẾU ===
     public Transform player;
-    public LayerMask obstacleLayer;
+    public LayerMask obstacleLayer;          // Layer của nền/vật cản
 
     // === THÀNH PHẦN ===
     private Rigidbody2D rb;
-    private SpriteRenderer sr; // 👈 THÊM
     private Vector3 originalLocalScale;
     private bool isGrounded = false;
     private bool movingRight = true;
 
+    // === TRẠNG THÁI ===
     private enum State { Patrolling, Chasing, ScanningAfterMiss, Returning }
     private State currentState = State.Patrolling;
+
     private Coroutine scanCoroutine;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>(); // 👈 THÊM
         originalLocalScale = transform.localScale;
 
         if (pointA == null || pointB == null)
@@ -52,24 +52,34 @@ public class EnemyAnt : MonoBehaviour
 
     void Update()
     {
-        // 👇 XOAY DÙNG FLIPX – KHÔNG BỊ ANIMATION GHI ĐÈ
+        // Flip theo hướng di chuyển
         if (rb.linearVelocity.x > 0.1f) FlipSprite(true);
         else if (rb.linearVelocity.x < -0.1f) FlipSprite(false);
 
+        // Chỉ xử lý khi trên mặt đất
         if (!isGrounded) return;
 
         switch (currentState)
         {
             case State.Patrolling:
-                if (CanSeePlayer()) SetState(State.Chasing);
+                if (CanSeePlayer())
+                {
+                    SetState(State.Chasing);
+                }
                 break;
+
             case State.Chasing:
                 if (!CanSeePlayer())
                 {
+                    // Đánh hụt → quay đầu quét
                     SetState(State.ScanningAfterMiss);
                     if (scanCoroutine != null) StopCoroutine(scanCoroutine);
                     scanCoroutine = StartCoroutine(ScanAfterMiss());
                 }
+                break;
+
+            case State.Returning:
+                // Tự động quay lại Patrolling khi đến điểm
                 break;
         }
     }
@@ -90,11 +100,13 @@ public class EnemyAnt : MonoBehaviour
                 ReturnToPatrolPoint();
                 break;
             case State.ScanningAfterMiss:
+                // Đứng im trong lúc quét
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
                 break;
         }
     }
 
+    // === HÀNH VI ===
     void Patrol()
     {
         Vector3 target = movingRight ? pointB.position : pointA.position;
@@ -128,14 +140,16 @@ public class EnemyAnt : MonoBehaviour
 
     IEnumerator ScanAfterMiss()
     {
+        // 1. Dừng lại
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         yield return new WaitForSeconds(0.1f);
 
-        // 👇 SỬA: DÙNG BIẾN THEO DÕI HƯỚNG (TRÁNH TÍNH TOÁN TỪ SCALE)
-        bool wasFacingRight = !sr.flipX; // Vì flipX = !faceRight
+        // 2. Quay đầu
+        bool wasFacingRight = originalLocalScale.x * transform.localScale.x > 0;
         FlipSprite(!wasFacingRight);
         yield return new WaitForSeconds(0.1f);
 
+        // 3. Quét trong scanDuration
         float timer = 0;
         bool foundPlayer = false;
         while (timer < scanDuration)
@@ -155,19 +169,27 @@ public class EnemyAnt : MonoBehaviour
         }
         else
         {
+            // Quay lại hướng ban đầu rồi tuần tra
             FlipSprite(wasFacingRight);
             yield return new WaitForSeconds(0.1f);
             SetState(State.Patrolling);
         }
     }
 
+    // === PHÁT HIỆN PLAYER (có kiểm tra vật cản) ===
     bool CanSeePlayer()
     {
         if (player == null) return false;
-        if (Mathf.Abs(player.position.y - transform.position.y) > groundTolerance) return false;
+
+        // Cùng nền?
+        if (Mathf.Abs(player.position.y - transform.position.y) > groundTolerance)
+            return false;
+
+        // Trong tầm?
         float dist = Vector2.Distance(transform.position, player.position);
         if (dist > detectionRange) return false;
 
+        // Không bị chắn?
         Vector2 direction = (player.position - transform.position).normalized;
         RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, dist, obstacleLayer);
         if (hit.collider != null && hit.collider.gameObject != player.gameObject)
@@ -176,6 +198,7 @@ public class EnemyAnt : MonoBehaviour
         return true;
     }
 
+    // === VA CHẠM VỚI NỀN ===
     void OnCollisionEnter2D(Collision2D col)
     {
         if (col.gameObject.CompareTag("Ground"))
@@ -192,15 +215,15 @@ public class EnemyAnt : MonoBehaviour
         }
     }
 
-    // 👇 ĐÃ SỬA: DÙNG FLIPX
+    // === LẬT SPRITE ===
     void FlipSprite(bool faceRight)
     {
-        if (sr != null)
-        {
-            sr.flipX = faceRight; // Sprite gốc nhìn phải
-        }
+        Vector3 newScale = originalLocalScale;
+        newScale.x = faceRight ? Mathf.Abs(originalLocalScale.x) : -Mathf.Abs(originalLocalScale.x);
+        transform.localScale = newScale;
     }
 
+    // === QUẢN LÝ TRẠNG THÁI ===
     void SetState(State newState)
     {
         if (currentState == newState) return;
@@ -210,9 +233,14 @@ public class EnemyAnt : MonoBehaviour
 
     void OnDrawGizmos()
     {
+        // Chỉ vẽ khi không đang chơi (hoặc bạn có thể cho phép khi chơi)
+        // Gizmos luôn vẽ trong Scene, kể cả khi play
+
+        // 1. VẼ PHẠM VI PHÁT HIỆN (vòng tròn xung quanh kiến)
         Gizmos.color = Color.green;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
 
+        // 2. VẼ ĐƯỜNG TUẦN TRA A ↔ B
         if (pointA != null && pointB != null)
         {
             Gizmos.color = Color.cyan;
@@ -220,8 +248,9 @@ public class EnemyAnt : MonoBehaviour
             Gizmos.DrawSphere(pointA.position, 0.15f);
             Gizmos.DrawSphere(pointB.position, 0.15f);
         }
-        else if (!Application.isPlaying)
+        else if (Application.isPlaying == false)
         {
+            // Nếu chưa gán pointA/B, vẽ điểm B ảo dựa trên patrolDistance
             Vector3 startPos = transform.position;
             Vector3 tempB = startPos + Vector3.right * patrolDistance;
             Gizmos.color = Color.cyan;
