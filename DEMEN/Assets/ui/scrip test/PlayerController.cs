@@ -61,6 +61,8 @@ public class PlayerController : MonoBehaviour
     public float maxMana = 100f;
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
+    // Thêm dòng này trong class PlayerController
+    public static PlayerController Instance;
 
     // ====== Attack ======
     [Header("Attack")]
@@ -126,6 +128,7 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
+        Instance = this;
         rb = GetComponent<Rigidbody2D>();
         defaultGravityScale = rb.gravityScale; // ← lưu gravity gốc
         spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
