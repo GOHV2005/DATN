@@ -21,7 +21,7 @@ public class itemSO : ScriptableObject
             }
 
             // Kiểm tra full health
-            if (PlayerController.Instance.currentHealth >= PlayerController.Instance.maxHealth)
+            if (PlayerController.Instance.CurrentHealth >= PlayerController.Instance.maxHealth)
             {
                 return false;
             }

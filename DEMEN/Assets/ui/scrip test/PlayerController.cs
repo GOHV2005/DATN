@@ -1,7 +1,8 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public enum AttackDirection
 {
@@ -37,7 +38,6 @@ public class PlayerController : MonoBehaviour
     // ====== Combat / Damage ======
     [Header("Combat")]
     public float maxHealth = 100f;
-    public float currentHealth = 100f;
     public float damageOnTouch = 20f;
 
     [Header("Knockback")]
@@ -61,8 +61,6 @@ public class PlayerController : MonoBehaviour
     public float maxMana = 100f;
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
-    // Thêm dòng này trong class PlayerController
-    public static PlayerController Instance;
 
     // ====== Attack ======
     [Header("Attack")]
@@ -73,7 +71,7 @@ public class PlayerController : MonoBehaviour
     private float attackCooldownTimer = 0f;
     private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
 
-    // ====== Jump Float (Rơi chậm) ======
+    // ====== Jump Float ======
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
@@ -112,25 +110,43 @@ public class PlayerController : MonoBehaviour
     private bool attackRequested = false;
 
     // ====== Internal ======
+    public static PlayerController Instance;
     private Rigidbody2D rb;
     private bool facingRight = true;
     private float defaultGravityScale = 1f;
+    private bool isDead = false;
 
-    private float healthTargetRatio;
+    // ====== Health Delay Internal (GIỮ LẠI ĐỂ HIỆU ỨNG VẪN CHẠY) ======
     private float healthDelayTimer = 0f;
     private bool healthDelayDropping = false;
-    private bool healthMainHealing = false;
 
+    // ====== Mana Internal ======
     private float manaTargetRatio;
     private float manaDelayTimer = 0f;
     private bool manaDelayDropping = false;
     private bool manaMainHealing = false;
 
+    // ====== Health: DÙNG SLIDER LÀM NGUỒN CHÂN THẬT ======
+    public float CurrentHealth
+    {
+        get => healthFill != null ? healthFill.fillAmount * maxHealth : 0f;
+        set
+        {
+            if (healthFill != null)
+            {
+                float ratio = Mathf.Clamp01(value / maxHealth);
+                healthFill.fillAmount = ratio;
+                if (healthDelay != null)
+                    healthDelay.fillAmount = ratio;
+            }
+        }
+    }
+
     void Awake()
     {
         Instance = this;
         rb = GetComponent<Rigidbody2D>();
-        defaultGravityScale = rb.gravityScale; // ← lưu gravity gốc
+        defaultGravityScale = rb.gravityScale;
         spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
 
         if (rb == null)
@@ -141,15 +157,16 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
-        currentHealth = Mathf.Clamp(currentHealth, 0f, maxHealth);
+        CurrentHealth = maxHealth;
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
-        healthTargetRatio = currentHealth / maxHealth;
         manaTargetRatio = currentMana / maxMana;
         UpdateUIImmediate();
     }
 
     void Update()
     {
+        if (isDead) return;
+
         horizontalInput = Input.GetAxisRaw("Horizontal");
         if (Input.GetKeyDown(KeyCode.Space)) jumpRequested = true;
         if (Input.GetKeyDown(KeyCode.Q)) dashRequested = true;
@@ -164,6 +181,8 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        if (isDead) return;
+
         if (attackRequested && attackCooldownTimer <= 0f && !isAttacking)
         {
             StartAttack();
@@ -193,7 +212,6 @@ public class PlayerController : MonoBehaviour
             HandleMovement();
         }
 
-        // ====== JUMP FLOAT: Giữ Space khi rơi → rơi chậm ======
         if (useJumpFloat && !isGrounded && rb.linearVelocity.y < 0f)
         {
             rb.gravityScale = Input.GetKey(KeyCode.Space) ? floatGravityScale : defaultGravityScale;
@@ -205,7 +223,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // ==============================
-    // Các hàm còn lại giữ nguyên như trước
+    // CÁC HÀM CHÍNH (GIỮ NGUYÊN)
     // ==============================
 
     void HandleInvincibilityFlash()
@@ -446,15 +464,23 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float amount, AttackDirection direction)
     {
-        if (isInvincible) return;
+        if (isInvincible || isDead) return;
 
-        currentHealth = Mathf.Clamp(currentHealth - amount, 0f, maxHealth);
-        healthTargetRatio = (maxHealth > 0f) ? currentHealth / maxHealth : 0f;
-        if (healthFill != null) healthFill.fillAmount = healthTargetRatio;
+        float newHealth = CurrentHealth - amount;
+        CurrentHealth = newHealth;
+        
+        // Ép về 0 nếu rất nhỏ
+        if (newHealth < 0.001f)
+            newHealth = 0f;
 
-        healthDelayTimer = delayBeforeDrop;
-        healthDelayDropping = true;
-        healthMainHealing = false;
+        CurrentHealth = newHealth;
+
+        // Kích hoạt hiệu ứng delay cho thanh healthDelay
+        if (healthDelay != null)
+        {
+            healthDelayTimer = delayBeforeDrop;
+            healthDelayDropping = true;
+        }
 
         float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
         float knockbackX = (direction == AttackDirection.Front)
@@ -472,22 +498,25 @@ public class PlayerController : MonoBehaviour
         isInvincible = true;
         invincibleTimer = invincibleTime;
 
-        Debug.Log($"Bị đánh từ {(direction == AttackDirection.Front ? "TRƯỚC MẶT" : "SAU LƯNG")}!");
+        Debug.Log($"Bị đánh! Health: {CurrentHealth}");
 
-        if (currentHealth <= 0f) Die();
+        if (CurrentHealth <= 0f)
+        {
+            Die();
+        }
     }
 
     public void Heal(float amount)
     {
-        if (amount <= 0f) return;
-        currentHealth = Mathf.Clamp(currentHealth + amount, 0f, maxHealth);
-        healthTargetRatio = currentHealth / maxHealth;
+        if (amount <= 0f || isDead) return;
+        CurrentHealth = Mathf.Clamp(CurrentHealth + amount, 0f, maxHealth);
 
-        if (healthDelay != null) healthDelay.fillAmount = healthTargetRatio;
-
-        healthMainHealing = true;
-        healthDelayDropping = false;
-        healthDelayTimer = 0f;
+        // Khi hồi máu, reset hiệu ứng delay
+        if (healthDelay != null)
+        {
+            healthDelayDropping = false;
+            healthDelayTimer = 0f;
+        }
     }
 
     void UseMana(float amount)
@@ -539,42 +568,29 @@ public class PlayerController : MonoBehaviour
 
     void UpdateUI()
     {
-        healthTargetRatio = currentHealth / maxHealth;
-        manaTargetRatio = currentMana / maxMana;
+        if (isDead) return;
 
-        UpdateHealthBar();
-        UpdateHealthDelayBar();
+        // Mana
+        manaTargetRatio = currentMana / maxMana;
         UpdateManaBar();
         UpdateManaDelayBar();
-    }
 
-    void UpdateHealthBar()
-    {
-        if (healthFill == null) return;
-
-        if (healthMainHealing)
-        {
-            healthFill.fillAmount = Mathf.MoveTowards(healthFill.fillAmount, healthTargetRatio, mainBarHealSpeed * Time.deltaTime);
-            if (Mathf.Approximately(healthFill.fillAmount, healthTargetRatio))
-                healthMainHealing = false;
-        }
-        else
-        {
-            healthFill.fillAmount = healthTargetRatio;
-        }
-    }
-
-    void UpdateHealthDelayBar()
-    {
-        if (healthDelay == null || healthFill == null) return;
-
-        if (healthDelay.fillAmount > healthTargetRatio && healthDelayDropping)
+        // Health delay bar (chỉ hiển thị, không ảnh hưởng logic)
+        if (healthDelay != null && healthFill != null && healthDelayDropping)
         {
             if (healthDelayTimer > 0f)
+            {
                 healthDelayTimer -= Time.deltaTime;
+            }
             else
-                healthDelay.fillAmount = Mathf.MoveTowards(healthDelay.fillAmount, healthTargetRatio, delayDropSpeed * Time.deltaTime);
+            {
+                healthDelay.fillAmount = Mathf.MoveTowards(healthDelay.fillAmount, healthFill.fillAmount, delayDropSpeed * Time.deltaTime);
+                if (Mathf.Approximately(healthDelay.fillAmount, healthFill.fillAmount))
+                    healthDelayDropping = false;
+            }
         }
+
+        if (CurrentHealth <= 0.0001f) Die();
     }
 
     void UpdateManaBar()
@@ -608,16 +624,17 @@ public class PlayerController : MonoBehaviour
 
     void UpdateUIImmediate()
     {
-        float healthRatio = currentHealth / maxHealth;
         float manaRatio = currentMana / maxMana;
+        float healthRatio = CurrentHealth / maxHealth;
 
         if (healthFill != null) healthFill.fillAmount = healthRatio;
-        if (manaFill != null) manaFill.fillAmount = manaRatio;
         if (healthDelay != null) healthDelay.fillAmount = healthRatio;
+
+        if (manaFill != null) manaFill.fillAmount = manaRatio;
         if (manaDelay != null) manaDelay.fillAmount = manaRatio;
 
+        // Reset flags
         healthDelayDropping = false;
-        healthMainHealing = false;
         healthDelayTimer = 0f;
         manaDelayDropping = false;
         manaMainHealing = false;
@@ -626,22 +643,82 @@ public class PlayerController : MonoBehaviour
 
     void Die()
     {
+        if (isDead) return;
+        isDead = true;
+
+        CurrentHealth = 0f;
+
         isInvincible = false;
         isAttacking = false;
+        isKnockbacked = false;
+
         foreach (var sr in spriteRenderers)
         {
             sr.enabled = true;
         }
 
         if (animator != null)
-            animator.enabled = false;
+        {
+            animator.Play("chet");
+            StartCoroutine(RespawnAfterDeath());
+        }
+        else
+        {
+            RespawnImmediately();
+        }
+    }
 
-        Debug.Log("Player died");
+    System.Collections.IEnumerator RespawnAfterDeath()
+    {
+        enabled = false;
+        rb.simulated = false;
+
+        float deathAnimLength = GetAnimationLength("chet");
+        if (deathAnimLength <= 0) deathAnimLength = 1f;
+
+        yield return new WaitForSeconds(deathAnimLength);
+        PerformRespawn();
+    }
+
+    void RespawnImmediately()
+    {
+        enabled = false;
+        rb.simulated = false;
+        PerformRespawn();
+    }
+
+    void PerformRespawn()
+    {
+        string targetScene = "ThaiMap01";
+        Vector3 spawnPosition = Vector3.zero;
+        bool foundSave = false;
+
+        for (int slotIndex = 0; slotIndex < 3; slotIndex++)
+        {
+            SaveData saveData = SaveSystem.LoadGame(slotIndex);
+            if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
+            {
+                SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
+                targetScene = latest.sceneName;
+                spawnPosition = latest.position;
+                PlayerPrefs.SetInt("CurrentSlot", slotIndex);
+                foundSave = true;
+                break;
+            }
+        }
+
+        PlayerPrefs.SetString("RespawnScene", targetScene);
+        PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
+        PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
+        PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
+        PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
+
+        SceneManager.LoadScene(targetScene);
     }
 
     void UpdateAnimation()
     {
-        if (animator == null) return;
+        if (animator == null || isDead) return;
 
         if (isKnockbacked)
         {
