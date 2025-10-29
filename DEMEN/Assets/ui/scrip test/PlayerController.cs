@@ -118,7 +118,7 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private bool facingRight = true;
     private float defaultGravityScale = 1f;
-    private bool isDead = false;
+    public bool isDead = false;
 
     // ====== Health Delay Internal ======
     private float healthDelayTimer = 0f;
