@@ -45,7 +45,7 @@ public class SaveSlotUI : MonoBehaviour
         else
         {
             PlayerPrefs.SetInt("CurrentSlot", slotIndex);
-            string sceneName = "StartScenetest";
+            string sceneName = "CutScence";
 
             if (data != null && data.scenes.Count > 0)
                 sceneName = data.scenes[data.scenes.Count - 1].sceneName;

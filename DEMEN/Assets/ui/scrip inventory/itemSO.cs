@@ -1,37 +1,44 @@
 ﻿using UnityEngine;
 
-
-[CreateAssetMenu]
+[CreateAssetMenu(fileName = "New Item", menuName = "Inventory/Item")]
 public class itemSO : ScriptableObject
 {
     public string itemName;
-    public StatToChange statToChange = new  StatToChange();
+    public StatToChange statToChange;
     public int amountToChangeStat;
 
-    public AttributeToChange attributeToChange = new AttributeToChange();
+    public AttributeToChange attributeToChange;
     public int amountToChangeAttrinute;
-
 
     public bool UseItem()
     {
-        if(statToChange == StatToChange.health)
+        if (statToChange == StatToChange.health)
         {
-            PlayerHealth playerHealth = GameObject.Find("HealthManager").GetComponent<PlayerHealth>();
-            if(playerHealth.currentHealth == playerHealth.maxHealth)
+            if (PlayerController.Instance == null)
+            {
+                Debug.LogError("Player not found!");
+                return false;
+            }
+
+            // Kiểm tra full health
+            if (PlayerController.Instance.CurrentHealth >= PlayerController.Instance.maxHealth)
             {
                 return false;
             }
-            else
-            {
-                playerHealth.RestoreHealth(amountToChangeStat);
-                return true;
-            }
-                
-        }/*
+
+            // Gọi hàm Heal (đã có sẵn trong PlayerController)
+            PlayerController.Instance.Heal(amountToChangeStat);
+            return true;
+        }
+
+        // Thêm mana sau nếu cần
         if (statToChange == StatToChange.mana)
         {
-            GameObject.Find("ManaManager").GetComponent<PlayerMana>().ChangeMana(amountToChangeStat);
-        }*/
+            if (PlayerController.Instance == null) return false;
+            PlayerController.Instance.RestoreMana(amountToChangeStat);
+            return true;
+        }
+
         return false;
     }
 
@@ -41,7 +48,7 @@ public class itemSO : ScriptableObject
         health,
         mana,
         stamina
-    };
+    }
 
     public enum AttributeToChange
     {
@@ -50,5 +57,5 @@ public class itemSO : ScriptableObject
         defense,
         intelligence,
         agility
-    };
+    }
 }

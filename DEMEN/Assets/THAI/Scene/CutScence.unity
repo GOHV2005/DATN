@@ -411,7 +411,9 @@ PlayableDirector:
   m_WrapMode: 2
   m_DirectorUpdateMode: 1
   m_InitialTime: 0
-  m_SceneBindings: []
+  m_SceneBindings:
+  - key: {fileID: -4570666455023592841, guid: e7b29b345a1aa614ca3242480c5cab82, type: 2}
+    value: {fileID: 1232799624}
   m_ExposedReferences:
     m_References:
     - 72491e808d1b937458ae9d488cf1d53c: {fileID: 1217906579}
@@ -436,6 +438,7 @@ PlayableDirector:
     - 3ab7f294082958146bcc4cfd8af651cc: {fileID: 2090105340}
     - 3e2f004266ea1444e9a71827a86bc9c3: {fileID: 1044953565}
     - 5067cfb9f07d9c64699705c98b911c92: {fileID: 329996287}
+    - 490e41f88c9d2e34fa01642e42c099ab: {fileID: 1232799624}
     - d09d47b2706b07945bf9c18f7e208be4: {fileID: 2020111866}
     - 18c5832b0508cca49883d389b8a05b23: {fileID: 685429147}
     - dd7b491253a5a994d81f60a9470d39f1: {fileID: 790463078}
@@ -1568,6 +1571,51 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0.14, y: 0.0492, z: 0}
   m_LocalScale: {x: 0.7854645, y: 0.7854645, z: 0.7854645}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1232799624
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1232799626}
+  - component: {fileID: 1232799625}
+  m_Layer: 0
+  m_Name: scenenext
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!114 &1232799625
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232799624}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 02b37fe2849b89e4ea26bf5bf32d1e4d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sceneName: ThaiMap01
+--- !u!4 &1232799626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1232799624}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1.13795, y: -0.52022, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -3088,3 +3136,4 @@ SceneRoots:
   - {fileID: 1597411916}
   - {fileID: 1044953567}
   - {fileID: 1981234417}
+  - {fileID: 1232799626}
