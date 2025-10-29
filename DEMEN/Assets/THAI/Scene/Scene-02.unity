@@ -3412,17 +3412,17 @@ PrefabInstance:
     - target: {fileID: 4401863854545358132, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_BackGroundColor.b
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358132, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_BackGroundColor.g
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358132, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_BackGroundColor.r
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358135, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
@@ -30654,7 +30654,7 @@ PrefabInstance:
     - target: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_TagString
-      value: Untagged
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
@@ -30916,7 +30916,7 @@ PrefabInstance:
     - target: {fileID: 6372339727032943130, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
       propertyPath: m_Spline.m_ControlPoints.Array.data[0].m_CornerMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6372339727032943131, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
@@ -33936,6 +33936,11 @@ PrefabInstance:
       propertyPath: manaDelay
       value: 
       objectReference: {fileID: 1545608794}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: maxHealth
+      value: 100
+      objectReference: {fileID: 0}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: healthFill
