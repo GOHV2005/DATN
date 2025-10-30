@@ -30674,12 +30674,12 @@ PrefabInstance:
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -53.27
+      value: -39.74
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -1.72
+      value: -5.68
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
@@ -30916,7 +30916,7 @@ PrefabInstance:
     - target: {fileID: 6372339727032943130, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
       propertyPath: m_Spline.m_ControlPoints.Array.data[0].m_CornerMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6372339727032943131, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
@@ -31001,7 +31001,7 @@ PrefabInstance:
     - target: {fileID: 6372339727176229870, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
       propertyPath: m_Spline.m_ControlPoints.Array.data[1].m_CornerMode
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 6372339727176229871, guid: 7b1d9d3c1cec0f5419bd2b1ea4481e3c,
         type: 3}
@@ -31307,6 +31307,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: "\u1EA5u tr\xF9ng (3)"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594387972326931871, guid: d0dfe1f6c908fb342838914f0d3d71f0,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -31675,6 +31680,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Enemy patroling URP (1)
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267053001599255100, guid: e5d975412b4ddaf44906db6f029dc5e4,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 4726897841611588071, guid: e5d975412b4ddaf44906db6f029dc5e4,
         type: 3}
@@ -32235,12 +32245,12 @@ PrefabInstance:
     - target: {fileID: 5917632163330784388, guid: d0dfe1f6c908fb342838914f0d3d71f0,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -66.47
+      value: -62.01
       objectReference: {fileID: 0}
     - target: {fileID: 5917632163330784388, guid: d0dfe1f6c908fb342838914f0d3d71f0,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.25
+      value: -5.88
       objectReference: {fileID: 0}
     - target: {fileID: 5917632163330784388, guid: d0dfe1f6c908fb342838914f0d3d71f0,
         type: 3}
@@ -32290,7 +32300,12 @@ PrefabInstance:
     - target: {fileID: 8594387972326931871, guid: d0dfe1f6c908fb342838914f0d3d71f0,
         type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594387972326931871, guid: d0dfe1f6c908fb342838914f0d3d71f0,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -32309,6 +32324,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Enemy patroling URP
+      objectReference: {fileID: 0}
+    - target: {fileID: 1267053001599255100, guid: e5d975412b4ddaf44906db6f029dc5e4,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     - target: {fileID: 4726897841611588071, guid: e5d975412b4ddaf44906db6f029dc5e4,
         type: 3}
@@ -33604,6 +33624,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: "\u1EA5u tr\xF9ng (1)"
       objectReference: {fileID: 0}
+    - target: {fileID: 8594387972326931871, guid: d0dfe1f6c908fb342838914f0d3d71f0,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -33671,6 +33696,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: "\u1EA5u tr\xF9ng (2)"
+      objectReference: {fileID: 0}
+    - target: {fileID: 8594387972326931871, guid: d0dfe1f6c908fb342838914f0d3d71f0,
+        type: 3}
+      propertyPath: m_TagString
+      value: Enemy
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
