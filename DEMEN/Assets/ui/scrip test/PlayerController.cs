@@ -62,6 +62,11 @@ public class PlayerController : MonoBehaviour
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
 
+    [Header("Last Stand Willpower")]
+    public bool enableWillpowerRegen = true;
+    public float willpowerMultiplier = 2f;
+    public float willpowerThreshold = 0.5f;
+
     // ====== Attack ======
     [Header("Attack")]
     public float attackCooldown = 0.25f;
@@ -568,8 +573,22 @@ public class PlayerController : MonoBehaviour
 
     void RegenerateManaIfNotDashing()
     {
-        if (!isDashing)
-            RegenerateMana(Time.deltaTime * manaRegenRate);
+        if (isDashing || isDead) return;
+
+        float regenRate = manaRegenRate;
+
+        if (enableWillpowerRegen)
+        {
+            float healthRatio = CurrentHealth / maxHealth;
+            if (healthRatio <= willpowerThreshold)
+            {
+                float intensity = Mathf.InverseLerp(willpowerThreshold, 0f, healthRatio);
+                float willpowerFactor = 1f + willpowerMultiplier * intensity;
+                regenRate *= willpowerFactor;
+            }
+        }
+
+        RegenerateMana(Time.deltaTime * regenRate);
     }
 
     void RegenerateMana(float amount)
