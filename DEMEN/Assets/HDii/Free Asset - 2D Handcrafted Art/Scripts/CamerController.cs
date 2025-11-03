@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CamerController : MonoBehaviour {
+/*public class CamerController : MonoBehaviour {
     public float speed;
     public float clampLeft;
     public float clampRight;
@@ -31,3 +31,4 @@ public class CamerController : MonoBehaviour {
         }
     }
 }
+*/
