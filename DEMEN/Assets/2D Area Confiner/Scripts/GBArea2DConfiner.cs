@@ -498,6 +498,4 @@ namespace GBTools.Area2DConfiner
 #endif
 
     }
-
-
 }
