@@ -43,9 +43,11 @@ public class UIManager : MonoBehaviour
         {
             // Đang mở → đóng
             HideAll();
+            Time.timeScale = 1f;
         }
         else
         {
+            Time.timeScale = 0f;
             // Đang đóng → mở panel này
             HideAll();
             targetPanel.SetActive(true);
