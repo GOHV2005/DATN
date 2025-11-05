@@ -3,65 +3,52 @@
 public class UIManager : MonoBehaviour
 {
     [Header("Panels")]
-    public GameObject ButtonPanel;
     public GameObject panelInventory;
-    public GameObject panelMap;
-    public GameObject panelHealth; // Slider máu
 
     public static UIManager Instance;
     public static bool IsUIOpen = false;
 
     private void Awake()
-    {        // Khởi đầu tắt tất cả
+    {
         HideAll();
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // giữ UI xuyên scene
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
             Destroy(gameObject);
             return;
         }
-
-
     }
 
     private void Update()
     {
-        // Kiểm tra Player tồn tại
-        bool hasPlayer = GameObject.FindWithTag("Player") != null;
-
-        // Chỉ bật Health nếu có Player
-        if (panelHealth != null)
-            panelHealth.SetActive(hasPlayer);
-
-        // Chỉ cho phép thao tác Inventory / Craft / Map nếu Player tồn tại
-        if (!hasPlayer) return;
+        // Chỉ cho phép mở UI nếu có Player trong scene
+        if (GameObject.FindWithTag("Player") == null)
+            return;
 
         if (Input.GetKeyDown(KeyCode.I))
-            ShowPanel(panelInventory);
-        else if (Input.GetKeyDown(KeyCode.M))
-            ShowPanel(panelMap);
+            TogglePanel(panelInventory);
         else if (Input.GetKeyDown(KeyCode.Escape))
             HideAll();
     }
 
-    public void ShowInventory() => ShowPanel(panelInventory);
-    public void ShowMap() => ShowPanel(panelMap);
+    public void ShowInventory() => TogglePanel(panelInventory);
 
-    private void ShowPanel(GameObject targetPanel)
+    private void TogglePanel(GameObject targetPanel)
     {
-        bool isActive = targetPanel.activeSelf;
-
-        HideAll();
-
-        if (!isActive)
+        if (targetPanel.activeSelf)
         {
-            ButtonPanel.SetActive(true);
+            // Đang mở → đóng
+            HideAll();
+        }
+        else
+        {
+            // Đang đóng → mở panel này
+            HideAll();
             targetPanel.SetActive(true);
-
             IsUIOpen = true;
             Cursor.visible = true;
             Cursor.lockState = CursorLockMode.None;
@@ -70,12 +57,11 @@ public class UIManager : MonoBehaviour
 
     private void HideAll()
     {
-        if (ButtonPanel != null) ButtonPanel.SetActive(false);
         if (panelInventory != null) panelInventory.SetActive(false);
-        if (panelMap != null) panelMap.SetActive(false);
 
         IsUIOpen = false;
-        Cursor.visible = true;
-        Cursor.lockState = CursorLockMode.None;
+        // Optional: Ẩn con trỏ khi đóng UI (nếu bạn dùng FPS/TPS)
+        // Cursor.visible = false;
+        // Cursor.lockState = CursorLockMode.Locked;
     }
 }
