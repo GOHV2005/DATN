@@ -62,6 +62,11 @@ public class PlayerController : MonoBehaviour
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
 
+    [Header("Last Stand Willpower")]
+    public bool enableWillpowerRegen = true;
+    public float willpowerMultiplier = 2f;
+    public float willpowerThreshold = 0.5f;
+
     // ====== Attack ======
     [Header("Attack")]
     public float attackCooldown = 0.25f;
@@ -170,6 +175,16 @@ public class PlayerController : MonoBehaviour
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
         manaTargetRatio = currentMana / maxMana;
         UpdateUIImmediate();
+
+        // Kiểm tra respawn từ checkpoint
+        if (PlayerPrefs.GetInt("HasRespawnPos", 0) == 1)
+        {
+            float x = PlayerPrefs.GetFloat("RespawnX");
+            float y = PlayerPrefs.GetFloat("RespawnY");
+            float z = PlayerPrefs.GetFloat("RespawnZ");
+            transform.position = new Vector3(x, y, z);
+            PlayerPrefs.SetInt("HasRespawnPos", 0);
+        }
 
         if (gameFadePanel != null)
         {
@@ -568,8 +583,22 @@ public class PlayerController : MonoBehaviour
 
     void RegenerateManaIfNotDashing()
     {
-        if (!isDashing)
-            RegenerateMana(Time.deltaTime * manaRegenRate);
+        if (isDashing || isDead) return;
+
+        float regenRate = manaRegenRate;
+
+        if (enableWillpowerRegen)
+        {
+            float healthRatio = CurrentHealth / maxHealth;
+            if (healthRatio <= willpowerThreshold)
+            {
+                float intensity = Mathf.InverseLerp(willpowerThreshold, 0f, healthRatio);
+                float willpowerFactor = 1f + willpowerMultiplier * intensity;
+                regenRate *= willpowerFactor;
+            }
+        }
+
+        RegenerateMana(Time.deltaTime * regenRate);
     }
 
     void RegenerateMana(float amount)
@@ -774,21 +803,36 @@ public class PlayerController : MonoBehaviour
 
     void PerformRespawn()
     {
-        string targetScene = "ThaiMap01";
+        string targetScene = "Scene-02";
         Vector3 spawnPosition = Vector3.zero;
-        bool foundSave = false;
+        bool foundCheckpoint = false;
 
-        for (int slotIndex = 0; slotIndex < 3; slotIndex++)
+        // === ƯU TIÊN CHECKPOINT TỪ PLAYERPREFS ===
+        if (PlayerPrefs.HasKey("LastCheckpointScene"))
         {
-            SaveData saveData = SaveSystem.LoadGame(slotIndex);
-            if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
+            targetScene = PlayerPrefs.GetString("LastCheckpointScene");
+            spawnPosition = new Vector3(
+                PlayerPrefs.GetFloat("CheckpointX"),
+                PlayerPrefs.GetFloat("CheckpointY"),
+                PlayerPrefs.GetFloat("CheckpointZ")
+            );
+            foundCheckpoint = true;
+        }
+        else
+        {
+            // Nếu không có checkpoint, thử load từ SaveData
+            for (int slotIndex = 0; slotIndex < 3; slotIndex++)
             {
-                SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
-                targetScene = latest.sceneName;
-                spawnPosition = latest.position;
-                PlayerPrefs.SetInt("CurrentSlot", slotIndex);
-                foundSave = true;
-                break;
+                SaveData saveData = SaveSystem.LoadGame(slotIndex);
+                if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
+                {
+                    SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
+                    targetScene = latest.sceneName;
+                    spawnPosition = latest.position;
+                    foundCheckpoint = true;
+                    PlayerPrefs.SetInt("CurrentSlot", slotIndex);
+                    break;
+                }
             }
         }
 
@@ -796,7 +840,7 @@ public class PlayerController : MonoBehaviour
         PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
         PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
         PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
-        PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
+        PlayerPrefs.SetInt("HasRespawnPos", foundCheckpoint ? 1 : 0);
 
         SceneManager.LoadScene(targetScene);
     }
