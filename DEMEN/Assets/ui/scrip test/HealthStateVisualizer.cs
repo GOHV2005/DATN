@@ -45,10 +45,11 @@ public class HealthStateSpriteVisualizer : MonoBehaviour
     {
         float ratio = player.CurrentHealth / player.maxHealth;
 
-        if (ratio >= 1.0f) return fullHealthSprite;
-        if (ratio >= 0.75f) return highHealthSprite;
-        if (ratio >= 0.5f) return mediumHealthSprite;
-        if (ratio >= 0.25f) return lowHealthSprite;
-        return criticalHealthSprite; // ratio < 25% hoặc = 0
+        if (ratio >= 0.6f) return fullHealthSprite;
+        if (ratio >= 0.4f) return highHealthSprite;
+        if (ratio >= 0.2f) return mediumHealthSprite;
+        if (ratio >= 0.01f) return lowHealthSprite;
+        if (ratio == 0f) return criticalHealthSprite; // ratio < 25% hoặc = 0
+        return criticalHealthSprite;
     }
 }

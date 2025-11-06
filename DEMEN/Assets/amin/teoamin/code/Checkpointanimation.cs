@@ -1,5 +1,4 @@
-﻿// CheckpointVisual.cs
-using UnityEngine;
+﻿using UnityEngine;
 using System.Collections.Generic;
 
 [RequireComponent(typeof(Animator))]
@@ -16,7 +15,6 @@ public class CheckpointVisual : MonoBehaviour
     private Animator animator;
     private bool playerInRange = false;
 
-    // Danh sách tất cả checkpoint (tự quản lý)
     private static List<CheckpointVisual> allCheckpoints = new List<CheckpointVisual>();
     private static CheckpointVisual activeCheckpoint = null;
 
@@ -27,16 +25,12 @@ public class CheckpointVisual : MonoBehaviour
         {
             Debug.LogError("Animator not found on Checkpoint!");
         }
-
-        // Thêm vào danh sách toàn cục
         allCheckpoints.Add(this);
-
         PlayNormalAnimation();
     }
 
     void OnDestroy()
     {
-        // Xoá khỏi danh sách khi bị destroy
         allCheckpoints.Remove(this);
         if (activeCheckpoint == this)
             activeCheckpoint = null;
@@ -44,14 +38,32 @@ public class CheckpointVisual : MonoBehaviour
 
     void Update()
     {
+        // Xử lý quay
         if (rotatingObject != null)
         {
             rotatingObject.Rotate(Vector3.forward, rotationSpeed * Time.deltaTime);
         }
 
+        // Xử lý nhấn E khi player đang trong vùng
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
             ActivateThisCheckpoint();
+        }
+    }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            playerInRange = true;
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            playerInRange = false;
         }
     }
 
@@ -62,21 +74,16 @@ public class CheckpointVisual : MonoBehaviour
 
     void ActivateThisCheckpoint()
     {
-        // Nếu đã là checkpoint active → không làm gì
         if (activeCheckpoint == this) return;
 
-        // Tắt checkpoint cũ (nếu có)
         if (activeCheckpoint != null)
         {
             activeCheckpoint.Deactivate();
         }
 
-        // Kích hoạt checkpoint này
         activeCheckpoint = this;
         PlayActiveAnimation();
         Debug.Log($"Checkpoint activated at {transform.position}");
-
-        // Gọi sự kiện toàn cục (nếu cần tích hợp với SaveSystem)
         OnCheckpointActivated?.Invoke(this);
     }
 
@@ -101,6 +108,5 @@ public class CheckpointVisual : MonoBehaviour
         }
     }
 
-    // Sự kiện để các hệ thống khác lắng nghe (tuỳ chọn)
     public static System.Action<CheckpointVisual> OnCheckpointActivated;
 }
