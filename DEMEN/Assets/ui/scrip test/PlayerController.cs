@@ -176,15 +176,25 @@ public class PlayerController : MonoBehaviour
         manaTargetRatio = currentMana / maxMana;
         UpdateUIImmediate();
 
-        // Kiểm tra respawn từ checkpoint
-        if (PlayerPrefs.GetInt("HasRespawnPos", 0) == 1)
+        // === 1. Thử load vị trí từ SaveSystem (ưu tiên slot hiện tại) ===
+        bool positionedFromSave = false;
+        int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
+        SaveData saveData = SaveSystem.LoadGame(currentSlot);
+
+        if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
         {
-            float x = PlayerPrefs.GetFloat("RespawnX");
-            float y = PlayerPrefs.GetFloat("RespawnY");
-            float z = PlayerPrefs.GetFloat("RespawnZ");
-            transform.position = new Vector3(x, y, z);
-            PlayerPrefs.SetInt("HasRespawnPos", 0);
+            // Lấy scene cuối cùng (mới nhất)
+            SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
+            if (latest.sceneName == SceneManager.GetActiveScene().name)
+            {
+                transform.position = latest.position;
+                positionedFromSave = true;
+                Debug.Log($"[Respawn] Loaded player position from save slot {currentSlot}: {latest.position}");
+            }
         }
+
+        // === 2. Nếu không có save, hoặc save ở scene khác → dùng vị trí mặc định (không làm gì) ===
+        // (Player sẽ ở vị trí trong scene — chính là "điểm ban đầu")
 
         if (gameFadePanel != null)
         {
@@ -803,45 +813,57 @@ public class PlayerController : MonoBehaviour
 
     void PerformRespawn()
     {
-        string targetScene = "Scene-02";
+        string targetScene = SceneManager.GetActiveScene().name; // fallback
         Vector3 spawnPosition = Vector3.zero;
-        bool foundCheckpoint = false;
+        bool foundSave = false;
+        int chosenSlot = -1;
 
-        // === ƯU TIÊN CHECKPOINT TỪ PLAYERPREFS ===
-        if (PlayerPrefs.HasKey("LastCheckpointScene"))
+        // === 1. Duyệt 3 slot save, lấy bản lưu mới nhất từ slot đầu tiên có dữ liệu ===
+        for (int slotIndex = 0; slotIndex < 3; slotIndex++)
         {
-            targetScene = PlayerPrefs.GetString("LastCheckpointScene");
-            spawnPosition = new Vector3(
-                PlayerPrefs.GetFloat("CheckpointX"),
-                PlayerPrefs.GetFloat("CheckpointY"),
-                PlayerPrefs.GetFloat("CheckpointZ")
-            );
-            foundCheckpoint = true;
-        }
-        else
-        {
-            // Nếu không có checkpoint, thử load từ SaveData
-            for (int slotIndex = 0; slotIndex < 3; slotIndex++)
+            SaveData saveData = SaveSystem.LoadGame(slotIndex);
+            if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
             {
-                SaveData saveData = SaveSystem.LoadGame(slotIndex);
-                if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
-                {
-                    SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
-                    targetScene = latest.sceneName;
-                    spawnPosition = latest.position;
-                    foundCheckpoint = true;
-                    PlayerPrefs.SetInt("CurrentSlot", slotIndex);
-                    break;
-                }
+                // Lấy scene cuối cùng trong danh sách (mới nhất)
+                SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
+                targetScene = latest.sceneName;
+                spawnPosition = latest.position;
+                foundSave = true;
+                chosenSlot = slotIndex;
+                break; // Ưu tiên slot 0 → 1 → 2
             }
         }
 
+        // === 2. Nếu không có save nào, dùng điểm spawn mặc định (tag "Respawn") ===
+        if (!foundSave)
+        {
+            GameObject defaultSpawn = GameObject.FindWithTag("Respawn");
+            if (defaultSpawn != null)
+            {
+                spawnPosition = defaultSpawn.transform.position;
+            }
+            else
+            {
+                // Fallback an toàn
+                spawnPosition = Vector3.zero;
+            }
+            targetScene = SceneManager.GetActiveScene().name;
+        }
+
+        // === 3. Ghi vào PlayerPrefs CHỈ ĐỂ TRUYỀN QUA SCENE MỚI (KHÔNG DÙNG LƯU CHECKPOINT) ===
         PlayerPrefs.SetString("RespawnScene", targetScene);
         PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
         PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
         PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
-        PlayerPrefs.SetInt("HasRespawnPos", foundCheckpoint ? 1 : 0);
+        PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
 
+        // Ghi nhớ slot để InventoryManager load đúng
+        if (chosenSlot >= 0)
+        {
+            PlayerPrefs.SetInt("CurrentSlot", chosenSlot);
+        }
+
+        // Tải scene đích
         SceneManager.LoadScene(targetScene);
     }
 

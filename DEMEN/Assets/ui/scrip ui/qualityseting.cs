@@ -4,43 +4,44 @@ using TMPro;
 public class QualitySettingsManager : MonoBehaviour
 {
     [Header("UI")]
-    public TMP_Dropdown qualityDropdown; // Dropdown chọn chất lượng
+    public TMP_Dropdown qualityDropdown;
 
-    // Bảng dịch Anh → Việt
-    private readonly string[] vietnameseNames = { "Rất Thấp", "Thấp", "Trung Bình", "Cao", "Rất Cao" };
+    private readonly string[] vietnameseNames = { "Thấp", "Trung Bình", "Cao" }; // 3 mức
 
     void Start()
     {
-        // Xóa options cũ
+        // Luôn dùng đúng số lượng names đã định nghĩa
         qualityDropdown.ClearOptions();
+        qualityDropdown.AddOptions(new System.Collections.Generic.List<string>(vietnameseNames));
 
-        // Lấy danh sách quality gốc
-        string[] qualityNames = QualitySettings.names;
+        // Lấy current level, nhưng giới hạn trong [0, 2]
+        int current = QualitySettings.GetQualityLevel();
+        current = Mathf.Clamp(current, 0, vietnameseNames.Length - 1);
 
+        // ⚠️ RẤT QUAN TRỌNG: Đặt lại quality level nếu nó vượt quá
+        QualitySettings.SetQualityLevel(current, true);
 
-        // Nếu số lượng khớp, thay bằng tên tiếng Việt
-        var options = new System.Collections.Generic.List<string>();
-        for (int i = 0; i < qualityNames.Length && i < vietnameseNames.Length; i++)
-        {
-            options.Add(vietnameseNames[i]);
-        }
-
-        // Thêm vào dropdown
-        qualityDropdown.AddOptions(options);
-
-        // Set giá trị ban đầu theo Quality hiện tại
-        int currentQuality = QualitySettings.GetQualityLevel();
-        qualityDropdown.value = currentQuality;
+        // Gán giá trị an toàn
+        qualityDropdown.value = current;
         qualityDropdown.RefreshShownValue();
 
-        // Gán sự kiện
         qualityDropdown.onValueChanged.AddListener(SetQuality);
     }
 
-    // Hàm đổi chất lượng
     public void SetQuality(int index)
     {
-        QualitySettings.SetQualityLevel(index, true);
-        Debug.Log("Đổi chất lượng: " + vietnameseNames[index]);
+        // Phòng thủ: chỉ xử lý nếu index hợp lệ
+        if (index >= 0 && index < vietnameseNames.Length)
+        {
+            QualitySettings.SetQualityLevel(index, true);
+            Debug.Log("Chất lượng đã đổi: " + vietnameseNames[index]);
+        }
+        else
+        {
+            // Nếu vẫn còn index lỗi → reset về mặc định
+            Debug.LogWarning("Index không hợp lệ. Đặt lại về 'Trung Bình'.");
+            qualityDropdown.value = 1; // Trung Bình
+            QualitySettings.SetQualityLevel(1, true);
+        }
     }
 }
