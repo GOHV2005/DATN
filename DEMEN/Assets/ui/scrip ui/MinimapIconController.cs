@@ -1,58 +1,55 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-public class MinimapIconController : MonoBehaviour
+public class MinimapPlayerIcon : MonoBehaviour
 {
-    public RawImage minimapImage;       // RawImage của minimap
-    public RectTransform playerIcon;    // Icon player (UI Image)
-    public RectTransform spawnIconPrefab; // Prefab spawn point
+    public RectTransform playerIcon;      // Kéo PlayerIcon vào đây
+    public Transform player;              // Kéo Player vào đây
+    public RectTransform minimapPanel;    // Kéo MinimapPanel (chứa RawImage) vào đây
 
-    public Transform player;
-    public Transform[] spawnPoints;     // Hoặc lấy từ hệ thống spawn
+    public float iconScale = 1f;          // Có thể dùng để scale theo zoom
 
-    public Bounds levelBounds; // Giới hạn level: min/max X,Y
+    // Nếu bạn muốn minimap luôn căn giữa player → bounds không cần thiết
+    // Nhưng nếu minimap có biên → cần bounds
+    public bool useLevelBounds = false;
+    public Vector2 minBounds = new Vector2(-50, -10);
+    public Vector2 maxBounds = new Vector2(50, 10);
 
-    private RectTransform minimapRect;
-    private RectTransform[] spawnIcons;
-
-    void Start()
+    void LateUpdate()
     {
-        minimapRect = minimapImage.rectTransform;
-        CreateSpawnIcons();
-    }
+        if (player == null || playerIcon == null || minimapPanel == null)
+            return;
 
-    void Update()
-    {
-        if (player != null)
-            UpdateIconPosition(playerIcon, player.position);
-
-        for (int i = 0; i < spawnPoints.Length && i < spawnIcons.Length; i++)
+        Vector2 iconPos;
+        if (playerIcon != null)
+            playerIcon.anchoredPosition = Vector2.zero;
+        if (useLevelBounds)
         {
-            if (spawnPoints[i] != null)
-                UpdateIconPosition(spawnIcons[i], spawnPoints[i].position);
+            // Chuẩn hóa vị trí player về [0,1] trong bounds
+            float x = Mathf.InverseLerp(minBounds.x, maxBounds.x, player.position.x);
+            float y = Mathf.InverseLerp(minBounds.y, maxBounds.y, player.position.y);
+
+            // Chuyển sang tọa độ UI (-0.5 → 0.5) → nhân với kích thước minimap
+            iconPos = new Vector2(
+                (x - 0.5f) * minimapPanel.sizeDelta.x,
+                (y - 0.5f) * minimapPanel.sizeDelta.y
+            );
         }
-    }
-
-    void UpdateIconPosition(RectTransform icon, Vector3 worldPos)
-    {
-        // Chuẩn hóa tọa độ world → [0,1]
-        float x = Mathf.InverseLerp(levelBounds.min.x, levelBounds.max.x, worldPos.x);
-        float y = Mathf.InverseLerp(levelBounds.min.y, levelBounds.max.y, worldPos.y);
-
-        // Chuyển sang tọa độ UI (-1 to 1 → -0.5 to 0.5)
-        icon.anchoredPosition = new Vector2(
-            (x - 0.5f) * minimapRect.sizeDelta.x,
-            (y - 0.5f) * minimapRect.sizeDelta.y
-        );
-    }
-
-    void CreateSpawnIcons()
-    {
-        spawnIcons = new RectTransform[spawnPoints.Length];
-        for (int i = 0; i < spawnPoints.Length; i++)
+        else
         {
-            var icon = Instantiate(spawnIconPrefab, minimapRect);
-            spawnIcons[i] = icon;
+            // Giả sử minimap luôn căn giữa player → icon luôn ở (0,0)
+            // Nhưng nếu minimap không căn giữa → bạn cần cách trên
+            iconPos = Vector2.zero;
+        }
+
+        playerIcon.anchoredPosition = iconPos;
+
+        // Optional: Xoay icon theo hướng nhìn của player (nếu cần)
+        if (player is { } && playerIcon.TryGetComponent<RectTransform>(out var rt))
+        {
+            // Ví dụ: player quay mặt phải/trái → mũi tên quay
+            // float angle = player.localScale.x > 0 ? 0 : 180;
+            // playerIcon.localEulerAngles = new Vector3(0, 0, angle);
         }
     }
 }
