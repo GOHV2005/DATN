@@ -53,9 +53,8 @@ public class PauseMenu : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("Thoát game!");
-        Application.Quit();
-
+        SceneLoader.LoadScene("UI Start Test");
+        Time.timeScale = 1f;
         // Nếu đang test trong Unity Editor:
         // UnityEditor.EditorApplication.isPlaying = false;
     }
