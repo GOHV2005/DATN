@@ -53,8 +53,8 @@ namespace Gamekit2D
 
         void OnDestroy()
         {
-            if (instance == this)
-                quitting = true;
+            /*if (instance == this)
+                quitting = true;*/
         }
 
         public static void RegisterPersister(IDataPersister persister)

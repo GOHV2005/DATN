@@ -139,7 +139,7 @@ public class BeeAI : MonoBehaviour
         if (col.gameObject.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
         {
             Debug.Log("🐝 [Ong] ĐÃ ĐỐT PLAYER → CHẾT!");
-            col.gameObject.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
+            //col.gameObject.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
             lastDamageTime = Time.time;
             Die();
         }
