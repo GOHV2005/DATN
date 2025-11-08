@@ -81,19 +81,19 @@ public class PlayerController : MonoBehaviour
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
 
-    // ====== UI ======
-    [Header("UI - Health")]
-    public Image healthFill;      // Thanh máu chính (giảm ngay)
-    public Image healthDelay;     // Thanh delay (giảm chậm)
+    // ====== UI - HEALTH (HEART SYSTEM) ======
+    [Header("UI - Health (Heart System)")]
+    public Image[] heartImages;          // Kéo các Image tim vào đây (ví dụ: 5 cái)
+    public Sprite fullHeartSprite;       // Tim đầy
+    public Sprite emptyHeartSprite;      // Tim trống
+    public float healthPerHeart = 20f;   // Mỗi tim = ? máu
 
+    // ====== UI - Mana (giữ nguyên) ======
     [Header("UI - Mana")]
     public Image manaFill;
     public Image manaDelay;
 
-    [Header("UI Settings - Delay & Speed")]
-    public float delayBeforeDrop = 0.5f;
-    public float delayDropSpeed = 0.5f;
-    public float mainBarHealSpeed = 0.8f;
+    [Header("UI Settings - Mana Delay & Speed")]
     public float manaDelayBeforeDrop = 0.5f;
     public float manaDelayDropSpeed = 0.6f;
     public float manaBarHealSpeed = 0.9f;
@@ -125,36 +125,24 @@ public class PlayerController : MonoBehaviour
     private float defaultGravityScale = 1f;
     public bool isDead = false;
 
-    // ====== Health Delay Internal ======
-    private float healthDelayTimer = 0f;
-    private bool healthDelayDropping = false;
-    private bool healthMainHealing = false;
+    // ====== HEALTH: DÙNG BIẾN NỘI BỘ ======
+    private float currentHealth;
+
+    public float CurrentHealth
+    {
+        get => currentHealth;
+        set
+        {
+            currentHealth = Mathf.Clamp(value, 0f, maxHealth);
+            UpdateHeartUI(); // Cập nhật UI ngay khi máu thay đổi
+        }
+    }
 
     // ====== Mana Internal ======
     private float manaTargetRatio;
     private float manaDelayTimer = 0f;
     private bool manaDelayDropping = false;
     private bool manaMainHealing = false;
-
-    // ====== HEALTH: CHỈ DÙNG healthFill LÀM NGUỒN CHÂN THẬT ======
-    private const float HEALTH_EPSILON = 0.001f;
-
-    public float CurrentHealth
-    {
-        get
-        {
-            if (healthFill == null) return 0f;
-            float value = healthFill.fillAmount * maxHealth;
-            return value < HEALTH_EPSILON ? 0f : value;
-        }
-        set
-        {
-            if (healthFill == null) return;
-            if (value < HEALTH_EPSILON) value = 0f;
-            float ratio = Mathf.Clamp01(value / maxHealth);
-            healthFill.fillAmount = ratio;
-        }
-    }
 
     void Awake()
     {
@@ -174,16 +162,17 @@ public class PlayerController : MonoBehaviour
         CurrentHealth = maxHealth;
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
         manaTargetRatio = currentMana / maxMana;
-        UpdateUIImmediate();
 
-        // === 1. Thử load vị trí từ SaveSystem (ưu tiên slot hiện tại) ===
+        if (manaFill != null) manaFill.fillAmount = manaTargetRatio;
+        if (manaDelay != null) manaDelay.fillAmount = manaTargetRatio;
+
+        // === Load vị trí từ save ===
         bool positionedFromSave = false;
         int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData saveData = SaveSystem.LoadGame(currentSlot);
 
         if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
         {
-            // Lấy scene cuối cùng (mới nhất)
             SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
             if (latest.sceneName == SceneManager.GetActiveScene().name)
             {
@@ -193,9 +182,6 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // === 2. Nếu không có save, hoặc save ở scene khác → dùng vị trí mặc định (không làm gì) ===
-        // (Player sẽ ở vị trí trong scene — chính là "điểm ban đầu")
-
         if (gameFadePanel != null)
         {
             StartCoroutine(FadePanel(1f, 0f));
@@ -204,14 +190,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
-        // Luôn cập nhật UI và hiệu ứng (kể cả khi chết)
         HandleInvincibilityFlash();
         UpdateTimers();
         RegenerateManaIfNotDashing();
-        UpdateUI();
+        UpdateManaUI(); // Chỉ cập nhật mana (máu đã tự cập nhật qua setter)
         UpdateAnimation();
 
-        // Chỉ xử lý input nếu chưa chết
         if (isDead) return;
 
         horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -268,9 +252,42 @@ public class PlayerController : MonoBehaviour
     }
 
     // ==============================
-    // CÁC HÀM CHÍNH (GIỮ NGUYÊN)
+    // TIM - HEART DISPLAY
     // ==============================
+    void UpdateHeartUI()
+    {
+        if (heartImages == null || heartImages.Length == 0) return;
 
+        int maxHearts = Mathf.CeilToInt(maxHealth / healthPerHeart);
+        float currentHealth = CurrentHealth;
+
+        for (int i = 0; i < heartImages.Length; i++)
+        {
+            if (i >= maxHearts)
+            {
+                heartImages[i].gameObject.SetActive(false);
+                continue;
+            }
+
+            heartImages[i].gameObject.SetActive(true);
+
+            float healthStart = i * healthPerHeart;
+            float healthEnd = healthStart + healthPerHeart;
+
+            if (currentHealth >= healthEnd)
+            {
+                heartImages[i].sprite = fullHeartSprite;
+            }
+            else
+            {
+                heartImages[i].sprite = emptyHeartSprite;
+            }
+        }
+    }
+
+    // ==============================
+    // CÁC HÀM KHÁC (GIỮ NGUYÊN LOGIC)
+    // ==============================
     void HandleInvincibilityFlash()
     {
         if (isInvincible)
@@ -511,15 +528,7 @@ public class PlayerController : MonoBehaviour
     {
         if (isInvincible || isDead) return;
 
-        float newHealth = CurrentHealth - amount;
-        CurrentHealth = newHealth;
-
-        if (healthDelay != null)
-        {
-            healthDelayTimer = delayBeforeDrop;
-            healthDelayDropping = true;
-            healthMainHealing = false;
-        }
+        CurrentHealth -= amount; // 👈 Sẽ tự gọi UpdateHeartUI()
 
         float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
         float knockbackX = (direction == AttackDirection.Front)
@@ -537,8 +546,6 @@ public class PlayerController : MonoBehaviour
         isInvincible = true;
         invincibleTimer = invincibleTime;
 
-        Debug.Log($"Bị đánh! Health: {CurrentHealth:F6}");
-
         if (CurrentHealth <= 0f)
         {
             Die();
@@ -548,21 +555,7 @@ public class PlayerController : MonoBehaviour
     public void Heal(float amount)
     {
         if (amount <= 0f || isDead) return;
-
-        float newHealth = Mathf.Clamp(CurrentHealth + amount, 0f, maxHealth);
-        CurrentHealth = newHealth;
-
-        if (healthDelay != null)
-        {
-            float newDelayRatio = newHealth / maxHealth;
-            if (newDelayRatio > healthDelay.fillAmount)
-            {
-                healthDelay.fillAmount = newDelayRatio;
-            }
-            healthMainHealing = true;
-            healthDelayDropping = false;
-            healthDelayTimer = 0f;
-        }
+        CurrentHealth += amount; // 👈 Tự cập nhật UI
     }
 
     void UseMana(float amount)
@@ -626,74 +619,13 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateUI()
+    void UpdateManaUI()
     {
-        // Cập nhật mana (chỉ khi còn sống)
-        if (!isDead)
-        {
-            manaTargetRatio = currentMana / maxMana;
-            UpdateManaBar();
-            UpdateManaDelayBar();
-        }
+        if (isDead) return;
 
-        // Cập nhật máu — LUÔN CHẠY (kể cả khi chết)
-        if (healthDelay != null && healthFill != null)
-        {
-            if (isDead)
-            {
-                // Khi chết: healthFill = 0, healthDelay giảm về 0
-                healthFill.fillAmount = 0f;
-                if (healthDelay.fillAmount > 0f)
-                {
-                    healthDelay.fillAmount = Mathf.MoveTowards(
-                        healthDelay.fillAmount,
-                        0f,
-                        delayDropSpeed * Time.deltaTime
-                    );
-                }
-            }
-            else
-            {
-                // Khi còn sống: logic delay bình thường
-                if (healthDelayDropping)
-                {
-                    if (healthDelayTimer > 0f)
-                    {
-                        healthDelayTimer -= Time.deltaTime;
-                    }
-                    else
-                    {
-                        healthDelay.fillAmount = Mathf.MoveTowards(
-                            healthDelay.fillAmount,
-                            healthFill.fillAmount,
-                            delayDropSpeed * Time.deltaTime
-                        );
-                        if (Mathf.Approximately(healthDelay.fillAmount, healthFill.fillAmount))
-                        {
-                            healthDelayDropping = false;
-                        }
-                    }
-                }
-                else if (healthMainHealing)
-                {
-                    healthFill.fillAmount = Mathf.MoveTowards(
-                        healthFill.fillAmount,
-                        healthDelay.fillAmount,
-                        mainBarHealSpeed * Time.deltaTime
-                    );
-                    if (Mathf.Approximately(healthFill.fillAmount, healthDelay.fillAmount))
-                    {
-                        healthMainHealing = false;
-                    }
-                }
-            }
-        }
-
-        // Gọi Die() nếu máu về 0 (chỉ khi còn sống)
-        if (!isDead && CurrentHealth <= 0f)
-        {
-            Die();
-        }
+        manaTargetRatio = currentMana / maxMana;
+        UpdateManaBar();
+        UpdateManaDelayBar();
     }
 
     void UpdateManaBar()
@@ -725,31 +657,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateUIImmediate()
-    {
-        float healthRatio = CurrentHealth / maxHealth;
-        float manaRatio = currentMana / maxMana;
-
-        if (healthFill != null) healthFill.fillAmount = healthRatio;
-        if (healthDelay != null) healthDelay.fillAmount = healthRatio;
-
-        if (manaFill != null) manaFill.fillAmount = manaRatio;
-        if (manaDelay != null) manaDelay.fillAmount = manaRatio;
-
-        healthDelayDropping = false;
-        healthMainHealing = false;
-        healthDelayTimer = 0f;
-        manaDelayDropping = false;
-        manaMainHealing = false;
-        manaDelayTimer = 0f;
-    }
-
     void Die()
     {
         if (isDead) return;
         isDead = true;
 
-        CurrentHealth = 0f;
+        CurrentHealth = 0f; // Đảm bảo UI cập nhật
 
         isInvincible = false;
         isAttacking = false;
@@ -775,16 +688,9 @@ public class PlayerController : MonoBehaviour
     System.Collections.IEnumerator RespawnAfterDeath()
     {
         rb.simulated = false;
-
         float deathAnimLength = GetAnimationLength("chet");
         if (deathAnimLength <= 0) deathAnimLength = 1f;
         yield return new WaitForSeconds(deathAnimLength);
-
-        // Đợi healthDelay về 0
-        while (healthDelay != null && healthDelay.fillAmount > 0.01f)
-        {
-            yield return null;
-        }
 
         if (gameFadePanel != null)
         {
@@ -792,49 +698,37 @@ public class PlayerController : MonoBehaviour
             yield return StartCoroutine(FadePanel(0f, 1f));
         }
 
-        enabled = false; // Tắt ngay trước khi load scene
+        enabled = false;
         PerformRespawn();
     }
 
     void RespawnImmediately()
     {
-        rb.simulated = false;
-
-        // Đợi healthDelay về 0 (nếu có)
-        while (healthDelay != null && healthDelay.fillAmount > 0.01f)
-        {
-            // Không thể dùng while trong void, nên dùng coroutine
-            // Nhưng vì RespawnImmediately ít dùng, ta bỏ qua hoặc gọi coroutine
-        }
-
         enabled = false;
         PerformRespawn();
     }
 
     void PerformRespawn()
     {
-        string targetScene = SceneManager.GetActiveScene().name; // fallback
+        string targetScene = SceneManager.GetActiveScene().name;
         Vector3 spawnPosition = Vector3.zero;
         bool foundSave = false;
         int chosenSlot = -1;
 
-        // === 1. Duyệt 3 slot save, lấy bản lưu mới nhất từ slot đầu tiên có dữ liệu ===
         for (int slotIndex = 0; slotIndex < 3; slotIndex++)
         {
             SaveData saveData = SaveSystem.LoadGame(slotIndex);
             if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
             {
-                // Lấy scene cuối cùng trong danh sách (mới nhất)
                 SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
                 targetScene = latest.sceneName;
                 spawnPosition = latest.position;
                 foundSave = true;
                 chosenSlot = slotIndex;
-                break; // Ưu tiên slot 0 → 1 → 2
+                break;
             }
         }
 
-        // === 2. Nếu không có save nào, dùng điểm spawn mặc định (tag "Respawn") ===
         if (!foundSave)
         {
             GameObject defaultSpawn = GameObject.FindWithTag("Respawn");
@@ -844,26 +738,21 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                // Fallback an toàn
                 spawnPosition = Vector3.zero;
             }
             targetScene = SceneManager.GetActiveScene().name;
         }
 
-        // === 3. Ghi vào PlayerPrefs CHỈ ĐỂ TRUYỀN QUA SCENE MỚI (KHÔNG DÙNG LƯU CHECKPOINT) ===
         PlayerPrefs.SetString("RespawnScene", targetScene);
         PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
         PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
         PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
         PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
-
-        // Ghi nhớ slot để InventoryManager load đúng
         if (chosenSlot >= 0)
         {
             PlayerPrefs.SetInt("CurrentSlot", chosenSlot);
         }
 
-        // Tải scene đích
         SceneManager.LoadScene(targetScene);
     }
 
