@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -13,7 +14,6 @@ public enum AttackDirection
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
-    // ====== Movement ======
     [Header("Movement")]
     public float walkSpeed = 5f;
     public float runMultiplier = 1.6f;
@@ -23,7 +23,6 @@ public class PlayerController : MonoBehaviour
     private int jumpCount = 0;
     private bool isGrounded = false;
 
-    // ====== Dash ======
     [Header("Dash")]
     public float dashForce = 18f;
     public float dashTime = 0.18f;
@@ -35,7 +34,6 @@ public class PlayerController : MonoBehaviour
     private bool isDashing = false;
     private Vector2 dashDirection;
 
-    // ====== Combat / Damage ======
     [Header("Combat")]
     public float maxHealth = 100f;
     public float damageOnTouch = 20f;
@@ -44,19 +42,16 @@ public class PlayerController : MonoBehaviour
     public float knockbackForce = 12f;
     public float knockbackAirTime = 0.6f;
 
-    // Invincibility frames
     [Header("Invincibility")]
     public float invincibleTime = 0.5f;
     private bool isInvincible = false;
     private float invincibleTimer = 0f;
 
-    // ====== Knockback Lock ======
     [Header("Knockback Settings")]
     public float knockbackDuration = 0.3f;
     private bool isKnockbacked = false;
     private float knockbackTimer = 0f;
 
-    // ====== Mana ======
     [Header("Mana")]
     public float maxMana = 100f;
     public float currentMana = 100f;
@@ -67,7 +62,6 @@ public class PlayerController : MonoBehaviour
     public float willpowerMultiplier = 2f;
     public float willpowerThreshold = 0.5f;
 
-    // ====== Attack ======
     [Header("Attack")]
     public float attackCooldown = 0.25f;
     public BoxCollider2D attackHitbox;
@@ -76,24 +70,21 @@ public class PlayerController : MonoBehaviour
     private float attackCooldownTimer = 0f;
     private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
 
-    // ====== Jump Float ======
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
 
-    // ====== UI - HEALTH (HEART SYSTEM) ======
     [Header("UI - Health (Heart System)")]
-    public Image[] heartImages;          // Kéo các Image tim vào đây (ví dụ: 5 cái)
-    public Sprite fullHeartSprite;       // Tim đầy
-    public Sprite emptyHeartSprite;      // Tim trống
-    public float healthPerHeart = 20f;   // Mỗi tim = ? máu
+    public Image[] heartImages;
+    public Sprite fullHeartSprite;
+    public Sprite emptyHeartSprite;
+    public float healthPerHeart = 20f;
 
-    // ====== UI - Mana (giữ nguyên) ======
     [Header("UI - Mana")]
     public Image manaFill;
     public Image manaDelay;
 
-    [Header("UI Settings - Mana Delay & Speed")]
+    [Header("UI Settings - Mana")]
     public float manaDelayBeforeDrop = 0.5f;
     public float manaDelayDropSpeed = 0.6f;
     public float manaBarHealSpeed = 0.9f;
@@ -102,43 +93,44 @@ public class PlayerController : MonoBehaviour
     public Image gameFadePanel;
     public float fadeDuration = 1f;
 
-    // ====== Animation ======
     [Header("Animation")]
     public Animator animator;
 
-    // ====== Invincibility Flash ======
     [Header("Invincibility Flash")]
     public float flashFrequency = 10f;
     private List<SpriteRenderer> spriteRenderers;
     private float flashTimer = 0f;
 
-    // ====== Input Buffering ======
+    [Header("Drop Settings")]
+    public Transform dropPoint;
+    public Transform feetPoint;
+    public float dropForce = 8f;
+    public float dropAngle = 50f;
+
     private float horizontalInput;
     private bool jumpRequested = false;
     private bool dashRequested = false;
     private bool attackRequested = false;
+    private bool isDropping = false; // 👈 THÊM BIẾN NÀY
+    private System.Action dropOnComplete; // Callback nếu thành công
 
-    // ====== Internal ======
     public static PlayerController Instance;
     private Rigidbody2D rb;
     private bool facingRight = true;
     private float defaultGravityScale = 1f;
     public bool isDead = false;
 
-    // ====== HEALTH: DÙNG BIẾN NỘI BỘ ======
     private float currentHealth;
-
     public float CurrentHealth
     {
         get => currentHealth;
         set
         {
             currentHealth = Mathf.Clamp(value, 0f, maxHealth);
-            UpdateHeartUI(); // Cập nhật UI ngay khi máu thay đổi
+            UpdateHeartUI();
         }
     }
 
-    // ====== Mana Internal ======
     private float manaTargetRatio;
     private float manaDelayTimer = 0f;
     private bool manaDelayDropping = false;
@@ -150,11 +142,6 @@ public class PlayerController : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         defaultGravityScale = rb.gravityScale;
         spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
-
-        if (rb == null)
-            Debug.LogError("Rigidbody2D not found on Player!");
-        if (spriteRenderers.Count == 0)
-            Debug.LogWarning("No SpriteRenderers found on Player or its children!");
     }
 
     void Start()
@@ -166,8 +153,6 @@ public class PlayerController : MonoBehaviour
         if (manaFill != null) manaFill.fillAmount = manaTargetRatio;
         if (manaDelay != null) manaDelay.fillAmount = manaTargetRatio;
 
-        // === Load vị trí từ save ===
-        bool positionedFromSave = false;
         int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData saveData = SaveSystem.LoadGame(currentSlot);
 
@@ -177,7 +162,6 @@ public class PlayerController : MonoBehaviour
             if (latest.sceneName == SceneManager.GetActiveScene().name)
             {
                 transform.position = latest.position;
-                positionedFromSave = true;
                 Debug.Log($"[Respawn] Loaded player position from save slot {currentSlot}: {latest.position}");
             }
         }
@@ -193,19 +177,45 @@ public class PlayerController : MonoBehaviour
         HandleInvincibilityFlash();
         UpdateTimers();
         RegenerateManaIfNotDashing();
-        UpdateManaUI(); // Chỉ cập nhật mana (máu đã tự cập nhật qua setter)
+        UpdateManaUI();
         UpdateAnimation();
 
         if (isDead) return;
 
-        horizontalInput = Input.GetAxisRaw("Horizontal");
-        if (Input.GetKeyDown(KeyCode.Space)) jumpRequested = true;
-        if (Input.GetKeyDown(KeyCode.Q)) dashRequested = true;
-        if (Input.GetMouseButtonDown(0)) attackRequested = true;
+        if (UIManager.IsGameplayInputAllowed)
+        {
+            horizontalInput = Input.GetAxisRaw("Horizontal");
+            if (Input.GetKeyDown(KeyCode.Space)) jumpRequested = true;
+            if (Input.GetKeyDown(KeyCode.Q)) dashRequested = true;
+            if (Input.GetMouseButtonDown(0)) attackRequested = true;
+        }
+        else
+        {
+            horizontalInput = 0f;
+        }
     }
 
     void FixedUpdate()
     {
+        if (isDead) { rb.simulated = false; return; }
+
+        // 👇 HỦY DROP NẾU CÓ HÀNH ĐỘNG NGẮT
+        if (isDropping)
+        {
+            bool shouldCancel =
+                Mathf.Abs(horizontalInput) > 0.1f ||   // di chuyển
+                jumpRequested ||                       // nhảy
+                dashRequested ||                       // dash
+                attackRequested ||                     // tấn công
+                isKnockbacked ||                       // bị đánh
+                isAttacking ||                         // đang đánh
+                isDashing;                             // đang dash
+
+            if (shouldCancel)
+            {
+                CancelDrop();
+            }
+        }
         if (isDead)
         {
             rb.simulated = false;
@@ -251,9 +261,92 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    // ==============================
-    // TIM - HEART DISPLAY
-    // ==============================
+    public void DropItem(string name, int qty, Sprite sprite, string desc, System.Action onComplete = null)
+    {
+        if (animator == null || isDead) return;
+
+        // Hủy drop trước đó (nếu có)
+        CancelDrop();
+
+        isDropping = true;
+        dropOnComplete = onComplete;
+
+        animator.Play("dropItem");
+        StartCoroutine(DelayedDropSpawn(name));
+    }
+    private IEnumerator DelayedDropSpawn(string itemName)
+    {
+        yield return new WaitForSeconds(1.15f);
+
+        // Nếu bị hủy trong lúc chờ → dừng
+        if (!isDropping) yield break;
+
+        if (dropPoint == null) { CancelDrop(); yield break; }
+
+        InventoryManager invMgr = InventoryManager.Instance;
+        GameObject prefab = invMgr?.GetItemPrefab(itemName);
+
+        if (prefab == null) { CancelDrop(); yield break; }
+
+        // SPAWN ITEM
+        GameObject itemObj = Instantiate(prefab, dropPoint.position, Quaternion.identity);
+        Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            float dir = facingRight ? 1f : -1f;
+            float rad = Mathf.Deg2Rad * dropAngle;
+            Vector2 force = new Vector2(Mathf.Cos(rad) * dir, Mathf.Sin(rad)) * dropForce;
+            rb.AddForce(force, ForceMode2D.Impulse);
+        }
+
+        // Gọi callback → item sẽ bị trừ trong inventory
+        dropOnComplete?.Invoke();
+        isDropping = false;
+        dropOnComplete = null;
+    }
+    private void CancelDrop()
+    {
+        if (!isDropping) return;
+
+        isDropping = false;
+        dropOnComplete = null;
+
+        // (Tùy chọn) Quay lại animation Idle ngay
+        if (animator != null && !isDead)
+        {
+            animator.Play("Idle");
+        }
+    }
+    private System.Collections.IEnumerator SpawnItemAtPeak(string itemName, System.Action onComplete)
+    {
+        yield return new WaitForSeconds(1.15f);
+
+        if (dropPoint == null) yield break;
+
+        InventoryManager invMgr = InventoryManager.Instance;
+        GameObject prefab = invMgr?.GetItemPrefab(itemName);
+
+        if (prefab == null)
+        {
+            Debug.LogError($"No prefab found for item: {itemName}");
+            yield break;
+        }
+
+        GameObject itemObj = Instantiate(prefab, dropPoint.position, Quaternion.identity);
+        Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Dynamic;
+            float dir = facingRight ? 1f : -1f;
+            float rad = Mathf.Deg2Rad * dropAngle;
+            Vector2 force = new Vector2(Mathf.Cos(rad) * dir, Mathf.Sin(rad)) * dropForce;
+            rb.AddForce(force, ForceMode2D.Impulse);
+        }
+
+        onComplete?.Invoke();
+    }
+
     void UpdateHeartUI()
     {
         if (heartImages == null || heartImages.Length == 0) return;
@@ -270,24 +363,11 @@ public class PlayerController : MonoBehaviour
             }
 
             heartImages[i].gameObject.SetActive(true);
-
-            float healthStart = i * healthPerHeart;
-            float healthEnd = healthStart + healthPerHeart;
-
-            if (currentHealth >= healthEnd)
-            {
-                heartImages[i].sprite = fullHeartSprite;
-            }
-            else
-            {
-                heartImages[i].sprite = emptyHeartSprite;
-            }
+            float healthEnd = (i + 1) * healthPerHeart;
+            heartImages[i].sprite = (currentHealth >= healthEnd) ? fullHeartSprite : emptyHeartSprite;
         }
     }
 
-    // ==============================
-    // CÁC HÀM KHÁC (GIỮ NGUYÊN LOGIC)
-    // ==============================
     void HandleInvincibilityFlash()
     {
         if (isInvincible)
@@ -528,7 +608,12 @@ public class PlayerController : MonoBehaviour
     {
         if (isInvincible || isDead) return;
 
-        CurrentHealth -= amount; // 👈 Sẽ tự gọi UpdateHeartUI()
+        // Hủy drop khi bị đánh
+        if (isDropping)
+        {
+            CancelDrop();
+        }
+        CurrentHealth -= amount;
 
         float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
         float knockbackX = (direction == AttackDirection.Front)
@@ -555,7 +640,7 @@ public class PlayerController : MonoBehaviour
     public void Heal(float amount)
     {
         if (amount <= 0f || isDead) return;
-        CurrentHealth += amount; // 👈 Tự cập nhật UI
+        CurrentHealth += amount;
     }
 
     void UseMana(float amount)
@@ -662,7 +747,7 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         isDead = true;
 
-        CurrentHealth = 0f; // Đảm bảo UI cập nhật
+        CurrentHealth = 0f;
 
         isInvincible = false;
         isAttacking = false;
@@ -784,6 +869,12 @@ public class PlayerController : MonoBehaviour
     {
         if (animator == null || isDead) return;
 
+        // 👇 BẢO VỆ ANIMATION DROP
+        if (isDropping)
+        {
+            return; // KHÔNG GHI ĐÈ KHI ĐANG DROP
+        }
+
         if (isKnockbacked)
         {
             animator.Play("Hurt");
@@ -803,24 +894,10 @@ public class PlayerController : MonoBehaviour
 
         if (!isGrounded)
         {
-            if (rb.linearVelocity.y > 0.01f)
-            {
-                animator.Play("Jump");
-            }
-            else if (rb.linearVelocity.y < -0.01f)
-            {
-                animator.Play("Fall");
-            }
+            animator.Play(rb.linearVelocity.y > 0.01f ? "Jump" : "roiiiii");
             return;
         }
 
-        if (Mathf.Abs(horizontalInput) > 0.1f)
-        {
-            animator.Play("Run");
-        }
-        else
-        {
-            animator.Play("Idle");
-        }
+        animator.Play(Mathf.Abs(horizontalInput) > 0.1f ? "Run" : "Idle");
     }
 }
