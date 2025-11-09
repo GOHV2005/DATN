@@ -33,6 +33,8 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownTimer = 0f;
     private bool isDashing = false;
     private Vector2 dashDirection;
+    private float dashAnimationDuration = 0.3f; // 👈 Độ dài animation "Dash" (giây)
+    private float dashAnimationTimer = 0f;
 
     [Header("Combat")]
     public float maxHealth = 100f;
@@ -56,6 +58,8 @@ public class PlayerController : MonoBehaviour
     public float maxMana = 100f;
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
+    public GameObject manaShardPrefab; // Kéo prefab ManaShard vào đây
+    public Transform manaBarPosition;  // Vị trí phát mảnh (thường là RectTransform của thanh mana)
 
     [Header("Last Stand Willpower")]
     public bool enableWillpowerRegen = true;
@@ -250,7 +254,10 @@ public class PlayerController : MonoBehaviour
         {
             HandleMovement();
         }
-
+        if (isDashing)
+        {
+            return;
+        }
         if (useJumpFloat && !isGrounded && rb.linearVelocity.y < 0f)
         {
             rb.gravityScale = Input.GetKey(KeyCode.Space) ? floatGravityScale : defaultGravityScale;
@@ -408,15 +415,25 @@ public class PlayerController : MonoBehaviour
 
     void UpdateTimers()
     {
+        
+
         if (isKnockbacked)
         {
             knockbackTimer -= Time.deltaTime;
             if (knockbackTimer <= 0f) isKnockbacked = false;
         }
 
-        if (dashCooldownTimer > 0f) dashCooldownTimer -= Time.deltaTime;
-        if (dashTimer > 0f) dashTimer -= Time.deltaTime;
-        else if (isDashing) EndDash();
+        if (dashCooldownTimer > 0f)
+            dashCooldownTimer -= Time.deltaTime;  // 👈 DÒNG NÀY CÓ CHẠY KHÔNG?
+
+        if (dashTimer > 0f)
+        {
+            dashTimer -= Time.deltaTime;
+        }
+        else if (isDashing)
+        {
+            EndDash();
+        }
 
         if (attackCooldownTimer > 0f) attackCooldownTimer -= Time.deltaTime;
     }
@@ -437,12 +454,21 @@ public class PlayerController : MonoBehaviour
 
     void HandleDash()
     {
+        Debug.Log($"[DASH] Requested! Cooldown: {dashCooldownTimer:F2}, Mana: {currentMana}/{maxMana}, IsDashing: {isDashing}");
+
         if (dashCooldownTimer <= 0f && currentMana >= dashManaCost)
         {
             Vector2 dir = Mathf.Abs(horizontalInput) > 0.1f
                 ? new Vector2(Mathf.Sign(horizontalInput), 0f)
                 : (facingRight ? Vector2.right : Vector2.left);
             StartDash(dir.normalized);
+        }
+        else
+        {
+            if (dashCooldownTimer > 0f)
+                Debug.Log("[DASH] ❌ Bị cooldown!");
+            if (currentMana < dashManaCost)
+                Debug.Log("[DASH] ❌ Thiếu mana!");
         }
     }
 
@@ -471,14 +497,18 @@ public class PlayerController : MonoBehaviour
         dashDirection = dir;
         dashTimer = dashTime;
         dashCooldownTimer = dashCooldown;
+        dashAnimationTimer = dashAnimationDuration; // Bắt đầu đếm animation
 
         isInvincible = true;
         invincibleTimer = 0.12f;
 
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         rb.AddForce(dashDirection * dashForce, ForceMode2D.Impulse);
-    }
 
+        // Phát animation
+        if (animator != null)
+            animator.Play("Dash");
+    }
     void EndDash()
     {
         isDashing = false;
@@ -643,17 +673,34 @@ public class PlayerController : MonoBehaviour
         CurrentHealth += amount;
     }
 
-    void UseMana(float amount)
+    public void UseMana(float amount)
     {
-        if (amount <= 0f || isDead) return;
+        if (amount <= 0 || isDead) return;
+
+        float prevMana = currentMana;
         currentMana = Mathf.Clamp(currentMana - amount, 0f, maxMana);
-        manaTargetRatio = currentMana / maxMana;
 
-        if (manaFill != null) manaFill.fillAmount = manaTargetRatio;
+        if (manaFill != null)
+            manaFill.fillAmount = currentMana / maxMana;
 
-        manaDelayTimer = manaDelayBeforeDrop;
-        manaDelayDropping = true;
-        manaMainHealing = false;
+        if (currentMana < prevMana && manaShardPrefab != null && manaBarPosition != null)
+        {
+            int shardCount = Mathf.CeilToInt(amount / 4f);
+            shardCount = Mathf.Clamp(shardCount, 1, 8);
+
+            for (int i = 0; i < shardCount; i++)
+            {
+                GameObject shard = Instantiate(manaShardPrefab, manaBarPosition);
+
+                // 👇 RẢI ĐỀU TRÊN THANH MANA — KHÔNG CHỤM 1 CỤC
+                float barWidth = manaFill.rectTransform.rect.width;
+                float x = Random.Range(-barWidth * 0.4f, barWidth * 0.4f); // rải dọc theo thanh
+                float y = Random.Range(5f, 25f); // nhô lên một chút
+
+                shard.transform.localPosition = new Vector2(x, y);
+                shard.GetComponent<ManaShard>().Init();
+            }
+        }
     }
 
     public void RestoreMana(float amount)
