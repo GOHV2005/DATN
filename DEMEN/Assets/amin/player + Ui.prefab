@@ -1,5 +1,36 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &861911500296444758
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8108704806550503060}
+  m_Layer: 15
+  m_Name: Dash  Point
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8108704806550503060
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 861911500296444758}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.66, y: -4.08, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6309747923429382125}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1102831974105295511
 GameObject:
   m_ObjectHideFlags: 0
@@ -105,7 +136,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6489448358863431774
 Transform:
   m_ObjectHideFlags: 0
@@ -290,7 +321,7 @@ Transform:
   m_GameObject: {fileID: 2686794182035308366}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.27, y: -4.17, z: 0}
+  m_LocalPosition: {x: 0.27, y: -4.15, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -947,7 +978,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1567155121
   m_SortingLayer: 2
-  m_SortingOrder: 32767
+  m_SortingOrder: 9999
   m_Sprite: {fileID: 7469957852702398893, guid: 759c886f611d0b540b3b45864bd34e3d,
     type: 3}
   m_Color: {r: 1, g: 0, b: 0, a: 1}
@@ -1564,9 +1595,20 @@ PrefabInstance:
       objectReference: {fileID: 8016480890086441336}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: targetObject
+      value: 
+      objectReference: {fileID: 8108704806550503060}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: gameFadePanel
       value: 
       objectReference: {fileID: 4320746442983040650}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: dashSmokePrefab
+      value: 
+      objectReference: {fileID: 573736208047657263, guid: e4b633dcacb3b5b409bb0f39c1a82b1f,
+        type: 3}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: fullHeartSprite
@@ -1747,6 +1789,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 8016480890086441336}
+    - targetCorrespondingSourceObject: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8108704806550503060}
     - targetCorrespondingSourceObject: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       insertIndex: -1

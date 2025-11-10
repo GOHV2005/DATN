@@ -35,6 +35,8 @@ public class PlayerController : MonoBehaviour
     private Vector2 dashDirection;
     private float dashAnimationDuration = 0.3f; // 👈 Độ dài animation "Dash" (giây)
     private float dashAnimationTimer = 0f;
+    public GameObject dashSmokePrefab;
+    public Transform targetObject;
 
     [Header("Combat")]
     public float maxHealth = 100f;
@@ -508,6 +510,11 @@ public class PlayerController : MonoBehaviour
         // Phát animation
         if (animator != null)
             animator.Play("Dash");
+        if (dashSmokePrefab != null && targetObject != null)
+        {
+            GameObject smoke = Instantiate(dashSmokePrefab);
+            smoke.GetComponent<AutoDestroyAfterAnim>().Init(targetObject.position, facingRight);
+        }
     }
     void EndDash()
     {
