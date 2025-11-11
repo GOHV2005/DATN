@@ -130,13 +130,13 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6489448358863431774}
-  m_Layer: 15
+  m_Layer: 16
   m_Name: PlayerMapIcon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6489448358863431774
 Transform:
   m_ObjectHideFlags: 0
@@ -1192,7 +1192,7 @@ GameObject:
   - component: {fileID: 450687447123855069}
   - component: {fileID: 1039132956942365071}
   m_Layer: 5
-  m_Name: Slider
+  m_Name: mana
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1468,6 +1468,16 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6569192304576651335}
     m_Modifications:
+    - target: {fileID: 189849729348102260, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_Size.x
+      value: 118.68191
+      objectReference: {fileID: 0}
+    - target: {fileID: 189849729348102260, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_Offset.x
+      value: 52.80752
+      objectReference: {fileID: 0}
     - target: {fileID: 420955443624896907, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Layer
@@ -1522,6 +1532,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2838822850484932348, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_Name
+      value: attackbox
       objectReference: {fileID: 0}
     - target: {fileID: 2838822850484932348, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -1585,6 +1600,11 @@ PrefabInstance:
       objectReference: {fileID: 5964940269026458735}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: dashForce
+      value: 30
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: dropPoint
       value: 
       objectReference: {fileID: 3277053892829438836}
@@ -1595,14 +1615,39 @@ PrefabInstance:
       objectReference: {fileID: 8016480890086441336}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: maxHealth
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: targetObject
       value: 
       objectReference: {fileID: 8108704806550503060}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: damageOnTouch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: gameFadePanel
       value: 
       objectReference: {fileID: 4320746442983040650}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: attackCooldown
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: healthPerHeart
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: invincibleTime
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: dashSmokePrefab

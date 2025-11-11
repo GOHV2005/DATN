@@ -33,7 +33,7 @@ public class PlayerController : MonoBehaviour
     private float dashCooldownTimer = 0f;
     private bool isDashing = false;
     private Vector2 dashDirection;
-    private float dashAnimationDuration = 0.3f; // 👈 Độ dài animation "Dash" (giây)
+    private float dashAnimationDuration = 0.3f;
     private float dashAnimationTimer = 0f;
     public GameObject dashSmokePrefab;
     public Transform targetObject;
@@ -48,8 +48,14 @@ public class PlayerController : MonoBehaviour
 
     [Header("Invincibility")]
     public float invincibleTime = 0.5f;
-    private bool isInvincible = false;
-    private float invincibleTimer = 0f;
+
+    [Header("Dash Invincibility")]
+    private bool isDashInvincible = false; // 👈 BIẾN MỚI
+    private float dashInvincibleTimer = 2f; // 👈 BIẾN MỚI
+
+    [Header("Knockback Invincibility")]
+    private bool isKnockbackInvincible = false; // 👈 BIẾN MỚI
+    private float knockbackInvincibleTimer = 0f; // 👈 BIẾN MỚI
 
     [Header("Knockback Settings")]
     public float knockbackDuration = 0.3f;
@@ -60,8 +66,8 @@ public class PlayerController : MonoBehaviour
     public float maxMana = 100f;
     public float currentMana = 100f;
     public float manaRegenRate = 12f;
-    public GameObject manaShardPrefab; // Kéo prefab ManaShard vào đây
-    public Transform manaBarPosition;  // Vị trí phát mảnh (thường là RectTransform của thanh mana)
+    public GameObject manaShardPrefab;
+    public Transform manaBarPosition;
 
     [Header("Last Stand Willpower")]
     public bool enableWillpowerRegen = true;
@@ -88,11 +94,8 @@ public class PlayerController : MonoBehaviour
 
     [Header("UI - Mana")]
     public Image manaFill;
-    public Image manaDelay;
 
     [Header("UI Settings - Mana")]
-    public float manaDelayBeforeDrop = 0.5f;
-    public float manaDelayDropSpeed = 0.6f;
     public float manaBarHealSpeed = 0.9f;
 
     [Header("Game Fade")]
@@ -117,8 +120,8 @@ public class PlayerController : MonoBehaviour
     private bool jumpRequested = false;
     private bool dashRequested = false;
     private bool attackRequested = false;
-    private bool isDropping = false; // 👈 THÊM BIẾN NÀY
-    private System.Action dropOnComplete; // Callback nếu thành công
+    private bool isDropping = false;
+    private System.Action dropOnComplete;
 
     public static PlayerController Instance;
     private Rigidbody2D rb;
@@ -138,8 +141,6 @@ public class PlayerController : MonoBehaviour
     }
 
     private float manaTargetRatio;
-    private float manaDelayTimer = 0f;
-    private bool manaDelayDropping = false;
     private bool manaMainHealing = false;
 
     void Awake()
@@ -157,7 +158,6 @@ public class PlayerController : MonoBehaviour
         manaTargetRatio = currentMana / maxMana;
 
         if (manaFill != null) manaFill.fillAmount = manaTargetRatio;
-        if (manaDelay != null) manaDelay.fillAmount = manaTargetRatio;
 
         int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData saveData = SaveSystem.LoadGame(currentSlot);
@@ -205,28 +205,24 @@ public class PlayerController : MonoBehaviour
     {
         if (isDead) { rb.simulated = false; return; }
 
-        // 👇 HỦY DROP NẾU CÓ HÀNH ĐỘNG NGẮT
         if (isDropping)
         {
             bool shouldCancel =
-                Mathf.Abs(horizontalInput) > 0.1f ||   // di chuyển
-                jumpRequested ||                       // nhảy
-                dashRequested ||                       // dash
-                attackRequested ||                     // tấn công
-                isKnockbacked ||                       // bị đánh
-                isAttacking ||                         // đang đánh
-                isDashing;                             // đang dash
+                Mathf.Abs(horizontalInput) > 0.1f ||
+                jumpRequested ||
+                dashRequested ||
+                attackRequested ||
+                isKnockbacked ||
+                isAttacking ||
+                isDashing;
 
             if (shouldCancel)
             {
                 CancelDrop();
             }
         }
-        if (isDead)
-        {
-            rb.simulated = false;
-            return;
-        }
+
+        if (isDead) { rb.simulated = false; return; }
 
         if (attackRequested && attackCooldownTimer <= 0f && !isAttacking)
         {
@@ -256,10 +252,9 @@ public class PlayerController : MonoBehaviour
         {
             HandleMovement();
         }
-        if (isDashing)
-        {
-            return;
-        }
+
+        if (isDashing) return;
+
         if (useJumpFloat && !isGrounded && rb.linearVelocity.y < 0f)
         {
             rb.gravityScale = Input.GetKey(KeyCode.Space) ? floatGravityScale : defaultGravityScale;
@@ -274,7 +269,6 @@ public class PlayerController : MonoBehaviour
     {
         if (animator == null || isDead) return;
 
-        // Hủy drop trước đó (nếu có)
         CancelDrop();
 
         isDropping = true;
@@ -283,11 +277,11 @@ public class PlayerController : MonoBehaviour
         animator.Play("dropItem");
         StartCoroutine(DelayedDropSpawn(name));
     }
+
     private IEnumerator DelayedDropSpawn(string itemName)
     {
         yield return new WaitForSeconds(1.15f);
 
-        // Nếu bị hủy trong lúc chờ → dừng
         if (!isDropping) yield break;
 
         if (dropPoint == null) { CancelDrop(); yield break; }
@@ -297,7 +291,6 @@ public class PlayerController : MonoBehaviour
 
         if (prefab == null) { CancelDrop(); yield break; }
 
-        // SPAWN ITEM
         GameObject itemObj = Instantiate(prefab, dropPoint.position, Quaternion.identity);
         Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
         if (rb != null)
@@ -309,11 +302,11 @@ public class PlayerController : MonoBehaviour
             rb.AddForce(force, ForceMode2D.Impulse);
         }
 
-        // Gọi callback → item sẽ bị trừ trong inventory
         dropOnComplete?.Invoke();
         isDropping = false;
         dropOnComplete = null;
     }
+
     private void CancelDrop()
     {
         if (!isDropping) return;
@@ -321,39 +314,10 @@ public class PlayerController : MonoBehaviour
         isDropping = false;
         dropOnComplete = null;
 
-        // (Tùy chọn) Quay lại animation Idle ngay
         if (animator != null && !isDead)
         {
             animator.Play("Idle");
         }
-    }
-    private System.Collections.IEnumerator SpawnItemAtPeak(string itemName, System.Action onComplete)
-    {
-        yield return new WaitForSeconds(1.15f);
-
-        if (dropPoint == null) yield break;
-
-        InventoryManager invMgr = InventoryManager.Instance;
-        GameObject prefab = invMgr?.GetItemPrefab(itemName);
-
-        if (prefab == null)
-        {
-            Debug.LogError($"No prefab found for item: {itemName}");
-            yield break;
-        }
-
-        GameObject itemObj = Instantiate(prefab, dropPoint.position, Quaternion.identity);
-        Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
-        if (rb != null)
-        {
-            rb.bodyType = RigidbodyType2D.Dynamic;
-            float dir = facingRight ? 1f : -1f;
-            float rad = Mathf.Deg2Rad * dropAngle;
-            Vector2 force = new Vector2(Mathf.Cos(rad) * dir, Mathf.Sin(rad)) * dropForce;
-            rb.AddForce(force, ForceMode2D.Impulse);
-        }
-
-        onComplete?.Invoke();
     }
 
     void UpdateHeartUI()
@@ -379,9 +343,22 @@ public class PlayerController : MonoBehaviour
 
     void HandleInvincibilityFlash()
     {
-        if (isInvincible)
+        bool isAnyInvincible = isDashInvincible || isKnockbackInvincible;
+
+        if (isAnyInvincible)
         {
-            invincibleTimer -= Time.deltaTime;
+            if (isDashInvincible)
+            {
+                dashInvincibleTimer -= Time.deltaTime;
+                if (dashInvincibleTimer <= 0f) isDashInvincible = false;
+            }
+
+            if (isKnockbackInvincible)
+            {
+                knockbackInvincibleTimer -= Time.deltaTime;
+                if (knockbackInvincibleTimer <= 0f) isKnockbackInvincible = false;
+            }
+
             flashTimer += Time.deltaTime;
 
             if (flashTimer >= 1f / flashFrequency)
@@ -396,15 +373,6 @@ public class PlayerController : MonoBehaviour
                     }
                 }
             }
-
-            if (invincibleTimer <= 0f)
-            {
-                isInvincible = false;
-                foreach (var sr in spriteRenderers)
-                {
-                    sr.enabled = true;
-                }
-            }
         }
         else
         {
@@ -417,8 +385,6 @@ public class PlayerController : MonoBehaviour
 
     void UpdateTimers()
     {
-        
-
         if (isKnockbacked)
         {
             knockbackTimer -= Time.deltaTime;
@@ -426,7 +392,7 @@ public class PlayerController : MonoBehaviour
         }
 
         if (dashCooldownTimer > 0f)
-            dashCooldownTimer -= Time.deltaTime;  // 👈 DÒNG NÀY CÓ CHẠY KHÔNG?
+            dashCooldownTimer -= Time.deltaTime;
 
         if (dashTimer > 0f)
         {
@@ -499,35 +465,41 @@ public class PlayerController : MonoBehaviour
         dashDirection = dir;
         dashTimer = dashTime;
         dashCooldownTimer = dashCooldown;
-        dashAnimationTimer = dashAnimationDuration; // Bắt đầu đếm animation
+        dashAnimationTimer = dashAnimationDuration;
 
-        isInvincible = true;
-        invincibleTimer = 0.12f;
+        isDashInvincible = true;
+        dashInvincibleTimer = dashTime;
+
+        // 👇 TẮT VA CHẠM VỚI ENEMY TRONG LÚC DASH
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Enemy"), true);
 
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
         rb.AddForce(dashDirection * dashForce, ForceMode2D.Impulse);
 
-        // Phát animation
-        if (animator != null)
-            animator.Play("Dash");
+        if (animator != null) animator.Play("Dash");
         if (dashSmokePrefab != null && targetObject != null)
         {
             GameObject smoke = Instantiate(dashSmokePrefab);
             smoke.GetComponent<AutoDestroyAfterAnim>().Init(targetObject.position, facingRight);
         }
     }
+
     void EndDash()
     {
         isDashing = false;
         rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+        isDashInvincible = false;
+
+        // 👇 BẬT LẠI VA CHẠM SAU KHI DASH
+        Physics2D.IgnoreLayerCollision(LayerMask.NameToLayer("Player"), LayerMask.NameToLayer("Enemy"), false);
     }
 
     void StartAttack()
     {
         isAttacking = true;
 
-        if (animator != null)
-            animator.Play("Attack");
+        if (animator != null) animator.Play("Attack");
 
         attackedEnemies.Clear();
 
@@ -543,8 +515,7 @@ public class PlayerController : MonoBehaviour
     System.Collections.IEnumerator DisableHitboxAndAttackAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
-        if (attackHitbox != null)
-            attackHitbox.enabled = false;
+        if (attackHitbox != null) attackHitbox.enabled = false;
         isAttacking = false;
     }
 
@@ -583,7 +554,7 @@ public class PlayerController : MonoBehaviour
             attackedEnemies.Add(other);
             other.SendMessage("TakeDamage", damageOnTouch, SendMessageOptions.DontRequireReceiver);
         }
-        else if (!isInvincible)
+        else if (!isDashInvincible && !isKnockbackInvincible) // 👈 THÊM KIỂM TRA isDashInvincible
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
@@ -594,8 +565,12 @@ public class PlayerController : MonoBehaviour
     {
         if (collision.collider != null && collision.collider.CompareTag("Enemy"))
         {
-            AttackDirection dir = GetAttackDirection(collision.transform.position);
-            TakeDamage(damageOnTouch, dir);
+            // 👇 THÊM KIỂM TRA isDashInvincible và isKnockbackInvincible
+            if (!isDashInvincible && !isKnockbackInvincible)
+            {
+                AttackDirection dir = GetAttackDirection(collision.transform.position);
+                TakeDamage(damageOnTouch, dir);
+            }
         }
     }
 
@@ -643,13 +618,11 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float amount, AttackDirection direction)
     {
-        if (isInvincible || isDead) return;
+        if (isDashInvincible || isKnockbackInvincible || isDead) return;
 
         // Hủy drop khi bị đánh
-        if (isDropping)
-        {
-            CancelDrop();
-        }
+        if (isDropping) CancelDrop();
+
         CurrentHealth -= amount;
 
         float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
@@ -665,13 +638,44 @@ public class PlayerController : MonoBehaviour
         isKnockbacked = true;
         knockbackTimer = knockbackDuration;
 
-        isInvincible = true;
-        invincibleTimer = invincibleTime;
+        isKnockbackInvincible = true;
+        knockbackInvincibleTimer = invincibleTime;
 
         if (CurrentHealth <= 0f)
         {
             Die();
         }
+    }
+
+    public void TakeDamageFromEnemy(float amount, Vector2 enemyPosition)
+    {
+        if (isDashInvincible || isKnockbackInvincible || isDead) return;
+
+        if (isDashing) return; // 👈 DASH BẤT TỬ
+
+        // Hủy drop khi bị đánh
+        if (isDropping) CancelDrop();
+
+        CurrentHealth -= amount;
+
+        AttackDirection dir = GetAttackDirection(enemyPosition);
+        float forceMultiplier = (dir == AttackDirection.Back) ? 1.5f : 1f;
+        float knockbackX = (dir == AttackDirection.Front)
+            ? (facingRight ? -knockbackForce * forceMultiplier : knockbackForce * forceMultiplier)
+            : (facingRight ? knockbackForce * forceMultiplier : -knockbackForce * forceMultiplier);
+
+        float knockbackY = CalculateKnockbackUpForce();
+
+        rb.linearVelocity = Vector2.zero;
+        rb.AddForce(new Vector2(knockbackX, knockbackY), ForceMode2D.Impulse);
+
+        isKnockbacked = true;
+        knockbackTimer = knockbackDuration;
+
+        isKnockbackInvincible = true;
+        knockbackInvincibleTimer = invincibleTime;
+
+        if (CurrentHealth <= 0f) Die();
     }
 
     public void Heal(float amount)
@@ -687,8 +691,7 @@ public class PlayerController : MonoBehaviour
         float prevMana = currentMana;
         currentMana = Mathf.Clamp(currentMana - amount, 0f, maxMana);
 
-        if (manaFill != null)
-            manaFill.fillAmount = currentMana / maxMana;
+        if (manaFill != null) manaFill.fillAmount = currentMana / maxMana;
 
         if (currentMana < prevMana && manaShardPrefab != null && manaBarPosition != null)
         {
@@ -699,10 +702,9 @@ public class PlayerController : MonoBehaviour
             {
                 GameObject shard = Instantiate(manaShardPrefab, manaBarPosition);
 
-                // 👇 RẢI ĐỀU TRÊN THANH MANA — KHÔNG CHỤM 1 CỤC
                 float barWidth = manaFill.rectTransform.rect.width;
-                float x = Random.Range(-barWidth * 0.4f, barWidth * 0.4f); // rải dọc theo thanh
-                float y = Random.Range(5f, 25f); // nhô lên một chút
+                float x = Random.Range(-barWidth * 0.4f, barWidth * 0.4f);
+                float y = Random.Range(5f, 25f);
 
                 shard.transform.localPosition = new Vector2(x, y);
                 shard.GetComponent<ManaShard>().Init();
@@ -716,11 +718,7 @@ public class PlayerController : MonoBehaviour
         currentMana = Mathf.Clamp(currentMana + amount, 0f, maxMana);
         manaTargetRatio = currentMana / maxMana;
 
-        if (manaDelay != null) manaDelay.fillAmount = manaTargetRatio;
-
         manaMainHealing = true;
-        manaDelayDropping = false;
-        manaDelayTimer = 0f;
     }
 
     void RegenerateManaIfNotDashing()
@@ -751,10 +749,7 @@ public class PlayerController : MonoBehaviour
         if (currentMana != prev)
         {
             manaTargetRatio = currentMana / maxMana;
-            if (manaDelay != null) manaDelay.fillAmount = manaTargetRatio;
             manaMainHealing = true;
-            manaDelayDropping = false;
-            manaDelayTimer = 0f;
         }
     }
 
@@ -764,7 +759,6 @@ public class PlayerController : MonoBehaviour
 
         manaTargetRatio = currentMana / maxMana;
         UpdateManaBar();
-        UpdateManaDelayBar();
     }
 
     void UpdateManaBar()
@@ -783,19 +777,6 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void UpdateManaDelayBar()
-    {
-        if (manaDelay == null || manaFill == null) return;
-
-        if (manaDelay.fillAmount > manaTargetRatio && manaDelayDropping)
-        {
-            if (manaDelayTimer > 0f)
-                manaDelayTimer -= Time.deltaTime;
-            else
-                manaDelay.fillAmount = Mathf.MoveTowards(manaDelay.fillAmount, manaTargetRatio, manaDelayDropSpeed * Time.deltaTime);
-        }
-    }
-
     void Die()
     {
         if (isDead) return;
@@ -803,7 +784,8 @@ public class PlayerController : MonoBehaviour
 
         CurrentHealth = 0f;
 
-        isInvincible = false;
+        isDashInvincible = false;
+        isKnockbackInvincible = false;
         isAttacking = false;
         isKnockbacked = false;
         rb.simulated = false;
@@ -923,11 +905,7 @@ public class PlayerController : MonoBehaviour
     {
         if (animator == null || isDead) return;
 
-        // 👇 BẢO VỆ ANIMATION DROP
-        if (isDropping)
-        {
-            return; // KHÔNG GHI ĐÈ KHI ĐANG DROP
-        }
+        if (isDropping) return;
 
         if (isKnockbacked)
         {
@@ -941,10 +919,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (isAttacking)
-        {
-            return;
-        }
+        if (isAttacking) return;
 
         if (!isGrounded)
         {

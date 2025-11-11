@@ -12,20 +12,31 @@ public class MantisAI : MonoBehaviour
     public float attackSpeed = 8f;
     public float moveSpeed = 2f;
     public float returnSpeed = 3f;
-    public int damage = 20;
+
+    [Header("Skill 1: Tàng Hình Vồ Bất Ngờ")]
+    public int stealthAttackDamage = 100;
+    public float stealthWarningDuration = 0.4f;
+
+    [Header("Skill 2: Lao Đánh Trực Diện")]
+    public int directAttackDamage = 60;
 
     [Header("Combat Cooldown")]
     public float attackCooldown = 2f;
     private float lastAttackTime = -999f;
-    
+
     [Header("Ẩn nấp")]
-    public SpriteRenderer bodyRenderer; // Kéo SpriteRenderer của "Body" vào đây
-    public float hiddenAlpha = 0.3f;    // Độ mờ khi ẩn
-    public float visibleAlpha = 1f;     // Độ rõ khi hiện
+    public SpriteRenderer bodyRenderer;
+    public float hiddenAlpha = 0.3f;
+    public float visibleAlpha = 1f;
 
     [Header("Hiệu ứng cảnh báo")]
-    public GameObject warningObject; // Kéo GameObject "mắt đỏ" vào đây
-    public float warningDuration = 0.4f; // Thời gian hiển thị trước khi đánh
+    public GameObject warningObject;
+    public float warningDuration = 0.4f;
+
+    [Header("Hiệu ứng damage")]
+    public float flashDuration = 0.15f;
+    public float flashFrequency = 10f;
+    private SpriteRenderer[] spriteRenderers;
 
     [Header("Tham chiếu")]
     public Transform player;
@@ -36,6 +47,9 @@ public class MantisAI : MonoBehaviour
     private MantisState currentState = MantisState.Idle;
     private SpriteRenderer sr;
     private Animator anim;
+    private MantisState lastAttackState = MantisState.Idle;
+    private float currentAttackDamage = 0f;
+    private bool isAttackActive = false;
 
     void Start()
     {
@@ -44,11 +58,12 @@ public class MantisAI : MonoBehaviour
         anim = GetComponent<Animator>();
         startPos = transform.position;
 
-        // Đảm bảo ban đầu không bị lật ngược
+        spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
+
         sr.flipX = false;
         if (warningObject != null)
             warningObject.SetActive(false);
-        SetBodyVisibility(false); // hoặc true nếu bạn muốn bắt đầu bằng hiện hình
+        SetBodyVisibility(false);
     }
 
     void Update()
@@ -79,7 +94,6 @@ public class MantisAI : MonoBehaviour
 
     void FixedUpdate()
     {
-        // Di chuyển bằng physics
         if (currentState == MantisState.Reveal && !isAttacking)
         {
             if (player != null)
@@ -112,7 +126,7 @@ public class MantisAI : MonoBehaviour
     void IdleState(float distance)
     {
         anim.Play("Dung(BoNgua)");
-        SetBodyVisibility(false); // 👈 ẨN THÂN
+        SetBodyVisibility(false);
 
         if (distance <= visionRange)
         {
@@ -128,7 +142,6 @@ public class MantisAI : MonoBehaviour
 
         if (distance <= attackRange && Time.time - lastAttackTime >= attackCooldown)
         {
-            // 👇 KÍCH HOẠT CẢNH BÁO THAY VÌ TẤN CÔNG NGAY
             StartCoroutine(ShowWarningThenAttack());
         }
         else if (distance > visionRange)
@@ -143,6 +156,8 @@ public class MantisAI : MonoBehaviour
         if (player == null) return;
 
         isAttacking = true;
+        currentAttackDamage = stealthAttackDamage;
+        isAttackActive = true;
         lastAttackTime = Time.time;
         FacePlayer();
 
@@ -150,13 +165,14 @@ public class MantisAI : MonoBehaviour
         rb.linearVelocity = (player.position - transform.position).normalized * attackSpeed;
 
         Invoke(nameof(EndAttack), 0.5f);
-        Debug.Log("💥 [Bọ ngựa] LAO RA TỪ BÓNG TỐI!");
+        Debug.Log("💥 [Bọ ngựa] LAO RA TỪ BÓNG TỐI! (Skill 1)");
     }
 
     void EndAttack()
     {
         rb.linearVelocity = Vector2.zero;
         isAttacking = false;
+        isAttackActive = false;
         currentState = MantisState.Reveal;
         Debug.Log("😠 [Bọ ngựa] Bị né! Hiện thân và chuẩn bị chiến đấu!");
     }
@@ -166,7 +182,6 @@ public class MantisAI : MonoBehaviour
         if (player == null) return;
         FacePlayer();
 
-        // 👇 CHỈ CHƠI ANIMATION "DiBo" KHI KHÔNG ĐANG TẤN CÔNG
         if (!isAttacking)
         {
             anim.Play("DiBo(BoNgua)");
@@ -192,20 +207,23 @@ public class MantisAI : MonoBehaviour
         if (player == null) return;
 
         isAttacking = true;
+        currentAttackDamage = directAttackDamage;
+        isAttackActive = true;
         lastAttackTime = Time.time;
         FacePlayer();
 
-        anim.Play("TanCong(BoNgua)",0,0f);
+        anim.Play("TanCong(BoNgua)", 0, 0f);
 
         rb.linearVelocity = (player.position - transform.position).normalized * (attackSpeed * 1.2f);
         Invoke(nameof(EndRevealAttack), 0.4f);
-        Debug.Log("🩸 [Bọ ngựa] Vồ tấn công trực diện!");
+        Debug.Log("🩸 [Bọ ngựa] Vồ tấn công trực diện! (Skill 2)");
     }
 
     void EndRevealAttack()
     {
         rb.linearVelocity = Vector2.zero;
         isAttacking = false;
+        isAttackActive = false;
         Debug.Log("🔁 [Bọ ngựa] Kết thúc combo, chờ cơ hội tấn công tiếp.");
     }
 
@@ -218,14 +236,13 @@ public class MantisAI : MonoBehaviour
         {
             rb.linearVelocity = Vector2.zero;
             anim.Play("Dung(BoNgua)");
-            SetBodyVisibility(false); // 👈 ẨN LẠI KHI VỀ VỊ TRÍ
+            SetBodyVisibility(false);
             currentState = MantisState.Idle;
             Debug.Log("🌿 [Bọ ngựa] Đã trở về vị trí ẩn nấp.");
         }
     }
 
-    // ================== FLIP SPRITE (AN TOÀN VỚI ANIMATION) ==================
-
+    // ================== FLIP SPRITE ==================
     void FacePlayer()
     {
         if (player == null) return;
@@ -237,8 +254,28 @@ public class MantisAI : MonoBehaviour
         sr.flipX = !(startPos.x < transform.position.x);
     }
 
-    // ================== DEBUG VIZ ==================
+    // ================== DAMAGE & FLASH ==================
+    public void TakeDamage(float amount)
+    {
+        Debug.Log($"[Enemy] Nhận {amount} sát thương!");
+        // 👇 BỎ DÒNG NÀY: StartCoroutine(FlashWhite());
+    }
 
+    // ================== TRIGGER DAMAGE ==================
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player") && isAttackActive)
+        {
+            PlayerController playerScript = other.GetComponent<PlayerController>();
+            if (playerScript != null)
+            {
+                playerScript.TakeDamageFromEnemy(currentAttackDamage, transform.position);
+                Debug.Log($"[Enemy] Gây {currentAttackDamage} sát thương!");
+            }
+        }
+    }
+
+    // ================== DEBUG VIZ ==================
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.yellow;
@@ -262,12 +299,11 @@ public class MantisAI : MonoBehaviour
         Gizmos.DrawLine(br, bl);
         Gizmos.DrawLine(bl, tl);
     }
+
     IEnumerator ShowWarningThenAttack()
     {
-        // 👉 GIỮ THÂN Ở TRẠNG THÁI ẨN (mờ) trong suốt thời gian cảnh báo
-        SetBodyVisibility(false); // Đảm bảo thân vẫn mờ
+        SetBodyVisibility(false);
 
-        // BẬT MẮT ĐỎ – LUÔN RÕ
         if (warningObject != null)
         {
             warningObject.SetActive(true);
@@ -275,21 +311,19 @@ public class MantisAI : MonoBehaviour
             if (eyeRenderer != null)
             {
                 Color eyeColor = eyeRenderer.color;
-                eyeColor.a = 1f; // Sáng rực
+                eyeColor.a = 1f;
                 eyeRenderer.color = eyeColor;
             }
         }
 
         Debug.Log("⚠️ [Bọ ngựa] CẢNH BÁO – THÂN VẪN ẨN!");
-        yield return new WaitForSeconds(warningDuration);
+        yield return new WaitForSeconds(stealthWarningDuration);
 
-        // 👇 SAU CẢNH BÁO: ẨN MẮT ĐỎ + HIỆN RÕ THÂN NGAY TRƯỚC KHI TẤN CÔNG
         if (warningObject != null)
             warningObject.SetActive(false);
 
-        SetBodyVisibility(true); // HIỆN RÕ THÂN
+        SetBodyVisibility(true);
 
-        // TIẾN HÀNH TẤN CÔNG
         currentState = MantisState.Attack;
         PerformAttack();
     }

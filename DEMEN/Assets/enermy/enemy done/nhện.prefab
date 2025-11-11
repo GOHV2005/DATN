@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4539049826258518219}
   - component: {fileID: 6084300107838466807}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: treo_6
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -102,9 +102,9 @@ GameObject:
   - component: {fileID: 2351797285075360723}
   - component: {fileID: 8992078178097644623}
   - component: {fileID: 7908198634923972958}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: "nh\u1EC7n"
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -270,7 +270,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxLowerDistance: 1.95
   detectionRange: 8.44
-  webPrefab: {fileID: 7517716015648761584, guid: e18e8da6798daf747bce49bac2c2cec0, type: 3}
+  webPrefab: {fileID: 7517716015648761584, guid: e18e8da6798daf747bce49bac2c2cec0,
+    type: 3}
   muzzlePoint: {fileID: 1146226476482548482}
   shootInterval: 1
   maxShots: 8991
@@ -316,6 +317,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  flashDuration: 0.15
+  flashFrequency: 10
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  dropItemPrefab: {fileID: 0}
+  dropItemCount: 1
+  dropForce: 5
+  randomAngleRange: 30
 --- !u!1 &1820929468257610888
 GameObject:
   m_ObjectHideFlags: 0
@@ -392,7 +400,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4, type: 3}
+  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -413,7 +422,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3327597306962728382}
   - component: {fileID: 7643303109482726077}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Bung_0
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -479,7 +488,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
-  m_Sprite: {fileID: -2913490174337709882, guid: 7a8e3691a97fc004c975fc7519404240, type: 3}
+  m_Sprite: {fileID: -2913490174337709882, guid: 7a8e3691a97fc004c975fc7519404240,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -566,7 +576,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4, type: 3}
+  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -622,7 +633,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1146226476482548482}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: "v\u1ECB tr\xED \u0111\u1EA1n"
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -654,7 +665,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7070947640855888477}
   - component: {fileID: 6731155460415031946}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: hit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -798,7 +809,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 8291366412011733527, guid: e062a9156606eae4086c63a3fbee46bc, type: 3}
+  m_Sprite: {fileID: 8291366412011733527, guid: e062a9156606eae4086c63a3fbee46bc,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -885,7 +897,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4, type: 3}
+  m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
