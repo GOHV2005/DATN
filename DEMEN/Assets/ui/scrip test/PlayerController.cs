@@ -343,21 +343,11 @@ public class PlayerController : MonoBehaviour
 
     void HandleInvincibilityFlash()
     {
-        bool isAnyInvincible = isDashInvincible || isKnockbackInvincible;
-
-        if (isAnyInvincible)
+        // 👇 CHỈ CHỚP KHI BỊ ĐÁNH (KNOCKBACK INVINCIBLE)
+        if (isKnockbackInvincible)
         {
-            if (isDashInvincible)
-            {
-                dashInvincibleTimer -= Time.deltaTime;
-                if (dashInvincibleTimer <= 0f) isDashInvincible = false;
-            }
-
-            if (isKnockbackInvincible)
-            {
-                knockbackInvincibleTimer -= Time.deltaTime;
-                if (knockbackInvincibleTimer <= 0f) isKnockbackInvincible = false;
-            }
+            knockbackInvincibleTimer -= Time.deltaTime;
+            if (knockbackInvincibleTimer <= 0f) isKnockbackInvincible = false;
 
             flashTimer += Time.deltaTime;
 
@@ -376,6 +366,7 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
+            // 👇 LUÔN BẬT SPRITE LẠI KHI KHÔNG CHỚP
             foreach (var sr in spriteRenderers)
             {
                 if (!sr.enabled) sr.enabled = true;
