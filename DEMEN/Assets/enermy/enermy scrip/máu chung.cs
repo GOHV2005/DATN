@@ -6,10 +6,14 @@ public class Health : MonoBehaviour
     public float maxHealth = 3f;
     private float currentHealth;
 
+    [Header("💥 Knockback Settings")]
+    public float knockbackForce = 30f;        // Lực đẩy lùi
+    public float knockbackDuration = 0.15f;   // Thời gian hiệu ứng
+
     [Header("⚡ Flash Settings")]
-    public float flashDuration = 0.15f;      // Thời gian chớp
-    public float flashFrequency = 10f;       // Tần suất chớp (lần/giây)
-    public Color flashColor = Color.red;     // Màu chớp (đỏ)
+    public float flashDuration = 0.15f;       // Thời gian chớp
+    public float flashFrequency = 10f;        // Tần suất chớp
+    public Color flashColor = Color.red;      // Màu chớp (đỏ)
 
     [Header("💀 On Death")]
     public GameObject dropItemPrefab;
@@ -19,11 +23,13 @@ public class Health : MonoBehaviour
 
     private SpriteRenderer[] spriteRenderers;
     private Color originalColor;
+    private Rigidbody2D rb; // 👈 THÊM
 
     void Start()
     {
         currentHealth = maxHealth;
 
+        rb = GetComponent<Rigidbody2D>(); // 👈 GẮN RIGIDBODY
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
         originalColor = spriteRenderers.Length > 0 ? spriteRenderers[0].color : Color.white;
     }
@@ -36,12 +42,33 @@ public class Health : MonoBehaviour
 
         Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{maxHealth}");
 
+        // 👇 GỌI ĐẨY LÙI
+        if (rb != null)
+        {
+            Vector2 playerPos = GetPlayerPosition();
+            Vector2 knockbackDir = ((Vector2)transform.position - playerPos).normalized;
+
+            Debug.Log($"[Health] Đẩy lùi theo hướng: {knockbackDir}, lực: {knockbackForce}");
+            rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
+        }
+
         StartCoroutine(FlashEffect());
 
         if (currentHealth <= 0)
         {
             Die();
         }
+    }
+
+    Vector2 GetPlayerPosition()
+    {
+        GameObject player = GameObject.FindGameObjectWithTag("Player");
+        if (player != null) return player.transform.position;
+
+        // Dự phòng nếu không có tag
+        if (PlayerController.Instance != null) return PlayerController.Instance.transform.position;
+
+        return transform.position; // Nếu không tìm thấy, trả về chính nó
     }
 
     System.Collections.IEnumerator FlashEffect()
@@ -53,7 +80,6 @@ public class Health : MonoBehaviour
 
         while (timer < flashDuration)
         {
-            // Đổi màu đỏ
             foreach (var sr in spriteRenderers)
             {
                 sr.color = flashColor;
@@ -64,7 +90,6 @@ public class Health : MonoBehaviour
 
             if (timer >= flashDuration) break;
 
-            // Trở lại màu gốc
             foreach (var sr in spriteRenderers)
             {
                 sr.color = originalColor;
@@ -74,10 +99,16 @@ public class Health : MonoBehaviour
             timer += flashInterval;
         }
 
-        // Đảm bảo trở lại màu gốc sau cùng
         foreach (var sr in spriteRenderers)
         {
             sr.color = originalColor;
+        }
+
+        // 👇 GỌI HÀM TỪ ENEMY ĐỂ PHẢN ĐÒN
+        EnemyAnt antAI = GetComponent<EnemyAnt>();
+        if (antAI != null)
+        {
+            antAI.OnTakeDamage();
         }
 
         Debug.Log("[Health] Kết thúc hiệu ứng chớp đỏ");

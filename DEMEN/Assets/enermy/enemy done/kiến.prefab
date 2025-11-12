@@ -283,16 +283,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointA: {fileID: 8413232373310085853}
   pointB: {fileID: 3110901772376035063}
-  patrolSpeed: 3
-  patrolDistance: 4
-  chaseSpeed: 6.45
-  detectionRange: 8.02
-  groundTolerance: 0.3
-  scanDuration: 0.8
+  patrolSpeed: 3.5
+  patrolDistance: 4.42
+  chaseSpeed: 9.48
+  detectionRange: 10.11
+  groundTolerance: 0.72
+  damage: 1
+  scanDuration: 1.01
   player: {fileID: 0}
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 32768
+    m_Bits: 768
 --- !u!95 &8353044158265397854
 Animator:
   serializedVersion: 7

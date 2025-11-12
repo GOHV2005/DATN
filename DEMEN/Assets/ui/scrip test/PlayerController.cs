@@ -540,12 +540,14 @@ public class PlayerController : MonoBehaviour
     {
         if (other == null || !other.CompareTag("Enemy")) return;
 
+        // 👇 GÂY DAME CHO ENEMY (KHI DÙNG ATTACK BOX)
         if (attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
         {
             attackedEnemies.Add(other);
             other.SendMessage("TakeDamage", damageOnTouch, SendMessageOptions.DontRequireReceiver);
         }
-        else if (!isDashInvincible && !isKnockbackInvincible) // 👈 THÊM KIỂM TRA isDashInvincible
+        // 👇 GÂY DAME CHO PLAYER (VA CHẠM THƯỜNG VỚI ENEMY)
+        else if (!isDashInvincible && !isKnockbackInvincible && !isAttacking)
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
@@ -554,7 +556,7 @@ public class PlayerController : MonoBehaviour
 
     void HandleEnemyCollision(Collision2D collision)
     {
-        if (collision.collider != null && collision.collider.CompareTag("Enemy"))
+        /*if (collision.collider != null && collision.collider.CompareTag("Enemy"))
         {
             // 👇 THÊM KIỂM TRA isDashInvincible và isKnockbackInvincible
             if (!isDashInvincible && !isKnockbackInvincible)
@@ -562,7 +564,7 @@ public class PlayerController : MonoBehaviour
                 AttackDirection dir = GetAttackDirection(collision.transform.position);
                 TakeDamage(damageOnTouch, dir);
             }
-        }
+        }*/
     }
 
     void HandleGroundCollisionEnter(Collision2D collision)
