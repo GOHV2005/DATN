@@ -7,13 +7,13 @@ public class Health : MonoBehaviour
     private float currentHealth;
 
     [Header("💥 Knockback Settings")]
-    public float knockbackForce = 30f;        // Lực đẩy lùi
-    public float knockbackDuration = 0.15f;   // Thời gian hiệu ứng
+    public float knockbackForce = 30f;
+    public float knockbackDuration = 0.15f;
 
     [Header("⚡ Flash Settings")]
-    public float flashDuration = 0.15f;       // Thời gian chớp
-    public float flashFrequency = 10f;        // Tần suất chớp
-    public Color flashColor = Color.red;      // Màu chớp (đỏ)
+    public float flashDuration = 0.15f;
+    public float flashFrequency = 10f;
+    public Color flashColor = Color.red;
 
     [Header("💀 On Death")]
     public GameObject dropItemPrefab;
@@ -23,41 +23,61 @@ public class Health : MonoBehaviour
 
     private SpriteRenderer[] spriteRenderers;
     private Color originalColor;
-    private Rigidbody2D rb; // 👈 THÊM
+    private Rigidbody2D rb;
 
     void Start()
     {
         currentHealth = maxHealth;
 
-        rb = GetComponent<Rigidbody2D>(); // 👈 GẮN RIGIDBODY
+        rb = GetComponent<Rigidbody2D>();
         spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
         originalColor = spriteRenderers.Length > 0 ? spriteRenderers[0].color : Color.white;
     }
 
-    // 👇 HÀM MỚI: CHỈ NHẬN DAMAGE
+    // 👇 HÀM GỐC: CHỈ NHẬN DAMAGE (dùng chung)
     public void TakeDamage(float damage)
+    {
+        Vector2 knockbackDir = ((Vector2)transform.position - GetPlayerPosition()).normalized;
+        TakeDamage(damage, knockbackDir);
+    }
+
+    // 👇 HÀM MỚI: NHẬN DAMAGE + TRANSFORM (từ kẻ tấn công)
+    public void TakeDamage(float damage, Transform attacker)
     {
         currentHealth -= damage;
         currentHealth = Mathf.Max(currentHealth, 0);
 
-        Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{maxHealth}");
+        Debug.Log($"{name} took {damage} damage from {attacker.name}. HP: {currentHealth}/{maxHealth}");
 
-        // 👇 GỌI ĐẨY LÙI
         if (rb != null)
         {
-            Vector2 playerPos = GetPlayerPosition();
-            Vector2 knockbackDir = ((Vector2)transform.position - playerPos).normalized;
-
-            Debug.Log($"[Health] Đẩy lùi theo hướng: {knockbackDir}, lực: {knockbackForce}");
+            Vector2 knockbackDir = ((Vector2)transform.position - (Vector2)attacker.position).normalized;
             rb.AddForce(knockbackDir * knockbackForce, ForceMode2D.Impulse);
         }
 
         StartCoroutine(FlashEffect());
 
         if (currentHealth <= 0)
-        {
             Die();
+    }
+
+    // 👇 HÀM PHỤ: NHẬN DAMAGE + HƯỚNG ĐẨY
+    public void TakeDamage(float damage, Vector2 knockbackDirection)
+    {
+        currentHealth -= damage;
+        currentHealth = Mathf.Max(currentHealth, 0);
+
+        Debug.Log($"{name} took {damage} damage. HP: {currentHealth}/{maxHealth}");
+
+        if (rb != null)
+        {
+            rb.AddForce(knockbackDirection.normalized * knockbackForce, ForceMode2D.Impulse);
         }
+
+        StartCoroutine(FlashEffect());
+
+        if (currentHealth <= 0)
+            Die();
     }
 
     Vector2 GetPlayerPosition()
@@ -65,10 +85,9 @@ public class Health : MonoBehaviour
         GameObject player = GameObject.FindGameObjectWithTag("Player");
         if (player != null) return player.transform.position;
 
-        // Dự phòng nếu không có tag
         if (PlayerController.Instance != null) return PlayerController.Instance.transform.position;
 
-        return transform.position; // Nếu không tìm thấy, trả về chính nó
+        return (Vector2)transform.position;
     }
 
     System.Collections.IEnumerator FlashEffect()
