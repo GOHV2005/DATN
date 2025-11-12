@@ -3216,7 +3216,7 @@ PrefabInstance:
         type: 3}
       propertyPath: 'm_Materials.Array.data[0]'
       value: 
-      objectReference: {fileID: 2100000, guid: 9e6050cd76f6922499cb8f0bf0dd7a1b, type: 2}
+      objectReference: {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
     - target: {fileID: 7724372247744244729, guid: ee24958120f340e45a3f42d5843b1c3a,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -30016,6 +30016,11 @@ PrefabInstance:
       propertyPath: m_ShapePath.Array.data[9].y
       value: 2.3064551
       objectReference: {fileID: 0}
+    - target: {fileID: 7183986919522710798, guid: 79800e4b26a7dd44a8a003583829a5fa,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 7.57
+      objectReference: {fileID: 0}
     - target: {fileID: 7183986919533399518, guid: 79800e4b26a7dd44a8a003583829a5fa,
         type: 3}
       propertyPath: m_Intensity
@@ -30040,6 +30045,21 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalPosition.y
       value: 36.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 8307738663474865248, guid: 79800e4b26a7dd44a8a003583829a5fa,
+        type: 3}
+      propertyPath: m_FalloffIntensity
+      value: 0.719
+      objectReference: {fileID: 0}
+    - target: {fileID: 8307738663474865248, guid: 79800e4b26a7dd44a8a003583829a5fa,
+        type: 3}
+      propertyPath: m_PointLightInnerAngle
+      value: 114.881355
+      objectReference: {fileID: 0}
+    - target: {fileID: 8307738663474865248, guid: 79800e4b26a7dd44a8a003583829a5fa,
+        type: 3}
+      propertyPath: m_PointLightOuterAngle
+      value: 131.73138
       objectReference: {fileID: 0}
     - target: {fileID: 9117336651756218968, guid: 79800e4b26a7dd44a8a003583829a5fa,
         type: 3}
@@ -30127,7 +30147,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 6bff8e4cad56ca64781fd2d96411ae81, type: 2}
+  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -33327,6 +33347,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_AnchoredPosition.y
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6902255156740643564, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
+        type: 3}
+      propertyPath: m_CullingMask.m_Bits
+      value: 65664
       objectReference: {fileID: 0}
     - target: {fileID: 7119627491130984665, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
         type: 3}
