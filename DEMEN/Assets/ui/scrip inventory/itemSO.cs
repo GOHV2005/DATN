@@ -32,12 +32,12 @@ public class itemSO : ScriptableObject
         }
 
         // Thêm mana sau nếu cần
-        /*if (statToChange == StatToChange.mana)
+        if (statToChange == StatToChange.mana)
         {
             if (PlayerController.Instance == null) return false;
             PlayerController.Instance.RestoreMana(amountToChangeStat);
             return true;
-        }*/
+        }
 
         return false;
     }

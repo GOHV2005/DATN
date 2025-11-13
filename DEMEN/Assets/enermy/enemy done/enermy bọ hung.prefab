@@ -12,13 +12,12 @@ GameObject:
   - component: {fileID: 6633548454306073556}
   - component: {fileID: 8622191846972450326}
   - component: {fileID: 6119643409875184096}
-  - component: {fileID: 1588246254909157268}
   - component: {fileID: 4277060500185630198}
   - component: {fileID: 721230692485570423}
   - component: {fileID: 6408732707246189128}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: "b\u1ECD hung"
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -32,8 +31,8 @@ Transform:
   m_GameObject: {fileID: 180453837453267041}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.63094, y: -3.17, z: 0}
-  m_LocalScale: {x: 0.75061405, y: 0.75061405, z: 0.75061405}
+  m_LocalPosition: {x: 3.63094, y: -2.60044, z: 0}
+  m_LocalScale: {x: 0.092796706, y: 0.092796706, z: 0.092796706}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7830019603226700250}
@@ -82,8 +81,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 7552218760340626732, guid: 4024eb6111a878649b1c7d2679c593e2,
-    type: 3}
+  m_Sprite: {fileID: -3349827901887409475, guid: 4fe9f4aec0c75d54889bf834dfe469c5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -124,21 +122,21 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.12028462, y: 0.04942918}
+  m_Offset: {x: -0.052682877, y: 0.00886941}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 3.36, y: 3.820373}
+    oldSize: {x: 11.34, y: 12.90126}
     newSize: {x: 11.34, y: 12.90126}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3.7497783, y: 3.7314863}
+  m_Size: {x: 11.456062, y: 13.006062}
   m_EdgeRadius: 0
 --- !u!50 &6119643409875184096
 Rigidbody2D:
@@ -167,43 +165,6 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!70 &1588246254909157268
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 180453837453267041}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_CompositeOperation: 0
-  m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 3.25, y: 3.6103525}
-  m_Direction: 0
 --- !u!114 &4277060500185630198
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -216,15 +177,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 632c15936882e6a4bb23436c75fc66a8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionRange: 12.52
-  chargeTriggerDistance: 9.87
+  visionRange: 5.74
+  chargeTriggerDistance: 3.71
   moveSpeed: 2
-  chargeSpeed: 11.66
-  chargeTravelDistance: 8.64
+  chargeSpeed: 10
+  chargeTravelDistance: 7.18
   chargePrepareTime: 1
   stunTime: 2
-  contactDamage: 1
-  chargeDamage: 2
   pointA: {fileID: 5690953593341716267}
   pointB: {fileID: 232913593074901534}
   idleAnim: Dung(bohung)
@@ -266,14 +225,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1d3d8ebd4d2894f8505dc132d35732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 10
-  flashDuration: 0.15
-  flashFrequency: 10
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  dropItemPrefab: {fileID: 0}
-  dropItemCount: 1
-  dropForce: 5
-  randomAngleRange: 30
+  maxHealth: 3
 --- !u!1 &1345249955966375186
 GameObject:
   m_ObjectHideFlags: 0
@@ -299,7 +251,7 @@ Transform:
   m_GameObject: {fileID: 1345249955966375186}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 18.46, y: -2.96, z: 0}
+  m_LocalPosition: {x: 7.84, y: -2.62, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -364,7 +316,7 @@ Transform:
   m_GameObject: {fileID: 4058255910860715062}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.18, y: -2.96, z: 0}
+  m_LocalPosition: {x: -0.18, y: -2.62, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

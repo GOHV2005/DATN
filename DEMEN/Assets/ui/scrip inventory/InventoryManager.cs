@@ -1,12 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-[System.Serializable]
-public class ItemPrefabPair
-{
-    public string itemName;
-    public GameObject prefab;
-}
+
 public class InventoryManager : MonoBehaviour
 {
     [Header("Item Slots")]
@@ -20,7 +15,6 @@ public class InventoryManager : MonoBehaviour
 
     private InventoryData currentInventoryData;
 
-    public List<ItemPrefabPair> itemPrefabs = new List<ItemPrefabPair>();
     // ========================== INIT ==========================
     private void Awake()
     {
@@ -65,11 +59,7 @@ public class InventoryManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public GameObject GetItemPrefab(string itemName)
-    {
-        var pair = itemPrefabs.Find(p => p.itemName == itemName);
-        return pair != null ? pair.prefab : null;
-    }
+
     private void OnDestroy()
     {
         SceneManager.activeSceneChanged -= OnActiveSceneChanged;
