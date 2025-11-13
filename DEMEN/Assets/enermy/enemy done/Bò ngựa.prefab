@@ -149,7 +149,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -303,15 +303,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f099fa56a8650342b62d7c8f7fdb8f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionRange: 21.2
-  attackRange: 13.6
-  revealAttackRange: 16.3
+  visionRange: 52.9
+  attackRange: 17.1
+  revealAttackRange: 17.1
   attackSpeed: 10
   moveSpeed: 2
   returnSpeed: 3
   stealthAttackDamage: 6
   stealthWarningDuration: 0.4
-  directAttackDamage: 1
+  directAttackDamage: 2
+  strongAttackDamage: 1
+  strongAttackRange: 19.8
+  strongAttackCooldown: 5
+  shockwaveProjectilePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
+    type: 3}
   attackCooldown: 3
   bodyRenderer: {fileID: 7081012881272609155}
   hiddenAlpha: 0.05
@@ -367,4 +372,4 @@ MonoBehaviour:
   bloodPrefab: {fileID: 2736140822471033997, guid: cf9f19196405b9044b14f430f1ded487,
     type: 3}
   bloodCount: 5
-  bloodForce: 4
+  bloodForce: 8
