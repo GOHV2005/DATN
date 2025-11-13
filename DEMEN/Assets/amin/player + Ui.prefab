@@ -622,7 +622,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 65920
+    m_Bits: 65664
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 8400000, guid: 2f0bf327feed8b04182d25162e46e362, type: 2}
   m_TargetDisplay: 0
@@ -1471,12 +1471,12 @@ PrefabInstance:
     - target: {fileID: 189849729348102260, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Size.x
-      value: 118.68191
+      value: 16.058048
       objectReference: {fileID: 0}
     - target: {fileID: 189849729348102260, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Offset.x
-      value: 52.80752
+      value: 1.4955907
       objectReference: {fileID: 0}
     - target: {fileID: 420955443624896907, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3333,11 +3333,31 @@ PrefabInstance:
       propertyPath: m_Name
       value: Canvas 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1194498474862192307, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1194498474862192307, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1194498474862192307, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 1273224081366429751, guid: 3c4b39bd0c9837442847175877e43fe3,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1097592784230777237}
+    - target: {fileID: 3547175121226872317, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4611385076450985660, guid: 3c4b39bd0c9837442847175877e43fe3,
         type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -3463,6 +3483,16 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
       objectReference: {fileID: 1097592784230777237}
+    - target: {fileID: 9169900562691080513, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 9169900562691080513, guid: 3c4b39bd0c9837442847175877e43fe3,
+        type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 3869773363782593152, guid: 3c4b39bd0c9837442847175877e43fe3, type: 3}
