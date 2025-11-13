@@ -5,8 +5,7 @@ using TMPro;
 
 public class SaveSlotUI : MonoBehaviour
 {
-    public TMP_Text sceneNameText;
-    public TMP_Text playTimeText;
+    public TMP_Text slotInfoText; // <-- Dùng 1 TMP_Text duy nhất
     public int slotIndex;
     public SaveMenuManager menuManager;
 
@@ -24,15 +23,15 @@ public class SaveSlotUI : MonoBehaviour
 
         if (data == null || data.scenes.Count == 0)
         {
-            sceneNameText.text = "Chơi Mới";
-            playTimeText.text = "";
+            slotInfoText.text = "Chơi Mới";
         }
         else
         {
             var lastScene = data.scenes[data.scenes.Count - 1];
-            sceneNameText.text = string.IsNullOrEmpty(lastScene.sceneName) ? "Unknown" : lastScene.sceneName;
-            playTimeText.text = lastScene.GetPlayTimeString();
-        }        
+            string sceneName = string.IsNullOrEmpty(lastScene.sceneName) ? "Unknown" : lastScene.sceneName;
+            string playTime = lastScene.GetPlayTimeString();
+            slotInfoText.text = $"{sceneName}\n{playTime}";
+        }
     }
 
     public void OnClickSlot()
@@ -53,7 +52,6 @@ public class SaveSlotUI : MonoBehaviour
             SceneLoader.LoadScene(sceneName);
         }
     }
-
 
     public void Deselect() => isSelected = false;
     public int GetSlotIndex() => slotIndex;

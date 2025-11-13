@@ -59,7 +59,7 @@ Transform:
   m_GameObject: {fileID: 4543210387352487038}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 1.70508, y: -1.54, z: 0}
+  m_LocalPosition: {x: -9.76, y: -1.54, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -76,13 +76,14 @@ GameObject:
   - component: {fileID: 2206831195704791317}
   - component: {fileID: 4557306309034357626}
   - component: {fileID: 6734839039731032686}
+  - component: {fileID: 8877618260476895846}
   - component: {fileID: 5729113129752110304}
   - component: {fileID: 8816349345119662259}
   - component: {fileID: 8353044158265397854}
   - component: {fileID: 8218907702521336456}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: "ki\u1EBFn"
-  m_TagString: Untagged
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -96,8 +97,8 @@ Transform:
   m_GameObject: {fileID: 7056222861646307685}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 3.172, y: -1.593, z: 0}
-  m_LocalScale: {x: 0.14222759, y: 0.14222759, z: 0.14222759}
+  m_LocalPosition: {x: 4.5636, y: -0.4356, z: 0}
+  m_LocalScale: {x: 0.8522135, y: 0.8522135, z: 0.8522135}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 6970245483772610048}
@@ -146,7 +147,8 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 3919365099320723028, guid: a3b7d4d0c90fee24f89a6971b4ea9d22, type: 3}
+  m_Sprite: {fileID: 9182157284707403512, guid: 0f3ab81685a5b3a40b0037a33c72a983,
+    type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -184,8 +186,8 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!61 &5729113129752110304
-BoxCollider2D:
+--- !u!70 &8877618260476895846
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -218,17 +220,54 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.2017653, y: 0.0000009536743}
+  m_Offset: {x: 0.015918635, y: -0.0053043957}
+  m_Size: {x: 2.4664295, y: 3.336447}
+  m_Direction: 0
+--- !u!61 &5729113129752110304
+BoxCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7056222861646307685}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 1
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.10998142, y: 0.00000071525574}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 11.15, y: 9.280906}
+    oldSize: {x: 3.9199998, y: 3.2603185}
     newSize: {x: 7.64, y: 4.48}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 12.5890465, y: 9.420088}
+  m_Size: {x: 4.145029, y: 3.3012323}
   m_EdgeRadius: 0
 --- !u!114 &8816349345119662259
 MonoBehaviour:
@@ -244,16 +283,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pointA: {fileID: 8413232373310085853}
   pointB: {fileID: 3110901772376035063}
-  patrolSpeed: 3
-  patrolDistance: 4
-  chaseSpeed: 5
-  detectionRange: 4.21
-  groundTolerance: 0.3
-  scanDuration: 0.8
+  patrolSpeed: 3.5
+  patrolDistance: 4.42
+  chaseSpeed: 9.48
+  detectionRange: 10.11
+  groundTolerance: 0.72
+  damage: 1
+  scanDuration: 1.01
   player: {fileID: 0}
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 768
 --- !u!95 &8353044158265397854
 Animator:
   serializedVersion: 7
@@ -289,6 +329,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  flashDuration: 0.15
+  flashFrequency: 10
+  flashColor: {r: 1, g: 0, b: 0, a: 1}
+  dropItemPrefab: {fileID: 0}
+  dropItemCount: 1
+  dropForce: 5
+  randomAngleRange: 30
 --- !u!1 &7159525337248880108
 GameObject:
   m_ObjectHideFlags: 0

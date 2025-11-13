@@ -9,11 +9,11 @@ public class HealthStateSpriteVisualizer : MonoBehaviour
     public PlayerController player; // Kéo Player vào đây (nếu không, tự tìm)
 
     [Header("Sprites by Health Level")]
-    public Sprite fullHealthSprite;    // 100%
-    public Sprite highHealthSprite;    // 75%
-    public Sprite mediumHealthSprite;  // 50%
-    public Sprite lowHealthSprite;     // 25%
-    public Sprite criticalHealthSprite; // 0% hoặc <25%
+    public Sprite fullHealthSprite;       // 100%
+    public Sprite highHealthSprite;       // 75%
+    public Sprite mediumHealthSprite;     // 50%
+    public Sprite lowHealthSprite;        // 25%
+    public Sprite criticalHealthSprite;   // 0%
 
     private Image image;
     private Sprite currentSprite;
@@ -45,11 +45,10 @@ public class HealthStateSpriteVisualizer : MonoBehaviour
     {
         float ratio = player.CurrentHealth / player.maxHealth;
 
-        if (ratio >= 0.6f) return fullHealthSprite;
-        if (ratio >= 0.4f) return highHealthSprite;
-        if (ratio >= 0.2f) return mediumHealthSprite;
-        if (ratio >= 0.01f) return lowHealthSprite;
-        if (ratio == 0f) return criticalHealthSprite; // ratio < 25% hoặc = 0
-        return criticalHealthSprite;
+        if (Mathf.Approximately(ratio, 1f) || ratio > 0.75f) return fullHealthSprite;      // 100% – 76%
+        if (ratio > 0.50f) return highHealthSprite;                                       // 75% – 51%
+        if (ratio > 0.25f) return mediumHealthSprite;                                     // 50% – 26%
+        if (ratio > 0f) return lowHealthSprite;                                           // 25% – 0.1%
+        return criticalHealthSprite;                                                      // 0%
     }
 }

@@ -25,6 +25,10 @@ public class BeetleAI : MonoBehaviour
     public float chargePrepareTime = 1f;
     public float stunTime = 2f;
 
+    [Header("=== SKILL DAMAGE ===")]
+    public int contactDamage = 1;  // 👈 SKILL 1: Va chạm gây 1 damage
+    public int chargeDamage = 2;   // 👈 SKILL 2: Lao đầu gây 2 damage
+
     [Header("=== TUẦN TRA ===")]
     public Transform pointA;
     public Transform pointB;
@@ -190,6 +194,32 @@ public class BeetleAI : MonoBehaviour
             Debug.Log("🐞 [Beetle] Trở lại tuần tra");
             PlayAnim(idleAnim);
             currentState = BeetleState.Patrol;
+        }
+    }
+
+    // =========================
+    // VA CHẠM & GÂY SÁT THƯƠNG
+    // =========================
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            PlayerController playerScript = other.GetComponent<PlayerController>();
+
+            if (playerScript != null)
+            {
+                if (currentState == BeetleState.Charge)
+                {
+                    playerScript.TakeDamageFromEnemy(chargeDamage, transform.position);
+                    Debug.Log($"🐞 [Beetle] Gây {chargeDamage} damage (Skill 2: Lao đầu)!");
+                }
+                else
+                {
+                    playerScript.TakeDamageFromEnemy(contactDamage, transform.position);
+                    Debug.Log($"🐞 [Beetle] Gây {contactDamage} damage (Skill 1: Va chạm)!");
+                }
+            }
         }
     }
 

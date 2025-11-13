@@ -13,6 +13,7 @@ public class EnemyAnt : MonoBehaviour
     public float chaseSpeed = 3.5f;
     public float detectionRange = 2.5f;
     public float groundTolerance = 0.3f;
+    public float damage = 20f;
 
     // === PHẢN XẠ SAU KHI ĐÁNH HỤT ===
     public float scanDuration = 0.8f;
@@ -23,19 +24,19 @@ public class EnemyAnt : MonoBehaviour
 
     // === THÀNH PHẦN ===
     private Rigidbody2D rb;
-    private SpriteRenderer sr; // 👈 THÊM
+    private SpriteRenderer sr;
     private Vector3 originalLocalScale;
     private bool isGrounded = false;
     private bool movingRight = true;
 
-    private enum State { Patrolling, Chasing, ScanningAfterMiss, Returning }
+    private enum State { Patrolling, Chasing, ScanningAfterMiss, Returning, Aggressive }
     private State currentState = State.Patrolling;
     private Coroutine scanCoroutine;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        sr = GetComponent<SpriteRenderer>(); // 👈 THÊM
+        sr = GetComponent<SpriteRenderer>();
         originalLocalScale = transform.localScale;
 
         if (pointA == null || pointB == null)
@@ -57,6 +58,12 @@ public class EnemyAnt : MonoBehaviour
         else if (rb.linearVelocity.x < -0.1f) FlipSprite(false);
 
         if (!isGrounded) return;
+
+        // 👇 KIỂM TRA PLAYER CÓ CHẾT KHÔNG
+        if (player != null && PlayerController.Instance != null && PlayerController.Instance.isDead)
+        {
+            SetState(State.Patrolling);
+        }
 
         switch (currentState)
         {
@@ -89,6 +96,9 @@ public class EnemyAnt : MonoBehaviour
             case State.Returning:
                 ReturnToPatrolPoint();
                 break;
+            case State.Aggressive:
+                AggressiveChase();
+                break;
             case State.ScanningAfterMiss:
                 rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
                 break;
@@ -106,6 +116,13 @@ public class EnemyAnt : MonoBehaviour
     }
 
     void ChasePlayer()
+    {
+        if (player == null) return;
+        float direction = Mathf.Sign(player.position.x - transform.position.x);
+        rb.linearVelocity = new Vector2(direction * chaseSpeed, rb.linearVelocity.y);
+    }
+
+    void AggressiveChase()
     {
         if (player == null) return;
         float direction = Mathf.Sign(player.position.x - transform.position.x);
@@ -131,8 +148,7 @@ public class EnemyAnt : MonoBehaviour
         rb.linearVelocity = new Vector2(0, rb.linearVelocity.y);
         yield return new WaitForSeconds(0.1f);
 
-        // 👇 SỬA: DÙNG BIẾN THEO DÕI HƯỚNG (TRÁNH TÍNH TOÁN TỪ SCALE)
-        bool wasFacingRight = !sr.flipX; // Vì flipX = !faceRight
+        bool wasFacingRight = !sr.flipX;
         FlipSprite(!wasFacingRight);
         yield return new WaitForSeconds(0.1f);
 
@@ -176,6 +192,27 @@ public class EnemyAnt : MonoBehaviour
         return true;
     }
 
+    // 👇 GỌI TỪ HEALTH KHI BỊ ĐÁNH
+    public void OnTakeDamage()
+    {
+        Debug.Log("[Ant] Bị đánh! → Phản đòn!");
+        SetState(State.Aggressive);
+    }
+
+    // 👇 GÂY SÁT THƯƠNG KHI VA CHẠM
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Player") && currentState == State.Aggressive)
+        {
+            PlayerController playerScript = other.GetComponent<PlayerController>();
+            if (playerScript != null)
+            {
+                playerScript.TakeDamageFromEnemy(damage, transform.position);
+                Debug.Log("[Ant] Gây sát thương cho Player!");
+            }
+        }
+    }
+
     void OnCollisionEnter2D(Collision2D col)
     {
         if (col.gameObject.CompareTag("Ground"))
@@ -192,7 +229,6 @@ public class EnemyAnt : MonoBehaviour
         }
     }
 
-    // 👇 ĐÃ SỬA: DÙNG FLIPX
     void FlipSprite(bool faceRight)
     {
         if (sr != null)
