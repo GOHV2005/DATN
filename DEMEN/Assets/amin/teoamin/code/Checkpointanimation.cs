@@ -44,7 +44,7 @@ public class CheckpointVisual : MonoBehaviour
             rotatingObject.Rotate(Vector3.forward, rotationSpeed * Time.deltaTime);
         }
 
-        // ✅ SỬA: DÙNG == HOẶC TRỰC TIẾP playerInRange
+        // Xử lý nhấn E khi player đang trong vùng
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
             ActivateThisCheckpoint();

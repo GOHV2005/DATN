@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 
 public class ItemSlot : MonoBehaviour, IPointerClickHandler
 {
+    // ===== ITEM DATA =====
     public string itemName;
     public int quantity;
     public Sprite itemSprite;
@@ -14,22 +15,26 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
     [SerializeField] private int maxNumberOfItems = 99;
 
+    // ===== UI SLOT =====
     [SerializeField] private TMP_Text quantityText;
     [SerializeField] private Image itemImage;
 
+    // ===== ITEM DESCRIPTION =====
     public Image itemDescriptionImage;
     public TMP_Text itemDescriptionNameText;
     public TMP_Text itemDescriptionText;
 
     public GameObject selectedShader;
     public bool thisItemSelected;
+
+    // Panel chứa 2 nút Drop / Use
     public GameObject actionPanel;
+
+    private InventoryManager inventoryManager;
 
     [Header("Drop Settings")]
     [SerializeField] private Vector3 dropScale = new Vector3(0.3f, 0.3f, 0.3f);
     [SerializeField] private int dropOrderInLayer = 5;
-
-    private InventoryManager inventoryManager;
 
     private void Start()
     {
@@ -39,6 +44,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
     private void Update()
     {
+        // Tắt action panel nếu click ngoài
         if (actionPanel != null && actionPanel.activeSelf && Input.GetMouseButtonDown(0))
         {
             if (!RectTransformUtility.RectangleContainsScreenPoint(
@@ -51,6 +57,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    // ================== ADD ITEM ==================
     public int Additem(string name, int qty, Sprite sprite, string desc)
     {
         if (isFull) return qty;
@@ -75,6 +82,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         return 0;
     }
 
+    // ================== UI ==================
     public void UpdateSlotUI()
     {
         if (itemImage != null)
@@ -114,6 +122,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    // ================== SLOT SELECTION ==================
     public void OnPointerClick(PointerEventData eventData)
     {
         if (!thisItemSelected)
@@ -137,6 +146,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    // ================== USE & DROP ==================
     public void UseItem()
     {
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
@@ -155,35 +165,43 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
     public void DropItem()
     {
-        if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
+        if (quantity <= 0 || string.IsNullOrEmpty(itemName)) return;
 
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.HideAll();
-            Time.timeScale = 1f;
-        }
+        GameObject player = GameObject.FindWithTag("Player");
+        if (player == null) return;
 
-        PlayerController player = PlayerController.Instance;
-        if (player != null)
-        {
-            // Callback chỉ chạy NẾU không bị hủy
-            player.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
-            {
-                // Chỉ trừ item nếu drop thành công
-                quantity -= 1;
-                if (quantity <= 0) EmptySlot();
-                else UpdateSlotUI();
-                inventoryManager?.OnSlotChanged();
-            });
-        }
-        else
-        {
-            Debug.LogWarning("Player not found!");
-        }
+        GameObject itemToDrop = new GameObject(itemName);
+        Item newItem = itemToDrop.AddComponent<Item>();
+        newItem.quantity = 1;
+        newItem.itemName = itemName;
+        newItem.sprite = itemSprite;
+        newItem.itemDescription = itemDescription;
+
+        SpriteRenderer sr = itemToDrop.AddComponent<SpriteRenderer>();
+        sr.sprite = itemSprite;
+        sr.sortingOrder = dropOrderInLayer;
+        sr.sortingLayerName = "Ground";
+
+        BoxCollider2D col = itemToDrop.AddComponent<BoxCollider2D>();
+        col.isTrigger = true;
+
+        Rigidbody2D rb = itemToDrop.AddComponent<Rigidbody2D>();
+        rb.gravityScale = 0f;
+        rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+
+        float facingDir = player.transform.localScale.x > 0 ? 1f : -1f;
+        itemToDrop.transform.position = player.transform.position + new Vector3(facingDir * 1f, 0f, 0f);
+        itemToDrop.transform.localScale = dropScale;
+
+        quantity -= 1;
+        if (quantity <= 0) EmptySlot();
+        else UpdateSlotUI();
 
         if (actionPanel != null) actionPanel.SetActive(false);
+        inventoryManager?.OnSlotChanged();
     }
 
+    // ================== EMPTY SLOT ==================
     public void EmptySlot()
     {
         inventoryManager?.OnSlotChanged();
@@ -206,6 +224,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         quantity = qty;
         itemSprite = sprite;
         itemDescription = desc;
+
         UpdateSlotUI();
         UpdateDescription();
     }

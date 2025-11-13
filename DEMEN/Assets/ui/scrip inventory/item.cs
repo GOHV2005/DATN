@@ -6,68 +6,56 @@ public class Item : MonoBehaviour
     [SerializeField] public int quantity = 1;
     [SerializeField] public Sprite sprite;
     [TextArea][SerializeField] public string itemDescription;
-    [SerializeField] private string groundTag = "Ground";
-    [SerializeField] private float pickupRange = 1.2f;
 
-    private Rigidbody2D rb;
-
-    void Awake()
-    {
-        rb = GetComponent<Rigidbody2D>();
-    }
+    private bool isPlayerInRange = false;
 
     void Update()
     {
-        if (PlayerController.Instance == null || PlayerController.Instance.feetPoint == null)
-            return;
-
-        float distance = Vector2.Distance(transform.position, PlayerController.Instance.feetPoint.position);
-        if (distance <= pickupRange && Input.GetKeyDown(KeyCode.E))
+        if (isPlayerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            Pickup();
+            // Lấy InventoryManager Instance an toàn
+            InventoryManager invMgr = InventoryManager.Instance;
+
+            if (invMgr == null)
+            {
+                Debug.LogWarning($"Cannot pick up {itemName}: InventoryManager.Instance is null!");
+                return;
+            }
+
+            // Thêm item vào inventory
+            int leftover = invMgr.AddItem(
+                itemName,
+                quantity,
+                sprite,
+                itemDescription
+            );
+
+            if (leftover <= 0)
+            {
+                Destroy(gameObject); // hết số lượng → destroy item
+            }
+            else
+            {
+                quantity = leftover; // còn dư → giữ lại số lượng
+            }
         }
     }
 
-    private void Pickup()
+    private void OnTriggerEnter2D(Collider2D collision)
     {
-        InventoryManager invMgr = InventoryManager.Instance;
-        if (invMgr == null)
+        if (collision.CompareTag("Player"))
         {
-            Debug.LogWarning($"Cannot pick up {itemName}: InventoryManager.Instance is null!");
-            return;
-        }
-
-        int leftover = invMgr.AddItem(itemName, quantity, sprite, itemDescription);
-
-        if (leftover <= 0)
-        {
-            Destroy(gameObject);
-        }
-        else
-        {
-            quantity = leftover;
+            isPlayerInRange = true;
+            Debug.Log($"Player vào vùng item {itemName}, nhấn E để nhặt");
         }
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerExit2D(Collider2D collision)
     {
-        if (collision.gameObject.CompareTag(groundTag))
+        if (collision.CompareTag("Player"))
         {
-            FreezeItem();
+            isPlayerInRange = false;
+            Debug.Log($"Player rời vùng item {itemName}");
         }
-    }
-
-    private void FreezeItem()
-    {
-        if (rb == null) return;
-        rb.linearVelocity = Vector2.zero;
-        rb.angularVelocity = 0f;
-        rb.bodyType = RigidbodyType2D.Static;
-    }
-
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = new Color(0f, 1f, 1f, 0.3f);
-        Gizmos.DrawSphere(transform.position, pickupRange);
     }
 }

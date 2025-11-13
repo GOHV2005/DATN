@@ -79,9 +79,9 @@ GameObject:
   - component: {fileID: 5754867084158954690}
   - component: {fileID: 8488374718005043910}
   - component: {fileID: 5532307988461021445}
-  m_Layer: 6
+  m_Layer: 0
   m_Name: ong
-  m_TagString: Enemy
+  m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -95,8 +95,8 @@ Transform:
   m_GameObject: {fileID: 7957346970046628801}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.54, y: 0.87, z: 0}
-  m_LocalScale: {x: 0.71722007, y: 0.71722007, z: 0.71722007}
+  m_LocalPosition: {x: 0.06, y: 1.11, z: 0}
+  m_LocalScale: {x: 0.29856172, y: 0.29856172, z: 0.29856172}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5138987232537925846}
@@ -145,8 +145,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 1989797388566967148, guid: 53d82b05a5b39f640a6da61c3ca06625,
-    type: 3}
+  m_Sprite: {fileID: -577472684307798074, guid: 91bf130c5a7e8df4c8b15f37726687b1, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -187,21 +186,21 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 1
+  m_IsTrigger: 0
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.022498727, y: -0.022491455}
+  m_Offset: {x: 0, y: 0}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
-    oldSize: {x: 5.1, y: 4.8404727}
+    oldSize: {x: 2.2, y: 2.81}
     newSize: {x: 2.2, y: 2.81}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 5.138912, y: 4.8367233}
+  m_Size: {x: 2.26, y: 2.79}
   m_EdgeRadius: 0
 --- !u!50 &244844402837999007
 Rigidbody2D:
@@ -243,16 +242,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   anchorPoint: {fileID: 5959878499988781315}
-  hoverRadius: 7.26
-  hoverSpeed: 3.73
-  chaseSpeed: 5.26
-  detectionRange: 10.38
-  retreatDistance: 3
-  keepDistanceRange: {x: 5, y: 8}
-  damage: 1
-  damageCooldown: 5
+  hoverRadius: 2.25
+  hoverSpeed: 1.5
+  chaseSpeed: 3
+  detectionRange: 5
+  damage: 15
+  damageCooldown: 1
   flyAnim: bay(ong)
-  attackAnim: TanCong(ong)
 --- !u!95 &8488374718005043910
 Animator:
   serializedVersion: 7
@@ -288,12 +284,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
-  knockbackForce: 30
-  knockbackDuration: 0.15
-  flashDuration: 0.15
-  flashFrequency: 10
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
-  dropItemPrefab: {fileID: 0}
-  dropItemCount: 1
-  dropForce: 5
-  randomAngleRange: 30
