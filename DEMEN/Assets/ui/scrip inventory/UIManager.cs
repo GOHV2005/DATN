@@ -25,7 +25,6 @@ public class UIManager : MonoBehaviour
 
     private void Update()
     {
-        // Chỉ cho phép mở UI nếu có Player trong scene
         if (GameObject.FindWithTag("Player") == null)
             return;
 
@@ -41,14 +40,12 @@ public class UIManager : MonoBehaviour
     {
         if (targetPanel.activeSelf)
         {
-            // Đang mở → đóng
             HideAll();
             Time.timeScale = 1f;
         }
         else
         {
             Time.timeScale = 0f;
-            // Đang đóng → mở panel này
             HideAll();
             targetPanel.SetActive(true);
             IsUIOpen = true;
@@ -57,13 +54,39 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    private void HideAll()
+    public void HideAll()
     {
         if (panelInventory != null) panelInventory.SetActive(false);
-
         IsUIOpen = false;
-        // Optional: Ẩn con trỏ khi đóng UI (nếu bạn dùng FPS/TPS)
-        // Cursor.visible = false;
-        // Cursor.lockState = CursorLockMode.Locked;
+    }
+
+    // ================ INPUT CONTROL ================
+    private static PauseMenu _pauseMenu;
+    private static bool _pauseMenuChecked = false;
+
+    private static PauseMenu GetPauseMenu()
+    {
+        if (!_pauseMenuChecked)
+        {
+            var pauseMenus = Object.FindObjectsByType<PauseMenu>(FindObjectsSortMode.None);
+            _pauseMenu = pauseMenus.Length > 0 ? pauseMenus[0] : null;
+            _pauseMenuChecked = true;
+        }
+        return _pauseMenu;
+    }
+
+    public static bool IsGameplayInputAllowed
+    {
+        get
+        {
+            bool inventoryOpen = Instance != null && Instance.panelInventory != null && Instance.panelInventory.activeSelf;
+
+            var pauseMenu = GetPauseMenu();
+            bool pauseOpen = pauseMenu != null &&
+                            ((pauseMenu.pauseMenuUI != null && pauseMenu.pauseMenuUI.activeSelf) ||
+                             (pauseMenu.optionsMenuUI != null && pauseMenu.optionsMenuUI.activeSelf));
+
+            return !inventoryOpen && !pauseOpen;
+        }
     }
 }
