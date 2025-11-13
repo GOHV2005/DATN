@@ -4,8 +4,8 @@ using UnityEngine.SceneManagement;
 public class PauseMenu : MonoBehaviour
 {
     [Header("UI Panels")]
-    public GameObject pauseMenuUI;      // Panel chính (Pause menu)
-    public GameObject optionsMenuUI;    // Panel Cài đặt
+    public GameObject pauseMenuUI;
+    public GameObject optionsMenuUI;
 
     private bool isPaused = false;
 
@@ -28,14 +28,14 @@ public class PauseMenu : MonoBehaviour
     public void Resume()
     {
         pauseMenuUI.SetActive(false);
-        Time.timeScale = 1f;      // Game tiếp tục
+        Time.timeScale = 1f;
         isPaused = false;
     }
 
     public void Pause()
     {
         pauseMenuUI.SetActive(true);
-        Time.timeScale =0f;      // Game dừng
+        Time.timeScale = 0f;
         isPaused = true;
     }
 
@@ -55,7 +55,5 @@ public class PauseMenu : MonoBehaviour
     {
         SceneLoader.LoadScene("UI Start Test");
         Time.timeScale = 1f;
-        // Nếu đang test trong Unity Editor:
-        // UnityEditor.EditorApplication.isPlaying = false;
     }
 }
