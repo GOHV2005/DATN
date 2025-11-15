@@ -7,7 +7,6 @@ public class EnemyGrasshopper : MonoBehaviour
     public Transform pointA;
     public Transform pointB;
     public float patrolDistance = 5f;
-    public float viewAngle = 120f;
     public LayerMask obstacleLayer;
 
     // === NHẢY TUẦN TRA ===
@@ -35,8 +34,15 @@ public class EnemyGrasshopper : MonoBehaviour
     private Vector3 originalLocalScale;
     private bool isGrounded = false;
     private bool movingRight = true;
-    private SpriteRenderer sr; // 👈 THÊM
-    private bool currentFacingRight = true; // 👈 THÊM
+    private SpriteRenderer sr;
+    private bool currentFacingRight = true;
+
+    // 👇 BIẾN MỚI: QUẢN LÝ SCALE
+    private Vector3 currentScale;
+    private BoxCollider2D boxCollider;
+    private float originalColliderSizeX;
+    private float originalColliderSizeY;
+    private float originalMass;
 
     private enum State { Patrolling, Charging, Jumping, Scanning }
     private State currentState = State.Patrolling;
@@ -48,8 +54,21 @@ public class EnemyGrasshopper : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
-        sr = GetComponent<SpriteRenderer>(); // 👈 THÊM
+        sr = GetComponent<SpriteRenderer>();
+        boxCollider = GetComponent<BoxCollider2D>();
+
         originalLocalScale = transform.localScale;
+        currentScale = originalLocalScale;
+
+        if (boxCollider != null)
+        {
+            originalColliderSizeX = boxCollider.size.x;
+            originalColliderSizeY = boxCollider.size.y;
+        }
+        if (rb != null)
+        {
+            originalMass = rb.mass;
+        }
 
         if (pointA == null || pointB == null)
         {
@@ -67,6 +86,13 @@ public class EnemyGrasshopper : MonoBehaviour
 
     void Update()
     {
+        // 👇 KIỂM TRA SCALE CÓ THAY ĐỔI KHÔNG
+        if (transform.localScale != currentScale)
+        {
+            AdjustColliderAndMass();
+            currentScale = transform.localScale;
+        }
+
         // 👇 XOAY SPRITE THEO HƯỚNG DI CHUYỂN NGANG
         if (rb.linearVelocity.x > 0.1f)
         {
@@ -94,7 +120,32 @@ public class EnemyGrasshopper : MonoBehaviour
             }
         }
 
-        // Phát hiện player khi đang trên mặt đất và không nhảy
+        // 👇 DEBUG: VẼ TIA NHÌN LUÔN (KHÔNG CẦN IF)
+        if (player != null)
+        {
+            Vector2 direction = (player.position - transform.position).normalized;
+            float distance = Vector2.Distance(transform.position, player.position);
+
+            // Tia nhìn màu xanh nếu trong tầm, đỏ nếu ngoài tầm
+            if (distance <= detectionRange)
+            {
+                float deltaY = Mathf.Abs(player.position.y - transform.position.y);
+                if (deltaY <= groundTolerance)
+                {
+                    Debug.DrawLine(transform.position, player.position, Color.green); // 👈 XANH: thấy rõ
+                }
+                else
+                {
+                    Debug.DrawLine(transform.position, player.position, Color.blue); // 👈 XANH LAM: cao/thấp quá
+                }
+            }
+            else
+            {
+                Debug.DrawLine(transform.position, player.position, Color.red); // 👈 ĐỎ: quá xa
+            }
+        }
+
+        // 👇 BỎ: KHÔNG CÒN KIỂM TRA CHỈ KHI PATROLLING
         if (isGrounded && currentState == State.Patrolling)
         {
             if (CanSeePlayer())
@@ -104,15 +155,22 @@ public class EnemyGrasshopper : MonoBehaviour
                 chargeCoroutine = StartCoroutine(ChargeThenJump());
             }
         }
+    }
 
-        // Debug: Vẽ tia nhìn
-        if (player != null && CanSeePlayer())
+    // 👇 HÀM MỚI: ĐIỀU CHỈNH COLLIDER THEO SCALE
+    void AdjustColliderAndMass()
+    {
+        if (boxCollider != null)
         {
-            Debug.DrawLine(transform.position, player.position, Color.green);
+            boxCollider.size = new Vector2(
+                originalColliderSizeX * transform.localScale.x,
+                originalColliderSizeY * transform.localScale.y
+            );
         }
-        else if (player != null)
+
+        if (rb != null)
         {
-            Debug.DrawLine(transform.position, player.position, Color.red);
+            rb.mass = originalMass * transform.localScale.x; // Giữ tỷ lệ khối lượng
         }
     }
 
@@ -178,21 +236,7 @@ public class EnemyGrasshopper : MonoBehaviour
         float distance = Vector2.Distance(transform.position, player.position);
         if (distance > detectionRange) return false;
 
-        // 👇 LẤY HƯỚNG NHÌN HIỆN TẠI CỦA SPRITE
-        bool facingRight = originalLocalScale.x * transform.localScale.x > 0;
-
-        Vector2 forward = currentFacingRight ? Vector2.right : Vector2.left;
-        Vector2 toPlayer = (player.position - transform.position).normalized;
-        float dot = Vector2.Dot(forward, toPlayer);
-        float angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
-        if (angle > viewAngle / 2f) return false;
-
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, toPlayer, distance, obstacleLayer);
-        if (hit.collider != null && hit.collider.gameObject != player.gameObject)
-        {
-            return false;
-        }
-
+        // 👇 ĐÃ BỎ: KHÔNG CÒN KIỂM TRA GÓC NHÌN
         return true;
     }
 
@@ -245,8 +289,19 @@ public class EnemyGrasshopper : MonoBehaviour
             isGrounded = true;
             if (currentState == State.Jumping)
             {
-                SetState(State.Patrolling);
-                StartCoroutine(ScanAfterLanding());
+                // 👇 CHỈ CHUYỂN VỀ PATROLLING NẾU PLAYER KO CÒN Ở TRONG TẦM
+                if (!CanSeePlayer())
+                {
+                    SetState(State.Patrolling);
+                    StartCoroutine(ScanAfterLanding());
+                }
+                else
+                {
+                    // 👇 NẾU VẪN THẤY PLAYER → TIẾP TỤC CHỜ
+                    SetState(State.Patrolling);
+                    // Nếu bạn muốn tiếp tục nhảy nếu thấy player, bạn có thể bỏ qua
+                    // hoặc thêm logic khác
+                }
             }
         }
     }
@@ -272,7 +327,6 @@ public class EnemyGrasshopper : MonoBehaviour
             yield break;
         }
 
-        // 👇 DÙNG BIẾN THEO DÕI THAY VÌ TÍNH TOÁN TỪ SCALE
         bool wasFacingRight = currentFacingRight;
         FlipSprite(!wasFacingRight); // Quay đầu
         yield return new WaitForSeconds(0.2f);
@@ -286,7 +340,6 @@ public class EnemyGrasshopper : MonoBehaviour
             yield break;
         }
 
-        // 👇 KHÔI PHỤC HƯỚNG BAN ĐẦU
         FlipSprite(wasFacingRight);
         yield return new WaitForSeconds(0.1f);
         StartPatrolling();
@@ -300,14 +353,8 @@ public class EnemyGrasshopper : MonoBehaviour
         float dist = Vector2.Distance(transform.position, player.position);
         if (dist > detectionRange) return false;
 
-        Vector2 toPlayer = (player.position - transform.position).normalized;
-        Vector2 forward = currentFacingRight ? Vector2.right : Vector2.left; // 👈 DÙNG BIẾN MỚI
-        float dot = Vector2.Dot(forward, toPlayer);
-        float angle = Mathf.Acos(Mathf.Clamp(dot, -1f, 1f)) * Mathf.Rad2Deg;
-        if (angle > viewAngle / 2f) return false;
-
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, toPlayer, dist, obstacleLayer);
-        return hit.collider == null || hit.collider.gameObject == player.gameObject;
+        // 👇 ĐÃ BỎ: KHÔNG CÒN KIỂM TRA GÓC NHÌN
+        return true;
     }
 
     // === TIỆN ÍCH ===
@@ -316,7 +363,7 @@ public class EnemyGrasshopper : MonoBehaviour
         if (sr != null)
         {
             sr.flipX = faceRight; // Sprite gốc nhìn phải
-            currentFacingRight = faceRight; // 👈 CẬP NHẬT TRẠNG THÁI
+            currentFacingRight = faceRight;
         }
     }
 
@@ -343,22 +390,7 @@ public class EnemyGrasshopper : MonoBehaviour
             Gizmos.DrawLine(pointA.position, pointB.position);
         }
 
-        // Vẽ tầm nhìn theo hướng hiện tại
         Gizmos.color = Color.yellow;
-        bool facingRight = originalLocalScale.x * transform.localScale.x > 0;
-        Vector2 forward = facingRight ? Vector2.right : Vector2.left;
-        float halfAngle = viewAngle * 0.5f * Mathf.Deg2Rad;
-        Vector2 dir1 = new Vector2(
-            Mathf.Cos(halfAngle) * forward.x - Mathf.Sin(halfAngle) * forward.y,
-            Mathf.Sin(halfAngle) * forward.x + Mathf.Cos(halfAngle) * forward.y
-        );
-        Vector2 dir2 = new Vector2(
-            Mathf.Cos(-halfAngle) * forward.x - Mathf.Sin(-halfAngle) * forward.y,
-            Mathf.Sin(-halfAngle) * forward.x + Mathf.Cos(-halfAngle) * forward.y
-        );
-
-        Gizmos.DrawLine(transform.position, transform.position + (Vector3)(dir1 * detectionRange));
-        Gizmos.DrawLine(transform.position, transform.position + (Vector3)(dir2 * detectionRange));
         Gizmos.DrawWireSphere(transform.position, detectionRange);
     }
 }
