@@ -329,13 +329,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  knockbackForce: 30
+  knockbackDuration: 0.15
+  flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.15
-  flashFrequency: 10
-  flashColor: {r: 1, g: 0, b: 0, a: 1}
   dropItemPrefab: {fileID: 0}
   dropItemCount: 1
   dropForce: 5
   randomAngleRange: 30
+  bloodPrefab: {fileID: 2736140822471033997, guid: cf9f19196405b9044b14f430f1ded487,
+    type: 3}
+  bloodCount: 5
+  bloodForce: 1
 --- !u!1 &7159525337248880108
 GameObject:
   m_ObjectHideFlags: 0

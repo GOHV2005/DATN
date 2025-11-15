@@ -9,7 +9,7 @@ public class chuyenscene : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
-            SceneManager.LoadScene(SceneName);
+            SceneLoader.LoadScene(SceneName);
         }
     }
 }

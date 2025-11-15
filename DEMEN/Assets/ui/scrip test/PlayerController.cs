@@ -538,6 +538,11 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
+        if (other.CompareTag("void"))
+        {
+            Debug.Log("💥 [Player] Va chạm với vùng void → nhận 100 sát thương!");
+            TakeDamageFromEnemy(maxHealth, other.transform.position);
+        }
         if (other == null || !other.CompareTag("Enemy")) return;
 
         // 👇 GÂY DAME CHO ENEMY (KHI DÙNG ATTACK BOX)
@@ -552,6 +557,7 @@ public class PlayerController : MonoBehaviour
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
         }
+        
     }
 
     void HandleEnemyCollision(Collision2D collision)
