@@ -1,5 +1,4 @@
 using System.Collections;
-using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 public class Health : MonoBehaviour
@@ -67,6 +66,9 @@ public class Health : MonoBehaviour
         // SỬ DỤNG knockbackDirection thay vì attacker
         SpawnBlood(knockbackDirection);
 
+        // 👇 GỌI HÀM OnTakeDamage CHO ENEMY (DÙNG SendMessage - AN TOÀN)
+        SendMessage("OnTakeDamage", SendMessageOptions.DontRequireReceiver);
+
         if (currentHealth <= 0)
             Die();
     }
@@ -95,6 +97,7 @@ public class Health : MonoBehaviour
             }
         }
     }
+
     IEnumerator FlashMaterialEffect()
     {
         if (flashMaterial == null) yield break;
