@@ -54,6 +54,6 @@ public class WebProjectile : MonoBehaviour
             Destroy(gameObject);
         }
 
-        Destroy(gameObject);
+       
     }
 }
