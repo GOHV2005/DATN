@@ -91,7 +91,7 @@ public class PlayerController : MonoBehaviour
     public Sprite fullHeartSprite;
     public Sprite emptyHeartSprite;
     public float healthPerHeart = 20f;
-
+    public System.Action onTakeDamage; // 👈 THÊM DÒNG NÀY
     [Header("UI - Mana")]
     public Image manaFill;
 
@@ -639,7 +639,7 @@ public class PlayerController : MonoBehaviour
 
         isKnockbackInvincible = true;
         knockbackInvincibleTimer = invincibleTime;
-
+        onTakeDamage?.Invoke();
         if (CurrentHealth <= 0f)
         {
             Die();
@@ -673,7 +673,7 @@ public class PlayerController : MonoBehaviour
 
         isKnockbackInvincible = true;
         knockbackInvincibleTimer = invincibleTime;
-
+        onTakeDamage?.Invoke();
         if (CurrentHealth <= 0f) Die();
     }
 

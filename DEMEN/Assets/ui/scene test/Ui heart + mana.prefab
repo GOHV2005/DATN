@@ -905,7 +905,7 @@ MonoBehaviour:
   m_text: "Tho\xE1t"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1190cdba07d23c642a1ed2589440a458, type: 2}
-  m_sharedMaterial: {fileID: -3431163291534475423, guid: 1190cdba07d23c642a1ed2589440a458,
+  m_sharedMaterial: {fileID: 7960599251452804121, guid: 1190cdba07d23c642a1ed2589440a458,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -2251,7 +2251,7 @@ MonoBehaviour:
   m_text: "Ti\u1EBFp T\u1EE5c "
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1190cdba07d23c642a1ed2589440a458, type: 2}
-  m_sharedMaterial: {fileID: -3431163291534475423, guid: 1190cdba07d23c642a1ed2589440a458,
+  m_sharedMaterial: {fileID: 7960599251452804121, guid: 1190cdba07d23c642a1ed2589440a458,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -4391,7 +4391,7 @@ MonoBehaviour:
   m_text: "C\xE0i \u0110\u1EB7t"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 1190cdba07d23c642a1ed2589440a458, type: 2}
-  m_sharedMaterial: {fileID: -3431163291534475423, guid: 1190cdba07d23c642a1ed2589440a458,
+  m_sharedMaterial: {fileID: 7960599251452804121, guid: 1190cdba07d23c642a1ed2589440a458,
     type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
@@ -5940,8 +5940,6 @@ GameObject:
   - component: {fileID: 7288474254593321942}
   - component: {fileID: 3155027732861176174}
   - component: {fileID: 160428142184561857}
-  - component: {fileID: 8542922211448340731}
-  - component: {fileID: 6988588788795934803}
   m_Layer: 5
   m_Name: heart
   m_TagString: Untagged
@@ -6007,44 +6005,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &8542922211448340731
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8774200877204731323}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f4d455ab53d9d541b46eb57664cafda, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  fullHealthSprite: {fileID: -3033737582409827862, guid: e2cedca667289c644b2c1a703c92440e,
-    type: 3}
-  highHealthSprite: {fileID: -6937545139876413440, guid: e2cedca667289c644b2c1a703c92440e,
-    type: 3}
-  mediumHealthSprite: {fileID: 2539182496157525611, guid: e2cedca667289c644b2c1a703c92440e,
-    type: 3}
-  lowHealthSprite: {fileID: -927009269, guid: e2cedca667289c644b2c1a703c92440e, type: 3}
-  criticalHealthSprite: {fileID: -1315479810150373478, guid: e2cedca667289c644b2c1a703c92440e,
-    type: 3}
---- !u!114 &6988588788795934803
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8774200877204731323}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 23191f488cbf0bb4ea8a263ea83f5905, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player: {fileID: 0}
-  minPulseSpeed: 4
-  maxPulseSpeed: 12
-  pulseAmplitude: 0.1
 --- !u!1 &8783320076280008278
 GameObject:
   m_ObjectHideFlags: 0

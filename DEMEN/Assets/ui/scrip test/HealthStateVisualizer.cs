@@ -1,38 +1,72 @@
-﻿// HealthStateSpriteVisualizer.cs
+﻿// GrasshopperHeadUI.cs
 using UnityEngine;
 using UnityEngine.UI;
+using System.Collections;
 
 [RequireComponent(typeof(Image))]
-public class HealthStateSpriteVisualizer : MonoBehaviour
+public class GrasshopperHeadUI : MonoBehaviour
 {
-    [Header("References")]
-    public PlayerController player; // Kéo Player vào đây (nếu không, tự tìm)
+    [Header("Sprites by Health (5 sprites)")]
+    public Sprite fullHealthSprite;       // 5/5 máu
+    public Sprite highHealthSprite;       // 4/5 máu
+    public Sprite mediumHealthSprite;     // 3/5 máu
+    public Sprite lowHealthSprite;        // 2/5 máu
+    public Sprite criticalHealthSprite;   // 1/5 máu
 
-    [Header("Sprites by Health Level")]
-    public Sprite fullHealthSprite;       // 100%
-    public Sprite highHealthSprite;       // 75%
-    public Sprite mediumHealthSprite;     // 50%
-    public Sprite lowHealthSprite;        // 25%
-    public Sprite criticalHealthSprite;   // 0%
+    [Header("Flash & Shake Settings")]
+    public Material flashMaterial;        // 👈 KÉO MATERIAL VÀO ĐÂY
+    public float flashDuration = 0.1f;    // Thời gian chớp
+
+    public bool enableShake = true;       // Cho phép rung
+    public float shakeAmount = 10f;       // Mức rung (pixel)
+    public float shakeDuration = 0.15f;   // Thời gian rung
 
     private Image image;
     private Sprite currentSprite;
+    private Material originalMaterial;
+    private Vector3 originalLocalPosition;
+    private PlayerController player;
 
     void Awake()
     {
         image = GetComponent<Image>();
+        originalMaterial = image.material;
+        originalLocalPosition = transform.localPosition;
+
+        player = Object.FindAnyObjectByType<PlayerController>();
         if (player == null)
+            Debug.LogError("PlayerController not found! Please assign manually.");
+    }
+
+    void Start()
+    {
+        // 👇 GỌI HÀM CẬP NHẬT SPRITE BAN ĐẦU
+        Sprite newSprite = GetHealthSprite();
+        currentSprite = newSprite;
+        image.sprite = newSprite;
+    }
+
+    void OnEnable()
+    {
+        if (player != null)
         {
-            player = Object.FindAnyObjectByType<PlayerController>();
-            if (player == null)
-                Debug.LogError("PlayerController not found! Please assign manually.");
+            player.onTakeDamage += OnPlayerTakeDamage;
+        }
+    }
+
+    void OnDisable()
+    {
+        if (player != null)
+        {
+            player.onTakeDamage -= OnPlayerTakeDamage;
         }
     }
 
     void Update()
     {
-        if (player == null || player.isDead) return;
+        if (player == null) return;
 
+        // Cập nhật sprite nếu máu thay đổi
         Sprite newSprite = GetHealthSprite();
         if (newSprite != currentSprite)
         {
@@ -41,14 +75,58 @@ public class HealthStateSpriteVisualizer : MonoBehaviour
         }
     }
 
+    void OnPlayerTakeDamage()
+    {
+        // 👇 CHỈ CHỚP TRẮNG + RUNG KHI PLAYER BỊ ĐÁNH
+        if (flashMaterial != null)
+        {
+            StartCoroutine(FlashAndShake());
+        }
+    }
+
     Sprite GetHealthSprite()
     {
-        float ratio = player.CurrentHealth / player.maxHealth;
+        if (player.isDead) return criticalHealthSprite; // Nếu chết → sprite cuối
 
-        if (Mathf.Approximately(ratio, 1f) || ratio > 0.75f) return fullHealthSprite;      // 100% – 76%
-        if (ratio > 0.50f) return highHealthSprite;                                       // 75% – 51%
-        if (ratio > 0.25f) return mediumHealthSprite;                                     // 50% – 26%
-        if (ratio > 0f) return lowHealthSprite;                                           // 25% – 0.1%
-        return criticalHealthSprite;                                                      // 0%
+        float ratio = player.CurrentHealth / player.maxHealth;
+        int healthLevel = Mathf.CeilToInt(ratio * 5); // 5 cấp độ
+        healthLevel = Mathf.Clamp(healthLevel, 1, 5);
+
+        switch (healthLevel)
+        {
+            case 5: return fullHealthSprite;
+            case 4: return fullHealthSprite;      // 5/5 máu
+            case 3: return highHealthSprite;      // 4/5 máu
+            case 2: return mediumHealthSprite;    // 3/5 máu
+            case 1: return lowHealthSprite;       // 2/5 máu
+            case 0:
+            default:
+                return criticalHealthSprite;      // 1/5 máu
+        }
+    }
+
+    IEnumerator FlashAndShake()
+    {
+        // 👇 CHỚP TRẮNG
+        image.material = flashMaterial;
+        yield return new WaitForSeconds(flashDuration);
+        image.material = originalMaterial;
+
+        // 👇 RUNG LẮC TRÁI-PHẢI
+        if (enableShake)
+        {
+            Vector3 originalPos = transform.localPosition;
+            float elapsed = 0f;
+
+            while (elapsed < shakeDuration)
+            {
+                float x = Mathf.Sin(elapsed * 30f) * shakeAmount; // Lắc trái-phải
+                transform.localPosition = originalPos + new Vector3(x, 0f, 0f);
+                elapsed += Time.deltaTime;
+                yield return null;
+            }
+
+            transform.localPosition = originalPos;
+        }
     }
 }
