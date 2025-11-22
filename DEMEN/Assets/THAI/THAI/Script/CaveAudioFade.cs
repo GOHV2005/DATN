@@ -27,7 +27,7 @@ public class CaveAudioFade : MonoBehaviour
     IEnumerator FadeIn(AudioSource source)
     {
         float startVolume = source.volume;
-        float time = 0;
+        float time = 0f;
         while (time < fadeDuration)
         {
             source.volume = Mathf.Lerp(startVolume, 1f, time / fadeDuration);
@@ -40,7 +40,7 @@ public class CaveAudioFade : MonoBehaviour
     IEnumerator FadeOut(AudioSource source)
     {
         float startVolume = source.volume;
-        float time = 0;
+        float time = 0f;
         while (time < fadeDuration)
         {
             source.volume = Mathf.Lerp(startVolume, 0f, time / fadeDuration);
