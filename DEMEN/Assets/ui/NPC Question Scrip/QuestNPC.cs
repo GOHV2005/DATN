@@ -14,40 +14,87 @@ public class QuestNPC : MonoBehaviour
 
     public Transform playerTransform;
     public float interactionRange = 2f;
+    [Header("=== Thông tin nhiệm vụ ===")]
+    public string questDescription = "";//Mô tả nhiệm vụ...
 
-    [Header("=== Phần thưởng ===")]
+    [Header("=== Ném phần thưởng ===")]
     public GameObject rewardItemPrefab;
     public float dropForce = 8f;
     public float dropAngle = 50f;
+    private bool canReceiveItems = false; // 👈 MỚI: chỉ nhận item khi true
+
+    public GameObject interactionPrompt;
+    private SpriteRenderer sr; // 👈 THÊM
+    
+    void Start()
+    {
+        sr = GetComponent<SpriteRenderer>(); // 👈 LẤY SPRITE RENDERER
+        HideInteractionPrompt();
+    }
 
     void Update()
     {
         if (playerTransform == null) return;
+
+        LookAtPlayer();
+
         float dist = Vector2.Distance(transform.position, playerTransform.position);
-        if (dist <= interactionRange && Input.GetKeyDown(KeyCode.E))
+        if (dist <= interactionRange)
         {
-            if (isQuestCompleted)
+            ShowInteractionPrompt();
+            if (Input.GetKeyDown(KeyCode.E))
             {
-                var comebackLine = fullDialogue.lines.Find(l => l.isDoneIfPlayerComeBack);
-                if (comebackLine != null)
-                {
-                    DialogueSystem.Instance.StartSingleLine(comebackLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
-                }
+                HideInteractionPrompt();
+                HandleInteraction();
             }
-            else if (hasAcceptedQuest)
-            {
-                OnShowQuestComplete();
-            }
-            else
-            {
-                DialogueSystem.Instance.StartQuestDialogue(fullDialogue, this);
-            }
+        }
+        else
+        {
+            HideInteractionPrompt();
         }
     }
 
+    void HandleInteraction()
+    {
+        if (isQuestCompleted)
+        {
+            var comebackLine = fullDialogue.lines.Find(l => l.isDoneIfPlayerComeBack);
+            if (comebackLine != null)
+            {
+                DialogueSystem.Instance.StartSingleLine(comebackLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
+            }
+        }
+        else if (hasAcceptedQuest)
+        {
+            OnShowQuestComplete();
+        }
+        else
+        {
+            DialogueSystem.Instance.StartQuestDialogue(fullDialogue, this);
+        }
+    }
+    void LookAtPlayer()
+    {
+        if (playerTransform == null || sr == null) return;
+
+        // Lật sprite theo hướng player
+        if (playerTransform.position.x > transform.position.x)
+        {
+            sr.flipX = false; // Nhìn phải
+        }
+        else
+        {
+            sr.flipX = true; // Nhìn trái
+        }
+    }
     public void OnAcceptQuest()
     {
         hasAcceptedQuest = true;
+        canReceiveItems = true;
+
+        // 👇 HIỆN PANEL NHIỆM VỤ
+        QuestUIManager.Instance.ShowQuest(this);
+
         var acceptLine = fullDialogue.lines.Find(l => l.isAcceptLine);
         if (acceptLine != null)
         {
@@ -63,6 +110,8 @@ public class QuestNPC : MonoBehaviour
             DialogueSystem.Instance.StartSingleLine(refuseLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
         }
         hasAcceptedQuest = false;
+        canReceiveItems = false;
+         // Ẩn nhiệm vụ nếu từ chối
     }
 
     void OnShowQuestComplete()
@@ -75,6 +124,8 @@ public class QuestNPC : MonoBehaviour
             {
                 DialogueSystem.Instance.StartSingleLine(completeLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
                 isQuestCompleted = true;
+                canReceiveItems = false;
+                QuestUIManager.Instance.CompleteQuest(this); // Đánh dấu hoàn thành
 
                 if (rewardItemPrefab != null && playerTransform != null)
                 {
@@ -96,18 +147,14 @@ public class QuestNPC : MonoBehaviour
     {
         if (rewardItemPrefab == null || playerTransform == null) return;
 
-        // Tạo item
         GameObject itemObj = Instantiate(rewardItemPrefab, transform.position, Quaternion.identity);
         Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
         if (rb != null)
         {
             rb.bodyType = RigidbodyType2D.Dynamic;
-            rb.gravityScale = 3f; // Đảm bảo có gravity
+            rb.gravityScale = 3f;
 
-            // Tính hướng từ NPC → Player
             Vector2 direction = (playerTransform.position - transform.position).normalized;
-
-            // Tính góc ném (hướng lên)
             float rad = Mathf.Deg2Rad * dropAngle;
             float vx = Mathf.Cos(rad) * direction.x;
             float vy = Mathf.Sin(rad); // Luôn hướng lên
@@ -119,13 +166,37 @@ public class QuestNPC : MonoBehaviour
 
     void OnCollisionEnter2D(Collision2D col)
     {
+        if (!canReceiveItems || isQuestCompleted) return;
         if (col.collider.TryGetComponent(out Item item))
         {
             if (requiredItems.Contains(item.itemName) && !collectedItems.Contains(item.itemName))
             {
                 collectedItems.Add(item.itemName);
                 Destroy(col.gameObject);
+                QuestUIManager.Instance.UpdateQuest(this);
             }
         }
+    }
+    void OnTriggerEnter2D(Collider2D col)
+    {
+        if (!canReceiveItems || isQuestCompleted) return;
+        if (col.TryGetComponent(out Item item))
+        {
+            if (requiredItems.Contains(item.itemName) && !collectedItems.Contains(item.itemName))
+            {
+                collectedItems.Add(item.itemName);
+                Destroy(col.gameObject);
+                QuestUIManager.Instance.UpdateQuest(this);
+            }
+        }
+    }
+    void ShowInteractionPrompt()
+    {
+        if (interactionPrompt != null) interactionPrompt.SetActive(true);
+    }
+
+    void HideInteractionPrompt()
+    {
+        if (interactionPrompt != null) interactionPrompt.SetActive(false);
     }
 }
