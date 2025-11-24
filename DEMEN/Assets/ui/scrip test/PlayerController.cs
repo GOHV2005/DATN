@@ -82,6 +82,12 @@ public class PlayerController : MonoBehaviour
     private float attackCooldownTimer = 0f;
     private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
 
+    [Header("Longden Equipment")]
+    public GameObject longdenObject; // Kéo GameObject longden vào đây (đã có sẵn trong scene)
+    private bool isHoldingLongden = false;
+    private bool isEquippingLongden = false;
+    public bool IsHoldingLongden => isHoldingLongden;
+
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
@@ -899,13 +905,57 @@ public class PlayerController : MonoBehaviour
             gameFadePanel.gameObject.SetActive(false);
         }
     }
+    public void EquipLongden()
+    {
+        if (isHoldingLongden || isDead || animator == null || isEquippingLongden) return;
 
+        Debug.Log("play longden");
+
+        isEquippingLongden = true; // 🔒 Khóa không cho UpdateAnimation ghi đè
+
+        animator.Play("longden");
+
+        float animLength = GetAnimationLength("longden");
+        if (animLength <= 0f) animLength = 0.5f;
+
+        StartCoroutine(ShowLongdenAfterDelay(animLength));
+    }
+
+    private IEnumerator ShowLongdenAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+
+        if (longdenObject != null)
+        {
+            longdenObject.SetActive(true); // 👈 Bật cả cha (lồng đèn_0) và con (Light 2D)
+            isHoldingLongden = true;
+        }
+
+        isEquippingLongden = false; // ✅ Mở khóa sau khi xong
+    }
+    public void OnLongdenEquipComplete()
+    {
+        if (longdenObject != null)
+        {
+            longdenObject.SetActive(true);
+            isHoldingLongden = true;
+            Debug.Log("✅ Longden has been equipped and is now visible!");
+        }
+    }
+    public void UnequipLongden()
+    {
+        if (longdenObject != null)
+        {
+            longdenObject.SetActive(false);
+            isHoldingLongden = false;
+        }
+    }
     void UpdateAnimation()
     {
         if (animator == null || isDead) return;
 
         if (isDropping) return;
-
+        if (isEquippingLongden) return;
         if (isKnockbacked)
         {
             animator.Play("Hurt");
