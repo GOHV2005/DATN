@@ -2,37 +2,37 @@
 
 public class NPCDialogue : MonoBehaviour
 {
-    public string[] sentences;      // Các đoạn hội thoại
-    public bool playerInRange;
+    [Header("NPC Info")]
+    public string npcName;
+    public Sprite npcPortrait;
+    public Sprite playerPortrait;
+    public DialogueLine1[] lines;
 
-    public DialogueManager dialogueManager;
+    private bool playerInRange = false;
+    private DialogueManager dialog;
 
-    private void Start()
+    void Start()
     {
-        dialogueManager = FindObjectOfType<DialogueManager>();
+        dialog = FindObjectOfType<DialogueManager>();
     }
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerEnter2D(Collider2D other)
     {
-        if (collision.CompareTag("Player"))
-        {
+        if (other.CompareTag("Player"))
             playerInRange = true;
-        }
     }
 
-    private void OnTriggerExit2D(Collider2D collision)
+    private void OnTriggerExit2D(Collider2D other)
     {
-        if (collision.CompareTag("Player"))
-        {
+        if (other.CompareTag("Player"))
             playerInRange = false;
-        }
     }
 
-    private void Update()
+    void Update()
     {
         if (playerInRange && Input.GetKeyDown(KeyCode.E))
         {
-            dialogueManager.StartDialogue(sentences);
+            dialog.StartDialogue(npcName, lines, npcPortrait, playerPortrait);
         }
     }
 }
