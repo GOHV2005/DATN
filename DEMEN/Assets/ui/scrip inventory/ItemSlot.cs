@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ItemSlot : MonoBehaviour, IPointerClickHandler
 {
@@ -143,23 +144,24 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
         if (itemName == "lồng đèn")
         {
-            // 🔹 Tắt toàn bộ UI (giống như DropItem)
             if (UIManager.Instance != null)
             {
                 UIManager.Instance.HideAll();
-                Time.timeScale = 1f; // Đảm bảo gameplay không bị pause
+                Time.timeScale = 1f;
             }
-
-            // 🔹 Trang bị longden
-            PlayerController player = PlayerController.Instance;
-            if (player != null && !player.IsHoldingLongden)
+            PlayerController.Instance?.EquipLongden(); // ✅ Gọi trực tiếp
+        }
+        else if (itemName == "cuốc chim")
+        {
+            if (UIManager.Instance != null)
             {
-                player.EquipLongden();
+                UIManager.Instance.HideAll();
+                Time.timeScale = 1f;
             }
+            PlayerController.Instance?.EquipCuocChim(); // ✅ Gọi trực tiếp
         }
         else
         {
-            // Item thông thường
             bool usable = inventoryManager.UseItem(itemName);
             if (usable)
             {
@@ -169,30 +171,93 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
             }
         }
 
-        // 🔹 Đóng action panel nếu có
         if (actionPanel != null) actionPanel.SetActive(false);
         inventoryManager?.OnSlotChanged();
     }
+
+    private static readonly HashSet<string> EquipableItems = new HashSet<string>
+{
+    "lồng đèn",
+    "cuốc chim"
+};
 
     public void DropItem()
     {
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
 
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideAll();
+            Time.timeScale = 1f;
+        }
+
+        // ✅ GÁN NGAY
+        PlayerController pc = PlayerController.Instance;
+        if (pc == null)
+        {
+            Debug.LogWarning("PlayerController is null!");
+            return;
+        }
+
+        // Danh sách item trang bị
+        bool isEquipable = (itemName == "lồng đèn" || itemName == "cuốc chim");
+
+        if (!isEquipable)
+        {
+            // Item thường → drop luôn
+            PerformDrop();
+            return;
+        }
+
+        // Item trang bị → xử lý 2 lần nhấn
+        if (itemName == "lồng đèn")
+        {
+            if (pc.IsHoldingLongden)
+            {
+                pc.UnequipLongden();
+                return;
+            }
+            if (pc.justUnequippedLongden)
+            {
+                pc.justUnequippedLongden = false;
+                PerformDrop();
+                return;
+            }
+            PerformDrop(); // nếu không trang bị → drop luôn
+        }
+        else if (itemName == "cuốc chim")
+        {
+            if (pc.IsHoldingCuocChim)
+            {
+                pc.UnequipCuocChim();
+                return;
+            }
+            if (pc.justUnequippedCuocChim)
+            {
+                pc.justUnequippedCuocChim = false;
+                PerformDrop();
+                return;
+            }
+            PerformDrop();
+        }
+
+        void PerformDrop()
+        {
+            pc.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
+            {
+                quantity -= 1;
+                if (quantity <= 0) EmptySlot();
+                else UpdateSlotUI();
+                inventoryManager?.OnSlotChanged();
+            });
+            if (actionPanel != null) actionPanel.SetActive(false);
+        }
+    }
+    private void PerformRealDrop()
+    {
         PlayerController player = PlayerController.Instance;
         if (player != null)
         {
-            // 🔹 Nếu là longden và đang cầm → ẩn ngay
-            if (itemName == "lồng đèn" && player.IsHoldingLongden)
-            {
-                player.UnequipLongden();
-            }
-
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.HideAll();
-                Time.timeScale = 1f;
-            }
-
             player.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
             {
                 quantity -= 1;
@@ -208,7 +273,6 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
         if (actionPanel != null) actionPanel.SetActive(false);
     }
-
     public void EmptySlot()
     {
         inventoryManager?.OnSlotChanged();

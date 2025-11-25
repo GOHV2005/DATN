@@ -84,10 +84,26 @@ public class PlayerController : MonoBehaviour
 
     [Header("Longden Equipment")]
     public GameObject longdenObject; // Kéo GameObject longden vào đây (đã có sẵn trong scene)
-    private bool isHoldingLongden = false;
-    private bool isEquippingLongden = false;
-    public bool IsHoldingLongden => isHoldingLongden;
 
+
+    private bool isEquippingLongden = false;
+    public bool IsHoldingLongden { get; private set; } = false;
+    private bool longdenJustUnequipped = false;
+    public void MarkLongdenAsJustUnequipped() => longdenJustUnequipped = true;
+    public bool justUnequippedLongden = false;
+
+    [Header("Cuoc Chim")]
+    public GameObject cuocChimObject;           // 👈 Đã có
+    public PolygonCollider2D cuocChimHitbox;    // 👈 Collider dùng để gây dame
+    private bool isUsingCuocChim = false;       // đang trong animation đập
+    public float cuocChimDamage = 30f;          // hoặc lấy từ itemSO nếu muốn
+    private bool isEquippingCuocChim = false; // 👈 mới
+    private bool isCuocChimVisible = false; // true khi đang hiện, false khi ẩn
+    private bool cuocChimJustUnequipped = false;
+    public void MarkCuocChimAsJustUnequipped() => cuocChimJustUnequipped = true;
+    public bool justUnequippedCuocChim = false;
+
+    public bool IsHoldingCuocChim { get; private set; } = false;
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
@@ -193,7 +209,18 @@ public class PlayerController : MonoBehaviour
         UpdateAnimation();
 
         if (isDead) return;
-
+        if (IsHoldingCuocChim && Input.GetKeyDown(KeyCode.E) && !isUsingCuocChim && !isAttacking && !isDashing && !isDead)
+        {
+            Collider2D[] hits = Physics2D.OverlapCircleAll(feetPoint.position, 1.2f);
+            foreach (var hit in hits)
+            {
+                if (hit.CompareTag("rock") || hit.CompareTag("Enemy"))
+                {
+                    UseCuocChimOnTarget(hit.transform);
+                    break;
+                }
+            }
+        }
         if (UIManager.IsGameplayInputAllowed)
         {
             horizontalInput = Input.GetAxisRaw("Horizontal");
@@ -273,6 +300,7 @@ public class PlayerController : MonoBehaviour
 
     public void DropItem(string name, int qty, Sprite sprite, string desc, System.Action onComplete = null)
     {
+        CancelEquippingActions();
         if (animator == null || isDead) return;
 
         CancelDrop();
@@ -405,6 +433,7 @@ public class PlayerController : MonoBehaviour
 
     void HandleJump()
     {
+        CancelEquippingActions();
         if (jumpCount < maxJumpCount)
         {
             if (isGrounded)
@@ -457,6 +486,7 @@ public class PlayerController : MonoBehaviour
 
     void StartDash(Vector2 dir)
     {
+        CancelEquippingActions();
         UseMana(dashManaCost);
         isDashing = true;
         dashDirection = dir;
@@ -494,25 +524,30 @@ public class PlayerController : MonoBehaviour
 
     void StartAttack()
     {
-        isAttacking = true;
+        if (isDead) return;
 
-        if (animator != null) animator.Play("Attack");
+        isAttacking = true;
+        CancelEquippingActions();
+        // 👇 DÙNG ANIMATION PHÙ HỢP
+        string attackAnim = IsHoldingCuocChim ? "sudungcuocchim" : "Attack";
+        animator.Play(attackAnim);
 
         attackedEnemies.Clear();
 
-        if (attackHitbox != null)
+        // 👇 BẬT HITBOX PHÙ HỢP
+        Collider2D hitbox = IsHoldingCuocChim ? (Collider2D)cuocChimHitbox : attackHitbox;
+        if (hitbox != null)
         {
-            attackHitbox.enabled = true;
-            StartCoroutine(DisableHitboxAndAttackAfterDelay(GetAnimationLength("Attack")));
+            hitbox.enabled = true;
+            StartCoroutine(DisableHitboxAfterDelay(GetAnimationLength(attackAnim), hitbox));
         }
 
         attackCooldownTimer = attackCooldown;
     }
-
-    System.Collections.IEnumerator DisableHitboxAndAttackAfterDelay(float delay)
+    IEnumerator DisableHitboxAfterDelay(float delay, Collider2D hitbox)
     {
         yield return new WaitForSeconds(delay);
-        if (attackHitbox != null) attackHitbox.enabled = false;
+        if (hitbox != null) hitbox.enabled = false;
         isAttacking = false;
     }
 
@@ -546,26 +581,58 @@ public class PlayerController : MonoBehaviour
     {
         if (other.CompareTag("void"))
         {
-            Debug.Log("💥 [Player] Va chạm với vùng void → nhận 100 sát thương!");
             TakeDamageFromEnemy(maxHealth, other.transform.position);
+            return;
         }
-        if (other == null || !other.CompareTag("Enemy")) return;
 
-        // 👇 GÂY DAME CHO ENEMY (KHI DÙNG ATTACK BOX)
-        if (attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
+        // 👇 XỬ LÝ CÁI CUỘC CHIM ĐÁNH
+        if (other != null && (other.CompareTag("Enemy") || other.CompareTag("rock")))
+        {
+            if (cuocChimHitbox != null && cuocChimHitbox.enabled)
+            {
+                // Gây dame
+                Vector2 knockbackDir = ((Vector2)transform.position - (Vector2)other.transform.position).normalized;
+                other.SendMessage("TakeDamage", cuocChimDamage, SendMessageOptions.DontRequireReceiver);
+
+                // Đăng ký callback khi rock chết
+                Health health = other.GetComponent<Health>();
+                if (health != null && other.CompareTag("rock"))
+                {
+                    health.onDeath += () =>
+                    {
+                        // ✅ ĐÁ BỊ PHÁ → XỬ LÝ CUỐC CHIM
+                        OnRockDestroyed();
+                    };
+                }
+            }
+            return;
+        }
+
+        // 👇 XỬ LÝ ATTACK THƯỜNG
+        if (other.CompareTag("Enemy") && attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
         {
             attackedEnemies.Add(other);
             other.SendMessage("TakeDamage", damageOnTouch, SendMessageOptions.DontRequireReceiver);
         }
-        // 👇 GÂY DAME CHO PLAYER (VA CHẠM THƯỜNG VỚI ENEMY)
-        else if (!isDashInvincible && !isKnockbackInvincible && !isAttacking)
+        else if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible && !isAttacking)
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
         }
-        
     }
+    private void OnRockDestroyed()
+    {
+        // 1. Hủy trang bị cuốc chim
+        if (IsHoldingCuocChim)
+        {
+            // Ẩn object
+            cuocChimObject?.SetActive(false);
+            IsHoldingCuocChim = false;
 
+            // 2. Trừ 1 item "cuốc chim" trong inventory
+            InventoryManager.Instance?.RemoveItem("cuốc chim", 1);
+        }
+    }
     void HandleEnemyCollision(Collision2D collision)
     {
         /*if (collision.collider != null && collision.collider.CompareTag("Enemy"))
@@ -624,7 +691,7 @@ public class PlayerController : MonoBehaviour
     public void TakeDamage(float amount, AttackDirection direction)
     {
         if (isDashInvincible || isKnockbackInvincible || isDead) return;
-
+        CancelEquippingActions();
         // Hủy drop khi bị đánh
         if (isDropping) CancelDrop();
 
@@ -905,57 +972,172 @@ public class PlayerController : MonoBehaviour
             gameFadePanel.gameObject.SetActive(false);
         }
     }
-    public void EquipLongden()
-    {
-        if (isHoldingLongden || isDead || animator == null || isEquippingLongden) return;
-
-        Debug.Log("play longden");
-
-        isEquippingLongden = true; // 🔒 Khóa không cho UpdateAnimation ghi đè
-
-        animator.Play("longden");
-
-        float animLength = GetAnimationLength("longden");
-        if (animLength <= 0f) animLength = 0.5f;
-
-        StartCoroutine(ShowLongdenAfterDelay(animLength));
-    }
-
-    private IEnumerator ShowLongdenAfterDelay(float delay)
-    {
-        yield return new WaitForSeconds(delay);
-
-        if (longdenObject != null)
-        {
-            longdenObject.SetActive(true); // 👈 Bật cả cha (lồng đèn_0) và con (Light 2D)
-            isHoldingLongden = true;
-        }
-
-        isEquippingLongden = false; // ✅ Mở khóa sau khi xong
-    }
+    // Gọi từ animation "longden" (frame cuối)
     public void OnLongdenEquipComplete()
     {
-        if (longdenObject != null)
-        {
-            longdenObject.SetActive(true);
-            isHoldingLongden = true;
-            Debug.Log("✅ Longden has been equipped and is now visible!");
-        }
+        IsHoldingLongden = true; // ✅ DÙNG BIẾN PUBLIC
+        longdenObject?.SetActive(true);
+        isEquippingLongden = false;
     }
+
+    public void OnCuocChimEquipComplete()
+    {
+        IsHoldingCuocChim = true; // ✅ DÙNG BIẾN PUBLIC
+        cuocChimObject?.SetActive(true);
+        isEquippingCuocChim = false;
+    }
+
+    public void EquipLongden()
+    {
+        if (IsHoldingLongden || isDead || animator == null || isEquippingLongden) return;
+        isEquippingLongden = true;
+        animator.Play("longden");
+    }
+
+    public void EquipCuocChim()
+    {
+        if (IsHoldingCuocChim || isDead || animator == null || isEquippingCuocChim) return;
+        isEquippingCuocChim = true;
+        animator.Play("trangbicuocchim");
+    }
+
     public void UnequipLongden()
     {
-        if (longdenObject != null)
+        if (!IsHoldingLongden || animator == null) return;
+        isEquippingLongden = true;
+        animator.Play("unlongden");
+    }
+    // TRANG BỊ
+
+    public void UnequipCuocChim()
+    {
+        if (!IsHoldingCuocChim || animator == null) return;
+        isEquippingCuocChim = true;
+        animator.Play("untrangbicuocchim");
+    }
+
+    void UseCuocChimOnTarget(Transform target)
+    {
+        isUsingCuocChim = true;
+        isAttacking = true; // để chặn movement
+        animator.Play("trangbicuocchim");
+    }
+    public void EnableCuocChimHitbox()
+    {
+        if (cuocChimHitbox != null) cuocChimHitbox.enabled = true;
+    }
+
+    public void DisableCuocChimHitbox()
+    {
+        if (cuocChimHitbox != null) cuocChimHitbox.enabled = false;
+    }
+
+    // Gọi từ animation "trangbicuocchim" → khi trang bị xong
+    // Gọi ở frame cuối của "trangbicuocchim"
+    public void OnCuocChimEquipped()
+    {
+        cuocChimObject.SetActive(true);
+        IsHoldingCuocChim = true;
+        isEquippingCuocChim = false; // ✅ mở khóa
+    }
+
+    // Gọi ở frame cuối của "untrangbicuocchim"
+    public void OnCuocChimUnequipped()
+    {
+        cuocChimObject.SetActive(false);
+        IsHoldingCuocChim = false;
+        isEquippingCuocChim = false; // ✅ mở khóa
+    }
+
+    // Gọi từ animation "trangbicuocchim" → frame cuối
+    public void OnLongdenUnequipComplete()
+    {
+        IsHoldingLongden = false;
+        longdenObject?.SetActive(false);
+        isEquippingLongden = false;
+        justUnequippedLongden = true;
+    }
+
+    public void OnCuocChimUnequipComplete()
+    {
+        IsHoldingCuocChim = false;
+        cuocChimObject?.SetActive(false);
+        isEquippingCuocChim = false;
+        justUnequippedCuocChim = true;
+    }
+
+    public void OnCuocChimSwingComplete()
+    {
+        isUsingCuocChim = false;
+        isAttacking = false;
+        // Không tự động hủy ở đây → chỉ hủy nếu đá chết
+    }
+    public bool ShouldDropLongdenNow()
+    {
+        if (longdenJustUnequipped)
         {
-            longdenObject.SetActive(false);
-            isHoldingLongden = false;
+            longdenJustUnequipped = false;
+            return true;
+        }
+        return false;
+    }
+
+    public bool ShouldDropCuocChimNow()
+    {
+        if (cuocChimJustUnequipped)
+        {
+            cuocChimJustUnequipped = false;
+            return true;
+        }
+        return false;
+    }
+
+
+    // Gọi từ ItemSlot khi hủy trang bị (lần 1)
+    public bool TryUnequipItem(string itemName)
+    {
+        if (itemName == "lồng đèn" && IsHoldingLongden)
+        {
+            UnequipLongden(); // 👈 GỌI HÀM HỦY ĐÚNG
+            return true;
+        }
+        if (itemName == "cuốc chim" && IsHoldingCuocChim)
+        {
+            UnequipCuocChim(); // 👈 GỌI HÀM HỦY ĐÚNG
+            return true;
+        }
+        return false;
+    }
+    // Thêm vào PlayerController
+    public void CancelEquippingActions()
+    {
+        if (isEquippingLongden)
+        {
+            isEquippingLongden = false;
+            // Tùy chọn: ẩn longden nếu chưa hoàn tất hủy
+            // longdenObject?.SetActive(IsHoldingLongden);
+        }
+        if (isEquippingCuocChim)
+        {
+            isEquippingCuocChim = false;
+            // cuocChimObject?.SetActive(IsHoldingCuocChim);
         }
     }
     void UpdateAnimation()
     {
         if (animator == null || isDead) return;
-
+        if (isEquippingLongden && (isDashing || isAttacking || isKnockbacked))
+        {
+            isEquippingLongden = false;
+        }
+        if (isEquippingCuocChim && (isDashing || isAttacking || isKnockbacked))
+        {
+            isEquippingCuocChim = false;
+        }
+        if (isEquippingLongden) return; 
         if (isDropping) return;
-        if (isEquippingLongden) return;
+
+        if (isEquippingCuocChim) return;
         if (isKnockbacked)
         {
             animator.Play("Hurt");
