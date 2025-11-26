@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: BellShuffleNPCConversation
+  m_EditorClassIdentifier: Assembly-CSharp::Dialogue
+  nodes:
+  - npcLine: Hello traveler, what do you seek?
+    playerChoices:
+    - choiceText: I'm figur it out
+      nextNodeIndex: 1
+    - choiceText: Noting
+      nextNodeIndex: 2
+  - npcLine: Do you wanna try something fun?
+    playerChoices:
+    - choiceText: HMM....Yeah why not
+      nextNodeIndex: 3
+    - choiceText: No i'm good
+      nextNodeIndex: 2
+  - npcLine: Safe travels then.
+    playerChoices: []
+  - npcLine: Wellcomeeee :)
+    playerChoices:
+    - choiceText: 
+      nextNodeIndex: -1
+  - npcLine: Amazing! You found the ball!
+    playerChoices:
+    - choiceText: 
+      nextNodeIndex: 4
+  - npcLine: Oh no, wrong choice. Better luck next time.
+    playerChoices:
+    - choiceText: 
+      nextNodeIndex: 5
