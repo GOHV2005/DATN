@@ -23,6 +23,12 @@ public class PlayerController : MonoBehaviour
     private int jumpCount = 0;
     private bool isGrounded = false;
 
+    [Header("Ground Check")]
+    public Transform groundCheck;          // 👈 Gán điểm kiểm tra dưới chân
+    public float groundCheckRadius = 0.2f; // Bán kính kiểm tra
+    public LayerMask groundLayer;          // 👈 Hoặc dùng Tag (xem dưới)
+    public string groundTag = "Ground";    // 👈 DÙNG TAG NHƯ BẠN MUỐN
+
     [Header("Dash")]
     public float dashForce = 18f;
     public float dashTime = 0.18f;
@@ -207,6 +213,7 @@ public class PlayerController : MonoBehaviour
         RegenerateManaIfNotDashing();
         UpdateManaUI();
         UpdateAnimation();
+        CheckGround();
 
         if (isDead) return;
         if (IsHoldingCuocChim && Input.GetKeyDown(KeyCode.E) && !isUsingCuocChim && !isAttacking && !isDashing && !isDead)
@@ -231,6 +238,22 @@ public class PlayerController : MonoBehaviour
         else
         {
             horizontalInput = 0f;
+        }
+    }
+    void CheckGround()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
+        isGrounded = false;
+        jumpCount = 0;
+
+        foreach (Collider2D col in colliders)
+        {
+            if (col.CompareTag(groundTag))
+            {
+                isGrounded = true;
+                jumpCount = 0; // Reset jump khi chạm đất
+                break;
+            }
         }
     }
 
@@ -561,22 +584,6 @@ public class PlayerController : MonoBehaviour
         return clip != null ? clip.length : 0.3f;
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
-    {
-        HandleEnemyCollision(collision);
-        HandleGroundCollisionEnter(collision);
-    }
-
-    private void OnCollisionStay2D(Collision2D collision)
-    {
-        HandleGroundCollisionStay(collision);
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        HandleGroundCollisionExit(collision);
-    }
-
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("void"))
@@ -646,29 +653,11 @@ public class PlayerController : MonoBehaviour
         }*/
     }
 
-    void HandleGroundCollisionEnter(Collision2D collision)
+    void OnDrawGizmos()
     {
-        if (!isKnockbacked && collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-            jumpCount = 0;
-        }
-    }
-
-    void HandleGroundCollisionStay(Collision2D collision)
-    {
-        if (!isKnockbacked && collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-        }
-    }
-
-    void HandleGroundCollisionExit(Collision2D collision)
-    {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = false;
-        }
+        if (groundCheck == null) return;
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 
     AttackDirection GetAttackDirection(Vector2 enemyPosition)

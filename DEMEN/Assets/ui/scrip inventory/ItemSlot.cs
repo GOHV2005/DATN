@@ -253,7 +253,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
             if (actionPanel != null) actionPanel.SetActive(false);
         }
     }
-    private void PerformRealDrop()
+    /*private void PerformRealDrop()
     {
         PlayerController player = PlayerController.Instance;
         if (player != null)
@@ -272,7 +272,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         }
 
         if (actionPanel != null) actionPanel.SetActive(false);
-    }
+    }*/
     public void EmptySlot()
     {
         inventoryManager?.OnSlotChanged();
