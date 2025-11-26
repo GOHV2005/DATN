@@ -140,6 +140,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
 
     public void UseItem()
     {
+        
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
 
         if (itemName == "lồng đèn")

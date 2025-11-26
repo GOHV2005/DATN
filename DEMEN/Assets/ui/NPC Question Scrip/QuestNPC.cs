@@ -9,7 +9,8 @@ public class QuestNPC : MonoBehaviour
     private List<string> collectedItems = new();
     private bool isQuestCompleted = false;
     private bool hasAcceptedQuest = false;
-
+    [Header("=== Look at Player ===")]
+    public bool enableLookAtPlayer = true; // 👈 MỚI: bật/tắt nhìn theo player
     public Dialogue fullDialogue;
 
     public Transform playerTransform;
@@ -75,7 +76,7 @@ public class QuestNPC : MonoBehaviour
     }
     void LookAtPlayer()
     {
-        if (playerTransform == null || sr == null) return;
+        if (!enableLookAtPlayer || playerTransform == null || sr == null) return;
 
         // Lật sprite theo hướng player
         if (playerTransform.position.x > transform.position.x)
@@ -91,7 +92,7 @@ public class QuestNPC : MonoBehaviour
     {
         hasAcceptedQuest = true;
         canReceiveItems = true;
-
+        enableLookAtPlayer = false;
         // 👇 HIỆN PANEL NHIỆM VỤ
         QuestUIManager.Instance.ShowQuest(this);
 
