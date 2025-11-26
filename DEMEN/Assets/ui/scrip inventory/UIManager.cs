@@ -4,7 +4,7 @@ public class UIManager : MonoBehaviour
 {
     [Header("Panels")]
     public GameObject panelInventory;
-
+    public static bool IsTalkingToNPC = false;
     public static UIManager Instance;
     public static bool IsUIOpen = false;
 
@@ -86,7 +86,7 @@ public class UIManager : MonoBehaviour
                             ((pauseMenu.pauseMenuUI != null && pauseMenu.pauseMenuUI.activeSelf) ||
                              (pauseMenu.optionsMenuUI != null && pauseMenu.optionsMenuUI.activeSelf));
 
-            return !inventoryOpen && !pauseOpen;
+            return !inventoryOpen && !pauseOpen && !IsTalkingToNPC;
         }
     }
 }

@@ -68,7 +68,7 @@ public class DialogueSystem : MonoBehaviour
         // 👇 GÁN SPRITE
         if (dialogue.playerSprite != null) playerPortrait.sprite = dialogue.playerSprite;
         if (dialogue.npcSprite != null) npcPortrait.sprite = dialogue.npcSprite;
-
+        UIManager.IsTalkingToNPC = true;
         DisplayNextLine();
     }
 
@@ -97,7 +97,7 @@ public class DialogueSystem : MonoBehaviour
         // 👇 GÁN SPRITE
         if (dialogue.playerSprite != null) playerPortrait.sprite = dialogue.playerSprite;
         if (dialogue.npcSprite != null) npcPortrait.sprite = dialogue.npcSprite;
-
+        UIManager.IsTalkingToNPC = true;
         DisplayNextLine();
     }
 
@@ -236,6 +236,7 @@ public class DialogueSystem : MonoBehaviour
 
     public void CloseDialogue()
     {
+        UIManager.IsTalkingToNPC = false; 
         dialoguePanel.SetActive(false);
         currentDialogue = null; // 👈 ĐẶT NGAY ĐẦU
         currentNPC = null;
