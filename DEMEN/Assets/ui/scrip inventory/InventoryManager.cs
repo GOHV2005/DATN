@@ -65,6 +65,32 @@ public class InventoryManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    public void RemoveItem(string itemName, int amount)
+    {
+        if (itemSlots == null) return;
+
+        for (int i = itemSlots.Length - 1; i >= 0; i--)
+        {
+            if (itemSlots[i].itemName == itemName && itemSlots[i].quantity > 0)
+            {
+                int remove = Mathf.Min(amount, itemSlots[i].quantity);
+                itemSlots[i].quantity -= remove;
+                amount -= remove;
+
+                if (itemSlots[i].quantity <= 0)
+                {
+                    itemSlots[i].EmptySlot();
+                }
+                else
+                {
+                    itemSlots[i].UpdateSlotUI();
+                }
+
+                if (amount <= 0) break;
+            }
+        }
+        OnSlotChanged(); // Lưu save nếu cần
+    }
     public GameObject GetItemPrefab(string itemName)
     {
         var pair = itemPrefabs.Find(p => p.itemName == itemName);
