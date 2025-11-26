@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
+    public System.Action onDeath;
     [Header("🩸 Health Settings")]
     public float maxHealth = 3f;
     private float currentHealth;
@@ -29,7 +30,6 @@ public class Health : MonoBehaviour
     private SpriteRenderer[] spriteRenderers;
     private Material[] originalMaterials;
     private Rigidbody2D rb;
-
     void Start()
     {
         currentHealth = maxHealth;
@@ -40,7 +40,6 @@ public class Health : MonoBehaviour
         for (int i = 0; i < spriteRenderers.Length; i++)
             originalMaterials[i] = spriteRenderers[i].sharedMaterial;
     }
-
     public void TakeDamage(float damage)
     {
         Vector2 knockbackDir = ((Vector2)transform.position - GetPlayerPosition()).normalized;
@@ -122,6 +121,7 @@ public class Health : MonoBehaviour
 
     protected virtual void Die()
     {
+        onDeath?.Invoke();
         if (dropItemPrefab != null && dropItemCount > 0)
         {
             for (int i = 0; i < dropItemCount; i++)

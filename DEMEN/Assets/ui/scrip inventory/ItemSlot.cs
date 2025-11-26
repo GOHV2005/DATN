@@ -1,7 +1,8 @@
-﻿using UnityEngine;
+﻿using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class ItemSlot : MonoBehaviour, IPointerClickHandler
 {
@@ -141,17 +142,44 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
     {
         if (quantity <= 0 || string.IsNullOrEmpty(itemName) || inventoryManager == null) return;
 
-        bool usable = inventoryManager.UseItem(itemName);
-        if (usable)
+        if (itemName == "lồng đèn")
         {
-            quantity -= 1;
-            if (quantity <= 0) EmptySlot();
-            else UpdateSlotUI();
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.HideAll();
+                Time.timeScale = 1f;
+            }
+            PlayerController.Instance?.EquipLongden(); // ✅ Gọi trực tiếp
+        }
+        else if (itemName == "cuốc chim")
+        {
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.HideAll();
+                Time.timeScale = 1f;
+            }
+            PlayerController.Instance?.EquipCuocChim(); // ✅ Gọi trực tiếp
+        }
+        else
+        {
+            bool usable = inventoryManager.UseItem(itemName);
+            if (usable)
+            {
+                quantity -= 1;
+                if (quantity <= 0) EmptySlot();
+                else UpdateSlotUI();
+            }
         }
 
         if (actionPanel != null) actionPanel.SetActive(false);
         inventoryManager?.OnSlotChanged();
     }
+
+    private static readonly HashSet<string> EquipableItems = new HashSet<string>
+{
+    "lồng đèn",
+    "cuốc chim"
+};
 
     public void DropItem()
     {
@@ -163,13 +191,75 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
             Time.timeScale = 1f;
         }
 
+        // ✅ GÁN NGAY
+        PlayerController pc = PlayerController.Instance;
+        if (pc == null)
+        {
+            Debug.LogWarning("PlayerController is null!");
+            return;
+        }
+
+        // Danh sách item trang bị
+        bool isEquipable = (itemName == "lồng đèn" || itemName == "cuốc chim");
+
+        if (!isEquipable)
+        {
+            // Item thường → drop luôn
+            PerformDrop();
+            return;
+        }
+
+        // Item trang bị → xử lý 2 lần nhấn
+        if (itemName == "lồng đèn")
+        {
+            if (pc.IsHoldingLongden)
+            {
+                pc.UnequipLongden();
+                return;
+            }
+            if (pc.justUnequippedLongden)
+            {
+                pc.justUnequippedLongden = false;
+                PerformDrop();
+                return;
+            }
+            PerformDrop(); // nếu không trang bị → drop luôn
+        }
+        else if (itemName == "cuốc chim")
+        {
+            if (pc.IsHoldingCuocChim)
+            {
+                pc.UnequipCuocChim();
+                return;
+            }
+            if (pc.justUnequippedCuocChim)
+            {
+                pc.justUnequippedCuocChim = false;
+                PerformDrop();
+                return;
+            }
+            PerformDrop();
+        }
+
+        void PerformDrop()
+        {
+            pc.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
+            {
+                quantity -= 1;
+                if (quantity <= 0) EmptySlot();
+                else UpdateSlotUI();
+                inventoryManager?.OnSlotChanged();
+            });
+            if (actionPanel != null) actionPanel.SetActive(false);
+        }
+    }
+    /*private void PerformRealDrop()
+    {
         PlayerController player = PlayerController.Instance;
         if (player != null)
         {
-            // Callback chỉ chạy NẾU không bị hủy
             player.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
             {
-                // Chỉ trừ item nếu drop thành công
                 quantity -= 1;
                 if (quantity <= 0) EmptySlot();
                 else UpdateSlotUI();
@@ -182,8 +272,7 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
         }
 
         if (actionPanel != null) actionPanel.SetActive(false);
-    }
-
+    }*/
     public void EmptySlot()
     {
         inventoryManager?.OnSlotChanged();
