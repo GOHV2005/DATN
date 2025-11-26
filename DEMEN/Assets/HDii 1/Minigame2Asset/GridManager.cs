@@ -1,9 +1,11 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GridManager : MonoBehaviour
 {
+    [HideInInspector]
+    public bool canInput = true;
     [Header("Grid size")]
     public int rows = 8;
     public int cols = 8;
@@ -19,6 +21,20 @@ public class GridManager : MonoBehaviour
 
     private Gem[,] grid;
     private bool isShifting = false;
+    [Header("Win / Lose Settings")]
+    public int targetScore = 3000;            // mốc để win
+    public GameObject winPanel;
+    public GameObject losePanel;
+    public AudioClip winSound;
+    public AudioClip loseSound;
+    public AudioSource audioSource;
+    public static GridManager Instance;
+
+    private void Awake()
+    {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+    }
 
     void Start()
     {
@@ -121,6 +137,7 @@ public class GridManager : MonoBehaviour
 
     public IEnumerator TrySwap(Gem a, Gem b, System.Action<bool> callback)
     {
+        if (!canInput) { callback?.Invoke(false); yield break; }
         if (isShifting) { callback?.Invoke(false); yield break; }
         if (a == null || b == null) { callback?.Invoke(false); yield break; }
         // ensure adjacency
@@ -143,7 +160,10 @@ public class GridManager : MonoBehaviour
         {
             // clear matches and cascade
             yield return StartCoroutine(ClearAndCollapseRoutine());
+            MoveManager.Instance.UseMove();
+            CheckEndGame();
             callback?.Invoke(true);
+
         }
     }
 
@@ -241,10 +261,27 @@ public class GridManager : MonoBehaviour
         {
             var matches = FindAllMatches();
             if (matches.Count == 0) break;
-            // mark and remove
+
+            // ---- TÍNH ĐIỂM CHO TỪNG NHÓM MATCH ----
+            Dictionary<GemType, int> groupCount = new Dictionary<GemType, int>();
+
             foreach (var g in matches)
             {
-                // small animation: scale down
+                if (!groupCount.ContainsKey(g.type))
+                    groupCount[g.type] = 0;
+
+                groupCount[g.type]++;
+            }
+
+            // Gửi điểm theo từng nhóm
+            foreach (var kv in groupCount)
+            {
+                ScoreManager.Instance.AddScore(kv.Value);
+            }
+
+            // ---- XOÁ GEM ----
+            foreach (var g in matches)
+            {
                 StartCoroutine(ScaleDownAndDestroy(g.gameObject, 0.12f));
                 grid[g.row, g.col] = null;
             }
@@ -399,4 +436,43 @@ public class GridManager : MonoBehaviour
         // wait for fall animations
         yield return new WaitForSeconds(0.05f + rows * fallDurationPerCell);
     }
+    public void CheckEndGame()
+    {
+        int currentScore = ScoreManager.Instance.GetScore();
+        int movesLeft = MoveManager.Instance.GetMoves();
+
+        // WIN
+        if (currentScore >= targetScore)
+        {
+            if (audioSource && winSound)
+                audioSource.PlayOneShot(winSound);
+
+            if (winPanel)
+                winPanel.SetActive(true);
+
+            canInput = false;   // KHÓA SWAP
+            Debug.Log("YOU WIN!");
+            return;
+        }
+
+        // LOSE (hết lượt nhưng điểm chưa đủ)
+        if (movesLeft <= 0)
+        {
+            if (movesLeft <= 0)
+            {
+                if (currentScore < targetScore)
+                {
+                    if (audioSource && loseSound)
+                        audioSource.PlayOneShot(loseSound);
+
+                    if (losePanel)
+                        losePanel.SetActive(true);
+
+                    canInput = false;   // KHÓA SWAP
+                    Debug.Log("YOU LOSE!");
+                }
+            }
+        }
+    }
+
 }

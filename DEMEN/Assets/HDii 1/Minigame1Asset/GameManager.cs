@@ -1,5 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,98 +7,142 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
 
-    [Header("Card Settings")]
+    [Header("Card Setup")]
     public GameObject cardPrefab;
-    public Transform gridParent;
-    public Sprite[] cardFronts;   // hình mặt trước (mỗi loại 1 hình)
-    public Sprite cardBack;       // hình mặt sau
-    public int rows = 4;
-    public int cols = 4;
+    public Transform cardParent;
+    public Sprite[] frontSprites; // Mảng 8 sprite mặt trước
+    public Sprite backSprite;     // 1 sprite mặt sau
+    public int moves = 20;        // số lượt
+
+    [Header("UI")]
+    public TextMeshProUGUI movesText;
+    public TextMeshProUGUI pairsText;
+    public GameObject winPanel;
+    public GameObject losePanel;
+
+    [Header("Sound")]
+    public AudioClip matchSound;
+    public AudioClip loseSound;
+    private AudioSource audioSource;
 
     private List<Card> cards = new List<Card>();
-    private Card firstCard;
-    private Card secondCard;
+    private Card firstRevealed;
+    private Card secondRevealed;
+    private int pairsFound = 0;
 
-    void Awake()
+    private void Awake()
     {
         Instance = this;
+        audioSource = gameObject.AddComponent<AudioSource>();
     }
 
-    void Start()
+    private void Start()
     {
-        GenerateCards();
+        SetupGame();
     }
 
-    void GenerateCards()
+    void SetupGame()
     {
+        // Reset UI
+        winPanel.SetActive(false);
+        losePanel.SetActive(false);
+        movesText.text = "Moves: " + moves;
+        pairsFound = 0;
+        pairsText.text = "Số cặp: " + pairsFound;
+
+        // Tạo danh sách ID cho cặp thẻ
         List<int> ids = new List<int>();
-        int pairCount = (rows * cols) / 2;
-
-        for (int i = 0; i < pairCount; i++)
+        for (int i = 0; i < frontSprites.Length; i++)
         {
             ids.Add(i);
-            ids.Add(i);
+            ids.Add(i); // mỗi sprite có 2 thẻ
         }
 
-        // xáo bài
+        Shuffle(ids);
+
+        // Spawn thẻ
         for (int i = 0; i < ids.Count; i++)
         {
-            int rand = Random.Range(0, ids.Count);
-            (ids[i], ids[rand]) = (ids[rand], ids[i]);
-        }
-
-        // tạo thẻ
-        foreach (int id in ids)
-        {
-            GameObject obj = Instantiate(cardPrefab, gridParent);
+            GameObject obj = Instantiate(cardPrefab, cardParent);
             Card card = obj.GetComponent<Card>();
-            card.Setup(cardFronts[id], cardBack, id);
+            card.cardID = ids[i];
+            card.frontSprite = frontSprites[ids[i]];
+            card.backSprite = backSprite;
             cards.Add(card);
         }
     }
 
-    public void OnCardRevealed(Card card)
+    public void CardRevealed(Card card)
     {
-        if (firstCard == null)
+        if (firstRevealed == null)
         {
-            firstCard = card;
+            firstRevealed = card;
         }
-        else if (secondCard == null)
+        else if (secondRevealed == null)
         {
-            secondCard = card;
+            secondRevealed = card;
+            moves--;
+            movesText.text = "Moves: " + moves;
             StartCoroutine(CheckMatch());
         }
     }
 
-    IEnumerator CheckMatch()
+    System.Collections.IEnumerator CheckMatch()
     {
         yield return new WaitForSeconds(0.5f);
 
-        if (firstCard.cardID == secondCard.cardID)
+        if (firstRevealed.cardID == secondRevealed.cardID)
         {
-            firstCard.Disable();
-            secondCard.Disable();
+            pairsFound++;
+            audioSource.PlayOneShot(matchSound);
+            pairsText.text = "Số cặp: " + pairsFound;
         }
         else
         {
-            firstCard.HideCard();
-            secondCard.HideCard();
+            firstRevealed.Hide();
+            secondRevealed.Hide();
         }
 
-        firstCard = null;
-        secondCard = null;
+        firstRevealed = null;
+        secondRevealed = null;
 
-        CheckWin();
+        if (pairsFound >= frontSprites.Length)
+        {
+            winPanel.SetActive(true);
+        }
+        else if (moves <= 0)
+        {
+            losePanel.SetActive(true);
+            audioSource.PlayOneShot(loseSound);
+        }
     }
 
-    void CheckWin()
+    void Shuffle<T>(List<T> list)
+    {
+        for (int i = 0; i < list.Count; i++)
+        {
+            T temp = list[i];
+            int randomIndex = Random.Range(i, list.Count);
+            list[i] = list[randomIndex];
+            list[randomIndex] = temp;
+        }
+    }
+
+    public void PlayAgain()
     {
         foreach (Card c in cards)
         {
-            if (c.GetComponent<Button>().interactable)
-                return;
+            Destroy(c.gameObject);
         }
+        cards.Clear();
+        firstRevealed = null;
+        secondRevealed = null;
+        moves = 20;
+        SetupGame();
+    }
 
-        Debug.Log("🎉 Bạn đã thắng!");
+    public void ExitGame()
+    {
+        SceneManagerHelper.Instance.ReturnToPreviousScene();
     }
 }
