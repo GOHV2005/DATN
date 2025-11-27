@@ -20,10 +20,10 @@ public class SceneManagerHelper : MonoBehaviour
         }
     }
 
-    public void GoToMinigame(string minigameSceneName)
+    public void GoToMinigame(string Minigame2)
     {
         previousScene = SceneManager.GetActiveScene().name; // lưu scene hiện tại
-        SceneManager.LoadScene(minigameSceneName);
+        SceneManager.LoadScene(Minigame2);
     }
 
     public void ReturnToPreviousScene()

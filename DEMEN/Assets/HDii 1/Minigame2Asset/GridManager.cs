@@ -474,5 +474,9 @@ public class GridManager : MonoBehaviour
             }
         }
     }
+    public void ExitGame()
+    {
+        SceneManagerHelper.Instance.ReturnToPreviousScene();
+    }
 
 }
