@@ -93,7 +93,7 @@ public class PlayerController : MonoBehaviour
 
 
     private bool isEquippingLongden = false;
-    public bool IsHoldingLongden { get; private set; } = false;
+    public bool IsHoldingLongden { get; set; } = false;
     private bool longdenJustUnequipped = false;
     public void MarkLongdenAsJustUnequipped() => longdenJustUnequipped = true;
     public bool justUnequippedLongden = false;
@@ -109,7 +109,7 @@ public class PlayerController : MonoBehaviour
     public void MarkCuocChimAsJustUnequipped() => cuocChimJustUnequipped = true;
     public bool justUnequippedCuocChim = false;
 
-    public bool IsHoldingCuocChim { get; private set; } = false;
+    public bool IsHoldingCuocChim { get; set; } = false;
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
@@ -593,26 +593,30 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // 🪓 CUỐC CHIM: Only activates if cuocChimHitbox is enabled
+        // 🪓 CUỐC CHIM: ĐƯỢC ĐÁNH VÀO ROCK
         if (cuocChimHitbox != null && cuocChimHitbox.enabled)
         {
             Health targetHealth = other.GetComponent<Health>();
             if (targetHealth != null)
             {
                 targetHealth.TakeDamage(cuocChimDamage);
-
-                // Special handling for rocks (if needed)
                 if (other.CompareTag("rock"))
                 {
                     targetHealth.onDeath += OnRockDestroyed;
                 }
             }
-            return; // Stop further checks while cuốc chim is active
+            return;
         }
 
-        // ⚔️ NORMAL ATTACK: Only if attackHitbox is enabled and enemy not already hit
+        // ⚔️ TẤN CÔNG THƯỜNG: Chỉ đánh Enemy, KHÔNG ĐÁNH ROCK
         if (attackHitbox != null && attackHitbox.enabled)
         {
+            if (other.CompareTag("rock"))
+            {
+                // ❌ KHÔNG LÀM GÌ CẢ — KHÔNG GÂY DAME CHO ROCK BẰNG TAY THƯỜNG
+                return;
+            }
+
             Health enemyHealth = other.GetComponent<Health>();
             if (enemyHealth != null && !attackedEnemies.Contains(other))
             {

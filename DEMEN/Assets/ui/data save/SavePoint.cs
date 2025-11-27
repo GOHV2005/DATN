@@ -59,15 +59,24 @@ public class SavePoint : MonoBehaviour
         PlayerPrefs.SetFloat("CheckpointY", transform.position.y);
         PlayerPrefs.SetFloat("CheckpointZ", transform.position.z);
 
+        // 👇 LƯU INVENTORY + TRẠNG THÁI TRANG BỊ
         InventoryManager invMgr = InventoryManager.Instance;
         if (invMgr != null)
         {
-            data.inventory = invMgr.GetInventoryData();
+            data.inventory = invMgr.GetInventoryData(); // item list
+
+            // 👇 GÁN TRẠNG THÁI TRANG BỊ
+            var player = PlayerController.Instance;
+            if (player != null)
+            {
+                data.inventory.isHoldingLongden = player.IsHoldingLongden;
+                data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
+            }
         }
 
         SaveSystem.SaveGame(slotIndex, data);
         PlayerPrefs.SetInt("CurrentSlot", slotIndex);
 
-        Debug.Log($"[CHECKPOINT] Saved at {transform.position}");
+        Debug.Log($"[CHECKPOINT] Saved (longden={data.inventory.isHoldingLongden}, cuoc={data.inventory.isHoldingCuocChim})");
     }
 }

@@ -24,19 +24,6 @@ public class InventoryManager : MonoBehaviour
     // ========================== INIT ==========================
     private void Awake()
     {
-        int lastSlot = PlayerPrefs.GetInt("LastUsedSlot", 0);
-        Debug.Log($"[InventoryManager] Using last saved slot: {lastSlot}");
-
-        InventoryData data = SaveSystem.LoadInventory(lastSlot);
-        if (data != null)
-        {
-            LoadInventoryData(data);
-            Debug.Log($"[InventoryManager] Inventory loaded: {data.items.Count} items");
-        }
-        else
-        {
-            Debug.Log("[InventoryManager] No saved inventory found on startup.");
-        }
         if (Instance == null)
         {
             Instance = this;
@@ -46,14 +33,14 @@ public class InventoryManager : MonoBehaviour
             SceneManager.activeSceneChanged += OnActiveSceneChanged;
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-            // ✅ Tự động load lại inventory khi khởi động game
-            int currentSlot = PlayerPrefs.GetInt("LastSaveSlot", 0);
+            // 👇 CHỈ DÙNG MỘT SLOT DUY NHẤT: "CurrentSlot"
+            int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
             InventoryData invData = SaveSystem.LoadInventory(currentSlot);
             if (invData != null && invData.items.Count > 0)
             {
                 currentInventoryData = invData;
                 LoadInventoryData(invData);
-                Debug.Log($"[InventoryManager] Auto-loaded inventory on startup ({invData.items.Count} items).");
+                Debug.Log($"[InventoryManager] Loaded inventory (slot {currentSlot}) with {invData.items.Count} items.");
             }
             else
             {
@@ -106,15 +93,19 @@ public class InventoryManager : MonoBehaviour
     private void OnActiveSceneChanged(Scene oldScene, Scene newScene)
     {
         string newName = newScene.name;
-        Debug.Log($"[InventoryManager] Active scene changed → {newName}");
-
-        if (newName.Contains("UI Start") || newName.StartsWith("UI Start Test 3==D"))
+        if (newName.Contains("UI Start"))
         {
             gameObject.SetActive(false);
             return;
         }
 
         gameObject.SetActive(true);
+
+        // 👇 LƯU TRẠNG THÁI HIỆN TẠI TRƯỚC KHI LOAD LẠI
+        if (itemSlots != null && itemSlots.Length > 0)
+        {
+            currentInventoryData = GetInventoryData(); // 👈 LƯU LẠI
+        }
 
         if (itemSlots == null || itemSlots.Length == 0)
             itemSlots = GetComponentsInChildren<ItemSlot>(true);
@@ -124,18 +115,12 @@ public class InventoryManager : MonoBehaviour
             LoadInventoryData(currentInventoryData);
             Debug.Log($"[InventoryManager] Inventory restored ({currentInventoryData.items.Count} items)");
         }
-        else
-        {
-            Debug.Log("[InventoryManager] No inventory data found to restore.");
-        }
     }
 
     // ✅ Bổ sung hàm này để tránh lỗi "The name 'OnSceneLoaded' does not exist"
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
         string sceneName = scene.name;
-        Debug.Log($"[InventoryManager] Scene loaded: {sceneName}");
-
         if (sceneName.Contains("UI Start"))
         {
             gameObject.SetActive(false);
@@ -144,13 +129,19 @@ public class InventoryManager : MonoBehaviour
 
         gameObject.SetActive(true);
 
+        // 👇 LƯU TRẠNG THÁI HIỆN TẠI
+        if (itemSlots != null && itemSlots.Length > 0)
+        {
+            currentInventoryData = GetInventoryData();
+        }
+
         if (itemSlots == null || itemSlots.Length == 0)
             itemSlots = GetComponentsInChildren<ItemSlot>(true);
 
         if (persistAcrossLevels && currentInventoryData != null && currentInventoryData.items.Count > 0)
         {
             LoadInventoryData(currentInventoryData);
-            Debug.Log($"[InventoryManager] Restore inventory ({currentInventoryData.items.Count} items) after scene load.");
+            Debug.Log($"[InventoryManager] Restored inventory after scene load.");
         }
     }
 

@@ -22,15 +22,14 @@ public static class SaveSystem
         File.WriteAllText(savePath, json);
         Debug.Log($"[SaveSystem] Saved slot {slotId} → {savePath}");
 
-        // ✅ Ghi nhớ slot cuối cùng
         PlayerPrefs.SetInt("LastUsedSlot", slotId);
         PlayerPrefs.Save();
 
-        // ✅ Lưu luôn inventory
-        if (InventoryManager.Instance != null)
-        {
-            SaveInventory(slotId, InventoryManager.Instance.GetInventoryData());
-        }
+        // ❌ XÓA DÒNG NÀY — ĐÃ LƯU TRONG data.inventory RỒI
+        // if (InventoryManager.Instance != null)
+        // {
+        //     SaveInventory(slotId, InventoryManager.Instance.GetInventoryData());
+        // }
     }
 
     // ================== TẢI GAME ==================

@@ -39,6 +39,8 @@ public class ItemData
 [Serializable]
 public class InventoryData
 {
+    public bool isHoldingLongden = false;
+    public bool isHoldingCuocChim = false;
     public List<ItemData> items = new List<ItemData>();
 
     // 🧩 Thêm slotIndex để load đúng vị trí

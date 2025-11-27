@@ -68,8 +68,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 8781821384698901968, guid: 8bbaf7ad1c0f9934cb5fc2cf8ae7cd22,
+    type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -289,7 +290,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6489448358863431774
 Transform:
   m_ObjectHideFlags: 0
@@ -397,7 +398,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3117,6 +3118,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 2384943031993652939, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 14
+      objectReference: {fileID: 0}
     - target: {fileID: 2419132703047237773, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Layer
@@ -3141,6 +3147,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Layer
       value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 2864728752298834603, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 3049182469159638259, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3435,6 +3446,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6483141158139920977, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 16
       objectReference: {fileID: 0}
     - target: {fileID: 6907690624338189124, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -4727,10 +4743,21 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3906603769150158476, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: f4a283a2e6c57ae48995031ab3b20d18,
+        type: 2}
+    - target: {fileID: 3906603769150158476, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: 7960599251452804121, guid: 1190cdba07d23c642a1ed2589440a458,
+      objectReference: {fileID: -3210866110504469942, guid: f4a283a2e6c57ae48995031ab3b20d18,
         type: 2}
+    - target: {fileID: 3906603769150158476, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 3954894381025250205, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -5131,6 +5158,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: -3210866110504469942, guid: f4a283a2e6c57ae48995031ab3b20d18,
         type: 2}
+    - target: {fileID: 5079612929935717672, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 5171072854221545778, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
       propertyPath: m_AnchorMax.y
@@ -6743,6 +6775,11 @@ PrefabInstance:
       objectReference: {fileID: 2546160119027191343}
     - target: {fileID: 993366367463474969, guid: e0a1b98106a500744aa2ca4853775a21,
         type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 993366367463474969, guid: e0a1b98106a500744aa2ca4853775a21,
+        type: 3}
       propertyPath: panelFullMap
       value: 
       objectReference: {fileID: 1596327422227930608}
@@ -7125,7 +7162,7 @@ PrefabInstance:
     - target: {fileID: 7791349329822908573, guid: 3c4b39bd0c9837442847175877e43fe3,
         type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8542922211448340731, guid: 3c4b39bd0c9837442847175877e43fe3,
         type: 3}
