@@ -95,15 +95,33 @@ public class SaveData
             return;
         }
 
-        inventory = new InventoryData(); // reset trước
+        inventory = new InventoryData();
         var slots = InventoryManager.Instance.itemSlots;
 
         for (int i = 0; i < slots.Length; i++)
         {
-            inventory.AddItem(slots[i], i);
+            if (!string.IsNullOrEmpty(slots[i].itemName) && slots[i].quantity > 0)
+            {
+                inventory.items.Add(new ItemData
+                {
+                    itemName = slots[i].itemName,
+                    quantity = slots[i].quantity,
+                    itemDescription = slots[i].itemDescription,
+                    spriteName = slots[i].itemSprite?.name ?? "",
+                    slotIndex = i
+                });
+            }
         }
 
-        Debug.Log($"[SaveData] Inventory saved với {inventory.items.Count} item(s)");
+        // 👇 LƯU TRẠNG THÁI TRANG BỊ
+        var player = PlayerController.Instance;
+        if (player != null)
+        {
+            inventory.isHoldingLongden = player.IsHoldingLongden;
+            inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
+        }
+
+        Debug.Log($"[SaveData] Inventory saved ({inventory.items.Count} items, longden={inventory.isHoldingLongden}, cuoc={inventory.isHoldingCuocChim})");
     }
 
     // 🔥 Dùng khi load game
@@ -116,6 +134,24 @@ public class SaveData
         }
 
         InventoryManager.Instance.LoadInventoryData(inventory);
+
+        // 👇 KHÔI PHỤC TRẠNG THÁI TRANG BỊ
+        var player = PlayerController.Instance;
+        if (player != null)
+        {
+            // Đặt trạng thái (sẽ kích hoạt lại visual khi cần)
+            if (inventory.isHoldingLongden)
+            {
+                player.IsHoldingLongden = true; // 👈 CẦN THÊM SETTER PUBLIC
+                player.longdenObject?.SetActive(true);
+            }
+            if (inventory.isHoldingCuocChim)
+            {
+                player.IsHoldingCuocChim = true; // 👈 CẦN THÊM SETTER PUBLIC
+                player.cuocChimObject?.SetActive(true);
+            }
+        }
+
         Debug.Log("[SaveData] Inventory restored!");
     }
 

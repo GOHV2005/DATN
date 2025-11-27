@@ -33,7 +33,6 @@ public class SceneGateTrigger : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (!enableTransition) return;
         if (other.CompareTag("Player"))
         {
             TryTransition();
@@ -44,14 +43,19 @@ public class SceneGateTrigger : MonoBehaviour
     {
         if (HasRequiredItem())
         {
-            if (consumeItemOnUse)
+            if (enableTransition) // 👈 CHỈ CHUYỂN SCENE NẾU BẬT
             {
-                InventoryManager.Instance?.RemoveItem(requiredItemName, 1);
+                if (consumeItemOnUse)
+                {
+                    InventoryManager.Instance?.RemoveItem(requiredItemName, 1);
+                }
+                SceneLoader.LoadScene(targetSceneName);
             }
-            SceneLoader.LoadScene(targetSceneName);
+            // Nếu enableTransition = false → KHÔNG LÀM GÌ CẢ (không hiện text)
         }
         else
         {
+            // 👇 LUÔN HIỆN TEXT NẾU KHÔNG CÓ ITEM — DÙ enableTransition = true/false
             ShowMessage(denyMessage);
         }
     }
