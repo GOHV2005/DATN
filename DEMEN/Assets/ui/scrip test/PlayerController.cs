@@ -110,6 +110,17 @@ public class PlayerController : MonoBehaviour
     public bool justUnequippedCuocChim = false;
 
     public bool IsHoldingCuocChim { get; set; } = false;
+
+    [Header("Kiếm")]
+    public GameObject kiemObject;
+    public PolygonCollider2D kiemHitbox;
+    private bool isEquippingKiem = false;
+    public bool IsHoldingKiem { get; set; } = false;
+    public bool kiemJustUnequipped = false;
+    public bool justUnequippedKiem = false;
+
+    public void MarkKiemAsJustUnequipped() => kiemJustUnequipped = true;
+
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
@@ -552,14 +563,22 @@ public class PlayerController : MonoBehaviour
 
         isAttacking = true;
         CancelEquippingActions();
+
         // 👇 DÙNG ANIMATION PHÙ HỢP
-        string attackAnim = IsHoldingCuocChim ? "sudungcuocchim" : "Attack";
+        string attackAnim = "Attack";
+        if (IsHoldingKiem) attackAnim = "Chem";
+        else if (IsHoldingCuocChim) attackAnim = "sudungcuocchim";
+
         animator.Play(attackAnim);
 
         attackedEnemies.Clear();
 
         // 👇 BẬT HITBOX PHÙ HỢP
-        Collider2D hitbox = IsHoldingCuocChim ? (Collider2D)cuocChimHitbox : attackHitbox;
+        Collider2D hitbox = null;
+        if (IsHoldingKiem) hitbox = kiemHitbox;
+        else if (IsHoldingCuocChim) hitbox = cuocChimHitbox;
+        else hitbox = attackHitbox;
+
         if (hitbox != null)
         {
             hitbox.enabled = true;
@@ -593,40 +612,55 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // 🪓 CUỐC CHIM: ĐƯỢC ĐÁNH VÀO ROCK
-        if (cuocChimHitbox != null && cuocChimHitbox.enabled)
+        // 👇 XỬ LÝ VŨ KHÍ
+        if (other.CompareTag("rock") || other.CompareTag("Enemy"))
         {
-            Health targetHealth = other.GetComponent<Health>();
-            if (targetHealth != null)
+            // KIẾM
+            if (kiemHitbox != null && kiemHitbox.enabled)
             {
-                targetHealth.TakeDamage(cuocChimDamage);
-                if (other.CompareTag("rock"))
+                if (!other.CompareTag("rock")) // 👈 KHÔNG ĐÁNH ROCK
                 {
-                    targetHealth.onDeath += OnRockDestroyed;
+                    Health health = other.GetComponent<Health>();
+                    if (health != null)
+                    {
+                        health.TakeDamage(damageOnTouch);
+                    }
                 }
-            }
-            return;
-        }
-
-        // ⚔️ TẤN CÔNG THƯỜNG: Chỉ đánh Enemy, KHÔNG ĐÁNH ROCK
-        if (attackHitbox != null && attackHitbox.enabled)
-        {
-            if (other.CompareTag("rock"))
-            {
-                // ❌ KHÔNG LÀM GÌ CẢ — KHÔNG GÂY DAME CHO ROCK BẰNG TAY THƯỜNG
                 return;
             }
 
-            Health enemyHealth = other.GetComponent<Health>();
-            if (enemyHealth != null && !attackedEnemies.Contains(other))
+            // CUỐC CHIM
+            if (cuocChimHitbox != null && cuocChimHitbox.enabled)
             {
-                attackedEnemies.Add(other);
-                enemyHealth.TakeDamage(damageOnTouch);
+                Health health = other.GetComponent<Health>();
+                if (health != null)
+                {
+                    health.TakeDamage(cuocChimDamage);
+                    if (other.CompareTag("rock"))
+                    {
+                        health.onDeath += OnRockDestroyed;
+                    }
+                }
+                return;
             }
-            return;
+
+            // TẤN CÔNG THƯỜNG
+            if (attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
+            {
+                if (!other.CompareTag("rock")) // 👈 KHÔNG ĐÁNH ROCK BẰNG TAY THƯỜNG
+                {
+                    Health health = other.GetComponent<Health>();
+                    if (health != null)
+                    {
+                        attackedEnemies.Add(other);
+                        health.TakeDamage(damageOnTouch);
+                    }
+                }
+                return;
+            }
         }
 
-        // ====== PLAYER TAKES DAMAGE ======
+        // 👇 DAMAGE TỪ ENEMY
         if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible && !isAttacking)
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
@@ -1133,6 +1167,40 @@ public class PlayerController : MonoBehaviour
             isEquippingCuocChim = false;
             // cuocChimObject?.SetActive(IsHoldingCuocChim);
         }
+        if (isEquippingKiem) isEquippingKiem = false;
+    }
+    public void EquipKiem()
+    {
+        if (IsHoldingKiem || isDead || animator == null || isEquippingKiem) return;
+
+        if (IsHoldingCuocChim) UnequipCuocChim();
+
+        isEquippingKiem = true;
+        animator.Play("trangbikiem");
+    }
+
+    public void UnequipKiem()
+    {
+        if (!IsHoldingKiem || animator == null) return;
+        isEquippingKiem = true;
+        animator.Play("untrangbikiem");
+    }
+
+    // Animation Event: frame cuối của "trangbikiem"
+    public void OnKiemEquipComplete()
+    {
+        IsHoldingKiem = true;
+        kiemObject?.SetActive(true);
+        isEquippingKiem = false;
+    }
+
+    // Animation Event: frame cuối của "untrangbikiem"
+    public void OnKiemUnequipComplete()
+    {
+        IsHoldingKiem = false;
+        kiemObject?.SetActive(false);
+        isEquippingKiem = false;
+        justUnequippedKiem = true;
     }
     void UpdateAnimation()
     {
@@ -1147,7 +1215,7 @@ public class PlayerController : MonoBehaviour
         }
         if (isEquippingLongden) return; 
         if (isDropping) return;
-
+        if (isEquippingKiem) return;
         if (isEquippingCuocChim) return;
         if (isKnockbacked)
         {

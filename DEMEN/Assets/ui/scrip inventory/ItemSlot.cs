@@ -161,6 +161,15 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
             }
             PlayerController.Instance?.EquipCuocChim(); // ✅ Gọi trực tiếp
         }
+        else if (itemName == "Kiếm") // 👈 THÊM ĐIỀU KIỆN NÀY
+        {
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.HideAll();
+                Time.timeScale = 1f;
+            }
+            PlayerController.Instance?.EquipKiem();
+        }
         else
         {
             bool usable = inventoryManager.UseItem(itemName);
@@ -179,7 +188,8 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
     private static readonly HashSet<string> EquipableItems = new HashSet<string>
 {
     "lồng đèn",
-    "cuốc chim"
+    "cuốc chim",
+        "Kiếm"
 };
 
     public void DropItem()
@@ -192,67 +202,59 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
             Time.timeScale = 1f;
         }
 
-        // ✅ GÁN NGAY
-        PlayerController pc = PlayerController.Instance;
-        if (pc == null)
+        PlayerController player = PlayerController.Instance;
+        if (player == null) return;
+
+        // LONGDEN
+        if (itemName == "lồng đèn" && player.IsHoldingLongden)
         {
-            Debug.LogWarning("PlayerController is null!");
+            player.UnequipLongden();
+            player.MarkLongdenAsJustUnequipped();
+            return;
+        }
+        // CUỐC CHIM
+        if (itemName == "cuốc chim" && player.IsHoldingCuocChim)
+        {
+            player.UnequipCuocChim();
+            player.MarkCuocChimAsJustUnequipped();
+            return;
+        }
+        // KIẾM 👈 THÊM
+        if (itemName == "Kiếm" && player.IsHoldingKiem)
+        {
+            player.UnequipKiem();
+            player.MarkKiemAsJustUnequipped(); // 👈 THÊM HÀM NÀY
             return;
         }
 
-        // Danh sách item trang bị
-        bool isEquipable = (itemName == "lồng đèn" || itemName == "cuốc chim");
-
-        if (!isEquipable)
+        // DROP THẬT (lần 2)
+        bool shouldDrop = true;
+        if (itemName == "lồng đèn") shouldDrop = player.ShouldDropLongdenNow();
+        else if (itemName == "cuốc chim") shouldDrop = player.ShouldDropCuocChimNow();
+        else if (itemName == "Kiếm") // 👈 THÊM
         {
-            // Item thường → drop luôn
-            PerformDrop();
-            return;
+            if (player.kiemJustUnequipped)
+            {
+                player.kiemJustUnequipped = false;
+            }
+            else
+            {
+                shouldDrop = false;
+            }
         }
 
-        // Item trang bị → xử lý 2 lần nhấn
-        if (itemName == "lồng đèn")
+        if (shouldDrop)
         {
-            if (pc.IsHoldingLongden)
-            {
-                pc.UnequipLongden();
-                return;
-            }
-            if (pc.justUnequippedLongden)
-            {
-                pc.justUnequippedLongden = false;
-                PerformDrop();
-                return;
-            }
-            PerformDrop(); // nếu không trang bị → drop luôn
-        }
-        else if (itemName == "cuốc chim")
-        {
-            if (pc.IsHoldingCuocChim)
-            {
-                pc.UnequipCuocChim();
-                return;
-            }
-            if (pc.justUnequippedCuocChim)
-            {
-                pc.justUnequippedCuocChim = false;
-                PerformDrop();
-                return;
-            }
-            PerformDrop();
-        }
-
-        void PerformDrop()
-        {
-            pc.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
+            player.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
             {
                 quantity -= 1;
                 if (quantity <= 0) EmptySlot();
                 else UpdateSlotUI();
                 inventoryManager?.OnSlotChanged();
             });
-            if (actionPanel != null) actionPanel.SetActive(false);
         }
+
+        if (actionPanel != null) actionPanel.SetActive(false);
     }
     /*private void PerformRealDrop()
     {
