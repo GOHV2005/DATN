@@ -41,6 +41,7 @@ public class InventoryData
 {
     public bool isHoldingLongden = false;
     public bool isHoldingCuocChim = false;
+    public bool isHoldingKiem = false;
     public List<ItemData> items = new List<ItemData>();
 
     // 🧩 Thêm slotIndex để load đúng vị trí
@@ -100,17 +101,7 @@ public class SaveData
 
         for (int i = 0; i < slots.Length; i++)
         {
-            if (!string.IsNullOrEmpty(slots[i].itemName) && slots[i].quantity > 0)
-            {
-                inventory.items.Add(new ItemData
-                {
-                    itemName = slots[i].itemName,
-                    quantity = slots[i].quantity,
-                    itemDescription = slots[i].itemDescription,
-                    spriteName = slots[i].itemSprite?.name ?? "",
-                    slotIndex = i
-                });
-            }
+            inventory.AddItem(slots[i], i);
         }
 
         // 👇 LƯU TRẠNG THÁI TRANG BỊ
@@ -119,9 +110,10 @@ public class SaveData
         {
             inventory.isHoldingLongden = player.IsHoldingLongden;
             inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
+            inventory.isHoldingKiem = player.IsHoldingKiem; // 👈 THÊM
         }
 
-        Debug.Log($"[SaveData] Inventory saved ({inventory.items.Count} items, longden={inventory.isHoldingLongden}, cuoc={inventory.isHoldingCuocChim})");
+        Debug.Log($"[SaveData] Inventory saved với {inventory.items.Count} item(s), longden={inventory.isHoldingLongden}, cuoc={inventory.isHoldingCuocChim}, kiem={inventory.isHoldingKiem}");
     }
 
     // 🔥 Dùng khi load game
@@ -139,17 +131,19 @@ public class SaveData
         var player = PlayerController.Instance;
         if (player != null)
         {
-            // Đặt trạng thái (sẽ kích hoạt lại visual khi cần)
-            if (inventory.isHoldingLongden)
-            {
-                player.IsHoldingLongden = true; // 👈 CẦN THÊM SETTER PUBLIC
-                player.longdenObject?.SetActive(true);
-            }
-            if (inventory.isHoldingCuocChim)
-            {
-                player.IsHoldingCuocChim = true; // 👈 CẦN THÊM SETTER PUBLIC
-                player.cuocChimObject?.SetActive(true);
-            }
+            player.IsHoldingLongden = inventory.isHoldingLongden;
+            player.IsHoldingCuocChim = inventory.isHoldingCuocChim;
+            player.IsHoldingKiem = inventory.isHoldingKiem;
+
+            // 👇 HIỆN OBJECT TƯƠNG ỨNG
+            if (inventory.isHoldingLongden && player.longdenObject != null)
+                player.longdenObject.SetActive(true);
+
+            if (inventory.isHoldingCuocChim && player.cuocChimObject != null)
+                player.cuocChimObject.SetActive(true);
+
+            if (inventory.isHoldingKiem && player.kiemObject != null)
+                player.kiemObject.SetActive(true);
         }
 
         Debug.Log("[SaveData] Inventory restored!");

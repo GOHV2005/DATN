@@ -201,6 +201,13 @@ public class PlayerController : MonoBehaviour
         int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData saveData = SaveSystem.LoadGame(currentSlot);
 
+        // 👇 KHÔI PHỤC INVENTORY VÀ TRẠNG THÁI TRANG BỊ
+        if (saveData != null)
+        {
+            saveData.RestoreInventory(); // 👈 DÒNG QUAN TRỌNG NHẤT
+        }
+
+        // 👇 SAU ĐÓ MỚI LOAD VỊ TRÍ
         if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
         {
             SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];

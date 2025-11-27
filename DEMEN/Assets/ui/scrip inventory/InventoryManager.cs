@@ -33,18 +33,18 @@ public class InventoryManager : MonoBehaviour
             SceneManager.activeSceneChanged += OnActiveSceneChanged;
             SceneManager.sceneLoaded += OnSceneLoaded;
 
-            // 👇 CHỈ DÙNG MỘT SLOT DUY NHẤT: "CurrentSlot"
+            // ✅ CHỈ LOAD TỪ SaveSlotX.json
             int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
-            InventoryData invData = SaveSystem.LoadInventory(currentSlot);
-            if (invData != null && invData.items.Count > 0)
+            SaveData saveData = SaveSystem.LoadGame(currentSlot); // 👈 LOAD SaveData
+            if (saveData != null)
             {
-                currentInventoryData = invData;
-                LoadInventoryData(invData);
-                Debug.Log($"[InventoryManager] Loaded inventory (slot {currentSlot}) with {invData.items.Count} items.");
+                currentInventoryData = saveData.inventory; // 👈 LẤY inventory từ SaveData
+                LoadInventoryData(currentInventoryData);
+                Debug.Log($"[InventoryManager] Loaded inventory from SaveSlot{currentSlot}.json");
             }
             else
             {
-                Debug.Log("[InventoryManager] No saved inventory found on startup.");
+                Debug.Log("[InventoryManager] No saved inventory found.");
             }
         }
         else
