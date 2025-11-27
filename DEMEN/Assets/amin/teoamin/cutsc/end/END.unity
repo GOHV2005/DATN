@@ -4333,7 +4333,6 @@ GameObject:
   m_Component:
   - component: {fileID: 427603889}
   - component: {fileID: 427603891}
-  - component: {fileID: 427603890}
   m_Layer: 0
   m_Name: a_1
   m_TagString: Untagged
@@ -4356,31 +4355,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1062667784}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!320 &427603890
-PlayableDirector:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 427603888}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: 50c261b133e60934887cc527e5b716ac, type: 2}
-  m_InitialState: 1
-  m_WrapMode: 2
-  m_DirectorUpdateMode: 1
-  m_InitialTime: 0
-  m_SceneBindings:
-  - key: {fileID: 1067660433057824267, guid: 50c261b133e60934887cc527e5b716ac, type: 2}
-    value: {fileID: 1653600481}
-  - key: {fileID: 2688963947777598912, guid: 50c261b133e60934887cc527e5b716ac, type: 2}
-    value: {fileID: 0}
-  - key: {fileID: -1675447655969514987, guid: 50c261b133e60934887cc527e5b716ac, type: 2}
-    value: {fileID: 0}
-  - key: {fileID: -5045927562624878575, guid: 50c261b133e60934887cc527e5b716ac, type: 2}
-    value: {fileID: 0}
-  m_ExposedReferences:
-    m_References: []
 --- !u!212 &427603891
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -5082,7 +5056,7 @@ PrefabInstance:
     - target: {fileID: 4401863854545358132, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: field of view
-      value: 106.59687
+      value: 58
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358132, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
@@ -5127,12 +5101,12 @@ PrefabInstance:
     - target: {fileID: 4401863854545358135, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -49.535355
+      value: -26.900002
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358135, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.33165896
+      value: -1.3
       objectReference: {fileID: 0}
     - target: {fileID: 4401863854545358135, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
@@ -5282,12 +5256,12 @@ PrefabInstance:
     - target: {fileID: 4401863856316295334, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -49.535355
+      value: -26.9
       objectReference: {fileID: 0}
     - target: {fileID: 4401863856316295334, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.33165896
+      value: -1.3
       objectReference: {fileID: 0}
     - target: {fileID: 4401863856316295334, guid: 6cfaadcb953af1c448a1b82b94f47442,
         type: 3}
@@ -32114,7 +32088,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Width: 16.7
   Damping: 1
-  FovRange: {x: 49.59687, y: 106.59687}
+  FovRange: {x: 1, y: 58}
 --- !u!1 &845651391
 GameObject:
   m_ObjectHideFlags: 0
@@ -32723,7 +32697,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1045168449}
   - component: {fileID: 1045168448}
-  - component: {fileID: 1045168447}
   m_Layer: 0
   m_Name: dechoat
   m_TagString: Untagged
@@ -32731,27 +32704,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!320 &1045168447
-PlayableDirector:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1045168446}
-  m_Enabled: 1
-  serializedVersion: 3
-  m_PlayableAsset: {fileID: 11400000, guid: 5c448670b1034ee439f1d1bafea32480, type: 2}
-  m_InitialState: 1
-  m_WrapMode: 2
-  m_DirectorUpdateMode: 1
-  m_InitialTime: 0
-  m_SceneBindings:
-  - key: {fileID: -8438995090888373669, guid: 5c448670b1034ee439f1d1bafea32480, type: 2}
-    value: {fileID: 1045168448}
-  - key: {fileID: 3943491910626358310, guid: 5c448670b1034ee439f1d1bafea32480, type: 2}
-    value: {fileID: 1653600481}
-  m_ExposedReferences:
-    m_References: []
 --- !u!95 &1045168448
 Animator:
   serializedVersion: 7
