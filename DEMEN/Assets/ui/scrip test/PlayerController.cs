@@ -1035,6 +1035,7 @@ public class PlayerController : MonoBehaviour
     public void EquipLongden()
     {
         if (IsHoldingLongden || isDead || animator == null || isEquippingLongden) return;
+        
         isEquippingLongden = true;
         animator.Play("longden");
     }
@@ -1042,6 +1043,8 @@ public class PlayerController : MonoBehaviour
     public void EquipCuocChim()
     {
         if (IsHoldingCuocChim || isDead || animator == null || isEquippingCuocChim) return;
+        if (IsHoldingKiem) UnequipKiem();
+        OnKiemUnequipComplete();
         isEquippingCuocChim = true;
         animator.Play("trangbicuocchim");
     }
@@ -1057,6 +1060,7 @@ public class PlayerController : MonoBehaviour
     public void UnequipCuocChim()
     {
         if (!IsHoldingCuocChim || animator == null) return;
+        
         isEquippingCuocChim = true;
         animator.Play("untrangbicuocchim");
     }
@@ -1174,7 +1178,7 @@ public class PlayerController : MonoBehaviour
         if (IsHoldingKiem || isDead || animator == null || isEquippingKiem) return;
 
         if (IsHoldingCuocChim) UnequipCuocChim();
-
+        OnCuocChimUnequipped();
         isEquippingKiem = true;
         animator.Play("trangbikiem");
     }
