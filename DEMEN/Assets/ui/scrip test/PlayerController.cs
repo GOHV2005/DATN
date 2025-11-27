@@ -83,7 +83,7 @@ public class PlayerController : MonoBehaviour
     [Header("Attack")]
     public float attackCooldown = 0.25f;
     public BoxCollider2D attackHitbox;
-
+    private bool isTakingDamage = false;
     private bool isAttacking = false;
     private float attackCooldownTimer = 0f;
     private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
@@ -218,6 +218,7 @@ public class PlayerController : MonoBehaviour
         if (isDead) return;
         if (IsHoldingCuocChim && Input.GetKeyDown(KeyCode.E) && !isUsingCuocChim && !isAttacking && !isDashing && !isDead)
         {
+            
             Collider2D[] hits = Physics2D.OverlapCircleAll(feetPoint.position, 1.2f);
             foreach (var hit in hits)
             {
@@ -592,36 +593,37 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        // 👇 XỬ LÝ CÁI CUỘC CHIM ĐÁNH
-        if (other != null && (other.CompareTag("Enemy") || other.CompareTag("rock")))
+        // 🪓 CUỐC CHIM: Only activates if cuocChimHitbox is enabled
+        if (cuocChimHitbox != null && cuocChimHitbox.enabled)
         {
-            if (cuocChimHitbox != null && cuocChimHitbox.enabled)
+            Health targetHealth = other.GetComponent<Health>();
+            if (targetHealth != null)
             {
-                // Gây dame
-                Vector2 knockbackDir = ((Vector2)transform.position - (Vector2)other.transform.position).normalized;
-                other.SendMessage("TakeDamage", cuocChimDamage, SendMessageOptions.DontRequireReceiver);
+                targetHealth.TakeDamage(cuocChimDamage);
 
-                // Đăng ký callback khi rock chết
-                Health health = other.GetComponent<Health>();
-                if (health != null && other.CompareTag("rock"))
+                // Special handling for rocks (if needed)
+                if (other.CompareTag("rock"))
                 {
-                    health.onDeath += () =>
-                    {
-                        // ✅ ĐÁ BỊ PHÁ → XỬ LÝ CUỐC CHIM
-                        OnRockDestroyed();
-                    };
+                    targetHealth.onDeath += OnRockDestroyed;
                 }
+            }
+            return; // Stop further checks while cuốc chim is active
+        }
+
+        // ⚔️ NORMAL ATTACK: Only if attackHitbox is enabled and enemy not already hit
+        if (attackHitbox != null && attackHitbox.enabled)
+        {
+            Health enemyHealth = other.GetComponent<Health>();
+            if (enemyHealth != null && !attackedEnemies.Contains(other))
+            {
+                attackedEnemies.Add(other);
+                enemyHealth.TakeDamage(damageOnTouch);
             }
             return;
         }
 
-        // 👇 XỬ LÝ ATTACK THƯỜNG
-        if (other.CompareTag("Enemy") && attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
-        {
-            attackedEnemies.Add(other);
-            other.SendMessage("TakeDamage", damageOnTouch, SendMessageOptions.DontRequireReceiver);
-        }
-        else if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible && !isAttacking)
+        // ====== PLAYER TAKES DAMAGE ======
+        if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible && !isAttacking)
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
@@ -660,7 +662,7 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
     }
 
-    AttackDirection GetAttackDirection(Vector2 enemyPosition)
+    public AttackDirection GetAttackDirection(Vector2 enemyPosition)
     {
         float playerX = transform.position.x;
         float enemyX = enemyPosition.x;
@@ -679,42 +681,53 @@ public class PlayerController : MonoBehaviour
 
     public void TakeDamage(float amount, AttackDirection direction)
     {
-        if (isDashInvincible || isKnockbackInvincible || isDead) return;
-        CancelEquippingActions();
-        // Hủy drop khi bị đánh
-        if (isDropping) CancelDrop();
+        // 🔒 Prevent re-entrancy (StackOverflow fix)
+        if (isTakingDamage || isDashInvincible || isKnockbackInvincible || isDead)
+            return;
 
-        CurrentHealth -= amount;
-
-        float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
-        float knockbackX = (direction == AttackDirection.Front)
-            ? (facingRight ? -knockbackForce * forceMultiplier : knockbackForce * forceMultiplier)
-            : (facingRight ? knockbackForce * forceMultiplier : -knockbackForce * forceMultiplier);
-
-        float knockbackY = CalculateKnockbackUpForce();
-
-        rb.linearVelocity = Vector2.zero;
-        rb.AddForce(new Vector2(knockbackX, knockbackY), ForceMode2D.Impulse);
-
-        isKnockbacked = true;
-        knockbackTimer = knockbackDuration;
-
-        isKnockbackInvincible = true;
-        knockbackInvincibleTimer = invincibleTime;
-        onTakeDamage?.Invoke();
-        if (CurrentHealth <= 0f)
+        isTakingDamage = true;
+        try
         {
-            Die();
+            CancelEquippingActions();
+            if (isDropping) CancelDrop();
+
+            CurrentHealth -= amount;
+
+            float forceMultiplier = (direction == AttackDirection.Back) ? 1.5f : 1f;
+            float knockbackX = (direction == AttackDirection.Front)
+                ? (facingRight ? -knockbackForce * forceMultiplier : knockbackForce * forceMultiplier)
+                : (facingRight ? knockbackForce * forceMultiplier : -knockbackForce * forceMultiplier);
+
+            float knockbackY = CalculateKnockbackUpForce();
+
+            rb.linearVelocity = Vector2.zero;
+            rb.AddForce(new Vector2(knockbackX, knockbackY), ForceMode2D.Impulse);
+
+            isKnockbacked = true;
+            knockbackTimer = knockbackDuration;
+
+            isKnockbackInvincible = true;
+            knockbackInvincibleTimer = invincibleTime;
+
+            onTakeDamage?.Invoke();
+
+            if (CurrentHealth <= 0f)
+            {
+                Die();
+            }
+        }
+        finally
+        {
+            isTakingDamage = false;
         }
     }
 
     public void TakeDamageFromEnemy(float amount, Vector2 enemyPosition)
     {
-        if (isDashInvincible || isKnockbackInvincible || isDead) return;
+        if (isTakingDamage || isDashInvincible || isKnockbackInvincible || isDead) return;
+        if (isDashing) return;
 
-        if (isDashing) return; // 👈 DASH BẤT TỬ
-
-        // Hủy drop khi bị đánh
+        CancelEquippingActions();
         if (isDropping) CancelDrop();
 
         CurrentHealth -= amount;
@@ -735,8 +748,13 @@ public class PlayerController : MonoBehaviour
 
         isKnockbackInvincible = true;
         knockbackInvincibleTimer = invincibleTime;
+
         onTakeDamage?.Invoke();
-        if (CurrentHealth <= 0f) Die();
+
+        if (CurrentHealth <= 0f)
+        {
+            Die();
+        }
     }
 
     public void Heal(float amount)

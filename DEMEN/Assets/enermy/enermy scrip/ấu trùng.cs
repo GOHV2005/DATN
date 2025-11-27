@@ -67,9 +67,13 @@ public class LarvaAI : MonoBehaviour
     {
         if (collision.collider.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
         {
-            Debug.Log("[Larva] Gây sát thương!");
-            collision.collider.SendMessage("TakeDamage", damage, SendMessageOptions.DontRequireReceiver);
-            lastDamageTime = Time.time;
+            PlayerController player = collision.collider.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                AttackDirection dir = player.GetAttackDirection(transform.position);
+                player.TakeDamage(damage, dir);
+                lastDamageTime = Time.time;
+            }
         }
     }
 
