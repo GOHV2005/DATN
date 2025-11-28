@@ -620,7 +620,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // 👇 XỬ LÝ VŨ KHÍ
-        if (other.CompareTag("rock") || other.CompareTag("Enemy"))
+        if (other.CompareTag("rock") || other.CompareTag("Enemy")|| other.CompareTag("co"))
         {
             // KIẾM
             if (kiemHitbox != null && kiemHitbox.enabled)
