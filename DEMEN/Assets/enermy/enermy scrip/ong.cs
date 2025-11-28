@@ -3,7 +3,14 @@ using System.Collections;
 
 public class BeeAI : MonoBehaviour
 {
-    public enum BeeState { Hovering, Chasing, Retreating, KeepingDistance }
+    public enum BeeState
+    {
+        Hovering,
+        Chasing,
+        Retreating,
+        KeepingDistance,
+        ReturningToAnchor // 👈 MỚI
+    }
 
     [Header("=== THIẾT LẬP CƠ BẢN ===")]
     public Transform anchorPoint;       // Điểm neo (tổ ong)
@@ -17,7 +24,8 @@ public class BeeAI : MonoBehaviour
     [Header("=== SÁT THƯƠNG ===")]
     public float damage = 15f;
     public float damageCooldown = 1f;
-
+    [Header("=== VÙNG GIỚI HẠN ===")]
+    public float maxChaseDistance = 12f; // 👈 MỚI: khoảng cách tối đa từ anchorPoint
     [Header("=== ANIMATION ===")]
     public string flyAnim = "bay(ong)";
     public string attackAnim = "TanCong(ong)";
@@ -65,7 +73,32 @@ public class BeeAI : MonoBehaviour
     {
         if (isDead || player == null) return;
 
-        // 🚫 Nếu đang retreat và bị khóa, chỉ cho phép retreat chạy thôi
+        // 👇 Kiểm tra: nếu quá xa → quay về
+        if (Vector2.Distance(transform.position, anchorPoint.position) > maxChaseDistance)
+        {
+            if (currentState != BeeState.ReturningToAnchor)
+            {
+                Debug.Log("🐝 [Ong] Quá xa tổ → Quay về!");
+                currentState = BeeState.ReturningToAnchor;
+                PlayAnim(flyAnim);
+                isAttacking = false;
+            }
+        }
+        // 👇 Nếu đang quay về mà player vào tầm → đuổi tiếp
+        // Trong Update()
+        if (currentState == BeeState.ReturningToAnchor && PlayerInSight())
+        {
+            // 👇 CHỈ ĐUỔI LẠI NẾU PLAYER CÒN TRONG VÙNG CHO PHÉP
+            if (Vector2.Distance(player.position, anchorPoint.position) <= maxChaseDistance * 0.8f)
+            {
+                Debug.Log("🐝 [Ong] Player vào tầm và đủ gần → Tiếp tục đuổi!");
+                currentState = BeeState.Chasing;
+                PlayAnim(attackAnim);
+                isAttacking = true;
+            }
+            // Nếu player vẫn ở rìa → tiếp tục quay về, KHÔNG ĐUỔI
+        }
+
         if (isRetreatingLocked)
         {
             RetreatingBehavior();
@@ -86,9 +119,25 @@ public class BeeAI : MonoBehaviour
             case BeeState.KeepingDistance:
                 KeepingDistanceBehavior();
                 break;
+            case BeeState.ReturningToAnchor: // 👈 THÊM
+                ReturningToAnchorBehavior();
+                break;
         }
     }
 
+    void ReturningToAnchorBehavior()
+    {
+        Vector2 dir = (anchorPoint.position - transform.position).normalized;
+        rb.linearVelocity = dir * hoverSpeed;
+        FlipSprite(dir.x, facePlayer: false);
+
+        // Khi về gần anchorPoint → quay lại trạng thái Hovering
+        if (Vector2.Distance(transform.position, anchorPoint.position) < 0.5f)
+        {
+            currentState = BeeState.Hovering;
+            SetNewRandomTarget();
+        }
+    }
 
     // 🌀 BAY LANG THANG
     void HoveringBehavior()
@@ -117,17 +166,17 @@ public class BeeAI : MonoBehaviour
         if (!player) return;
 
         isAttacking = true;
-
         Vector2 dir = (player.position - transform.position).normalized;
         rb.linearVelocity = dir * chaseSpeed;
         FlipSprite(dir.x);
 
-        if (Vector2.Distance(transform.position, player.position) > detectionRange * 2f)
-        {
-            currentState = BeeState.Hovering;
-            isAttacking = false;
-            PlayAnim(flyAnim);
-        }
+        // ❌ XÓA DÒNG NÀY:
+        // if (Vector2.Distance(transform.position, player.position) > detectionRange * 2f)
+        // {
+        //     currentState = BeeState.Hovering;
+        //     isAttacking = false;
+        //     PlayAnim(flyAnim);
+        // }
     }
 
     // 🏃‍♂️ BAY LÙI RA XA SAU KHI CHÍCH
