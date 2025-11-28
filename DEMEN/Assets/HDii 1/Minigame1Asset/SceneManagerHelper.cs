@@ -37,4 +37,11 @@ public class SceneManagerHelper : MonoBehaviour
             Debug.LogWarning("Previous scene not set!");
         }
     }
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.CompareTag("Player"))
+        {
+            SceneManagerHelper.Instance.GoToMinigame("Minigame2");
+        }
+    }
 }
