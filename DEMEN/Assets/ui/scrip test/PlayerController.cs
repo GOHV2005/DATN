@@ -184,7 +184,14 @@ public class PlayerController : MonoBehaviour
 
     void Awake()
     {
+        if (Instance != null && Instance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+
         Instance = this;
+        DontDestroyOnLoad(gameObject); // 👈 GIỮ PLAYER XUYÊN SCENE
         rb = GetComponent<Rigidbody2D>();
         defaultGravityScale = rb.gravityScale;
         spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
@@ -261,18 +268,23 @@ public class PlayerController : MonoBehaviour
     }
     void CheckGround()
     {
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
+        bool wasGrounded = isGrounded;
         isGrounded = false;
-        jumpCount = 0;
 
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
         foreach (Collider2D col in colliders)
         {
             if (col.CompareTag(groundTag))
             {
                 isGrounded = true;
-                jumpCount = 0; // Reset jump khi chạm đất
                 break;
             }
+        }
+
+        // Chỉ reset jumpCount khi VỪA MỚI CHẠM ĐẤT (tức từ không grounded → grounded)
+        if (!wasGrounded && isGrounded)
+        {
+            jumpCount = 0;
         }
     }
 
