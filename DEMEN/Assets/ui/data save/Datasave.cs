@@ -67,7 +67,25 @@ public class SaveData
 {
     public List<SceneSaveData> scenes = new List<SceneSaveData>();
     public InventoryData inventory = new InventoryData();
+    // 👇 MỚI: DANH SÁCH OBJECT CÓ THỂ LƯU
+    public List<SaveableObjectRef> saveableObjects = new List<SaveableObjectRef>();
+    public List<string> existingObjects = new List<string>();
 
+    // Trong class SaveData, thêm class lồng:
+    [Serializable]
+    public class SaveableObjectRef
+    {
+        public string guid;
+        public string sceneName;
+        public object savedState;
+
+        public SaveableObjectRef(string guid, string scene, object state)
+        {
+            this.guid = guid;
+            this.sceneName = scene;
+            this.savedState = state;
+        }
+    }
     public void AddScene(SceneSaveData scene)
     {
         var existing = scenes.Find(s => s.sceneName == scene.sceneName);

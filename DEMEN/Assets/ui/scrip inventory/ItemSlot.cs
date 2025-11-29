@@ -253,6 +253,13 @@ public class ItemSlot : MonoBehaviour, IPointerClickHandler
                 inventoryManager?.OnSlotChanged();
             });
         }
+        player.DropItem(itemName, quantity, itemSprite, itemDescription, () =>
+        {
+            quantity -= 1;
+            if (quantity <= 0) EmptySlot();
+            else UpdateSlotUI();
+            inventoryManager?.OnSlotChanged();
+        });
 
         if (actionPanel != null) actionPanel.SetActive(false);
     }

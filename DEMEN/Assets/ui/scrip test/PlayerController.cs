@@ -154,6 +154,7 @@ public class PlayerController : MonoBehaviour
     public Transform feetPoint;
     public float dropForce = 8f;
     public float dropAngle = 50f;
+    private bool isDropConfirmed = false; // 👈 MỚI
 
     private float horizontalInput;
     private bool jumpRequested = false;
@@ -360,6 +361,7 @@ public class PlayerController : MonoBehaviour
         CancelDrop();
 
         isDropping = true;
+        isDropConfirmed = false;
         dropOnComplete = onComplete;
 
         animator.Play("dropItem");
@@ -371,7 +373,7 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(1.15f);
 
         if (!isDropping) yield break;
-
+        isDropConfirmed = true;
         if (dropPoint == null) { CancelDrop(); yield break; }
 
         InventoryManager invMgr = InventoryManager.Instance;
@@ -398,7 +400,7 @@ public class PlayerController : MonoBehaviour
     private void CancelDrop()
     {
         if (!isDropping) return;
-
+        if(isDropConfirmed)return;
         isDropping = false;
         dropOnComplete = null;
 

@@ -40,7 +40,7 @@ public class QuestNPC : MonoBehaviour
         LookAtPlayer();
 
         float dist = Vector2.Distance(transform.position, playerTransform.position);
-        if (dist <= interactionRange)
+        if (dist <= interactionRange && UIManager.IsGameplayInputAllowed)
         {
             ShowInteractionPrompt();
             if (Input.GetKeyDown(KeyCode.E))

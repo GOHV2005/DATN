@@ -7,9 +7,9 @@ public class UIManager : MonoBehaviour
     public static bool IsTalkingToNPC = false;
     public static UIManager Instance;
     public static bool IsUIOpen = false;
-
     private void Awake()
     {
+        IsTalkingToNPC = false;
         HideAll();
         if (Instance == null)
         {
