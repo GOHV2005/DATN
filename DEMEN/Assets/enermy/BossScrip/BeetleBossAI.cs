@@ -1,177 +1,192 @@
-﻿using System.Collections;
-using UnityEngine;
+﻿using UnityEngine;
+using System.Collections;
 
 public class BossBeetleAI : MonoBehaviour
 {
-    public enum BossState { Idle, Turn, Charge, Stomp, Cooldown }
+    public enum BossState { Idle, Roar, Turn, Charge, Stunned, Stomp, Cooldown }
+    private BossState currentState = BossState.Idle;
 
-    [Header("=== PLAYER DETECTION ===")]
-    public float detectionRadius = 6f;
-    private Transform player;
+    [Header("ARENA")]
+    public Collider2D arenaTrigger;
+    public Transform player;
 
-    [Header("=== ARENA ===")]
-    public Collider2D arenaBounds;  // Collider định nghĩa đấu trường
-
-    [Header("=== CHARGE ===")]
+    [Header("CHARGE")]
     public float chargeSpeed = 8f;
-    public float chargeDistance = 10f;
-    private Vector2 chargeStartPos;
-    private Vector2 chargeDirection;
-
-    [Header("=== STOMP ===")]
-    public int stonesPerStomp = 5;
-    public GameObject stonePrefab;
-    public float stompHeight = 5f;
-    public float stompSpread = 1f;
-    public float stompDelay = 0.2f;
-
-    [Header("=== COOLDOWN ===")]
-    public float cooldownTime = 2f;
-
-    [Header("=== RAYCAST DETECTION ===")]
-    public float obstacleCheckDistance = 0.5f;
+    public float obstacleCheckDistance = 1f;
     public LayerMask obstacleLayer;
 
+    [Header("STOMP SKILL")]
+    public GameObject fallingRockPrefab;
+    public int rockCount = 5;
+    public float rockDelay = 0.25f;
+    [Tooltip("Chiều cao rơi đá tính từ TRẦN của arena (arenaTrigger.bounds.max.y)")]
+    public float rockSpawnHeight = 7f; // ← chỉnh trực tiếp trong Inspector
+
+    [Header("SKILL PROBABILITIES")]
+    [Range(0f, 1f)] public float chargeChance = 0.6f; // 60% lao, 40% đá
+
+    [Header("TIME SETTINGS")]
+    public float stunnedTime = 1.5f;
+    public float cooldownTime = 1f;
+    public float roarTime = 2.5f;
+
+    [Header("CAMERA SHAKE")]
+    public CameraShake cameraShake;
+    public float shakeIntensity = 0.45f;
+
+    [Header("ANIMATION")]
+    public string idleAnim = "Dung(bohung)";
+    public string ramAnim = "ram(bohung)";
+    public string chargeAnim = "chaynhanh(bohung)";
+
     private Rigidbody2D rb;
-    private BossState currentState = BossState.Idle;
-    private float stateTimer = 0f;
+    private Animator anim;
+    private SpriteRenderer sr;
+    private Vector2 chargeDirection;
+    private float stateTimer;
+    private bool playerEnteredArena = false;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-        player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        anim = GetComponent<Animator>();
+        sr = GetComponent<SpriteRenderer>();
+
+        if (!player)
+            player = GameObject.FindGameObjectWithTag("Player")?.transform;
+
+        PlayAnim(idleAnim);
     }
 
     void Update()
     {
         if (!player) return;
 
-        if (!IsPlayerInArena())
+        bool isInArena = arenaTrigger && arenaTrigger.bounds.Contains(player.position);
+
+        if (!isInArena)
         {
             rb.linearVelocity = Vector2.zero;
-            currentState = BossState.Idle;
+            PlayAnim(idleAnim);
+            UpdateFacingDirectionForNonMovingStates();
             return;
         }
 
-        UpdateSpriteDirection();
-        UpdateSpriteDirectionByMovement();
+        if (!playerEnteredArena)
+        {
+            playerEnteredArena = true;
+            currentState = BossState.Roar;
+            stateTimer = roarTime;
+            PlayAnim(ramAnim);
+            if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
+        }
+
+        // Cập nhật hướng sprite
+        if (currentState == BossState.Charge)
+        {
+            sr.flipX = (rb.linearVelocity.x > 0);
+        }
+        else
+        {
+            UpdateFacingDirectionForNonMovingStates();
+        }
+
+        // Hành vi theo trạng thái
         switch (currentState)
         {
-            case BossState.Idle: IdleBehavior(); break;
-            case BossState.Turn: TurnBehavior(); break;
-            case BossState.Charge: ChargeBehavior(); break;
-            case BossState.Stomp: break; // coroutine xử lý
-            case BossState.Cooldown: CooldownBehavior(); break;
+            case BossState.Roar:
+                RoarBehavior();
+                break;
+            case BossState.Turn:
+                TurnBehavior();
+                break;
+            case BossState.Charge:
+                ChargeBehavior();
+                break;
+            case BossState.Stunned:
+                StunnedBehavior();
+                break;
+            case BossState.Stomp:
+                break;
+            case BossState.Cooldown:
+                CooldownBehavior();
+                break;
         }
 
         stateTimer -= Time.deltaTime;
     }
 
-
-    void UpdateSpriteDirectionByMovement()
+    void UpdateFacingDirectionForNonMovingStates()
     {
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr == null) return;
-
-        // Lấy hướng boss đang di chuyển theo trục X
-        float horizontal = rb.linearVelocity.x;
-
-        if (horizontal > 0.01f)
-            sr.flipX = true;  // đang di chuyển sang phải
-        else if (horizontal < -0.01f)
-            sr.flipX = false; // đang di chuyển sang trái
-                              // nếu horizontal ≈ 0 → giữ hướng cũ
+        sr.flipX = (player.position.x > transform.position.x);
     }
 
-    // --- HÀM HỖ TRỢ ---
-    void UpdateSpriteDirection()
+    // ========================= STATE BEHAVIORS =========================
+
+    void RoarBehavior()
     {
-        SpriteRenderer sr = GetComponent<SpriteRenderer>();
-        if (sr == null) return;
-
-        switch (currentState)
-        {
-            case BossState.Charge:
-                // Nhìn theo hướng lao
-                if (rb.linearVelocity.x > 0.01f) sr.flipX = true;
-                else if (rb.linearVelocity.x < -0.01f) sr.flipX = false;
-                break;
-            case BossState.Stomp:
-                // Khi Stomp, nhìn theo player
-                if (player != null)
-                    sr.flipX = (player.position.x > transform.position.x);
-                break;
-            default:
-                // Idle / Cooldown / Turn → giữ hướng cũ hoặc quay về player khi Turn
-                if (currentState == BossState.Turn && player != null)
-                    sr.flipX = (player.position.x > transform.position.x);
-                break;
-        }
-    }
-
-
-
-    bool IsPlayerInArena()
-    {
-        if (arenaBounds == null) return true; // fallback nếu không gán arena
-        return arenaBounds.bounds.Contains(player.position);
-    }
-
-    #region BEHAVIOR
-
-    void IdleBehavior()
-    {
-        if (Vector2.Distance(transform.position, player.position) <= detectionRadius)
+        rb.linearVelocity = Vector2.zero;
+        if (stateTimer <= 0)
         {
             currentState = BossState.Turn;
-            stateTimer = 0.2f;
+            stateTimer = 0.1f;
         }
     }
 
     void TurnBehavior()
     {
-        chargeDirection = (player.position - transform.position).normalized;
-        currentState = BossState.Charge;
-        chargeStartPos = transform.position;
+        rb.linearVelocity = Vector2.zero;
+        if (stateTimer <= 0)
+        {
+            chargeDirection = (player.position.x > transform.position.x) ? Vector2.right : Vector2.left;
+            currentState = BossState.Charge;
+        }
     }
 
     void ChargeBehavior()
     {
-        // Chỉ di chuyển theo X
-        Vector2 velocity = new Vector2(chargeDirection.x * chargeSpeed, 0f);
-        rb.linearVelocity = velocity;
+        rb.linearVelocity = new Vector2(chargeDirection.x * chargeSpeed, 0f);
+        PlayAnim(chargeAnim);
 
-        // Raycast check vật cản phía trước
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.right * Mathf.Sign(velocity.x), obstacleCheckDistance, obstacleLayer);
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, chargeDirection, obstacleCheckDistance, obstacleLayer);
         if (hit.collider != null)
         {
             rb.linearVelocity = Vector2.zero;
-            currentState = BossState.Stomp;
-            StartCoroutine(StompRoutine());
-            return;
-        }
-
-        // Kiểm tra quãng đường lao
-        if (Vector2.Distance(chargeStartPos, transform.position) >= chargeDistance)
-        {
-            rb.linearVelocity = Vector2.zero;
-            currentState = BossState.Cooldown;
-            stateTimer = cooldownTime;
+            currentState = BossState.Stunned;
+            stateTimer = stunnedTime;
         }
     }
 
+    void StunnedBehavior()
+    {
+        rb.linearVelocity = Vector2.zero;
+        PlayAnim(idleAnim);
+        if (stateTimer <= 0)
+        {
+            currentState = BossState.Stomp;
+            StartCoroutine(StompRoutine());
+        }
+    }
 
     IEnumerator StompRoutine()
     {
-        for (int i = 0; i < stonesPerStomp; i++)
+        PlayAnim(ramAnim);
+
+        if (cameraShake)
+            cameraShake.Shake(shakeIntensity, rockCount * rockDelay);
+
+        for (int i = 0; i < rockCount; i++)
         {
-            if (player == null) break;
-
-            Vector2 currentPlayerPos = player.position;
-            Vector2 offset = new Vector2(Random.Range(-stompSpread, stompSpread), stompHeight);
-            Instantiate(stonePrefab, currentPlayerPos + offset, Quaternion.identity);
-
-            yield return new WaitForSeconds(stompDelay);
+            if (fallingRockPrefab && arenaTrigger)
+            {
+                Vector3 dropPos = new Vector3(
+                    player.position.x,
+                    arenaTrigger.bounds.max.y + rockSpawnHeight,
+                    0
+                );
+                Instantiate(fallingRockPrefab, dropPos, Quaternion.identity);
+            }
+            yield return new WaitForSeconds(rockDelay);
         }
 
         currentState = BossState.Cooldown;
@@ -181,38 +196,67 @@ public class BossBeetleAI : MonoBehaviour
     void CooldownBehavior()
     {
         rb.linearVelocity = Vector2.zero;
+        PlayAnim(idleAnim);
 
-        if (stateTimer <= 0f)
+        if (stateTimer <= 0)
         {
-            currentState = BossState.Turn;
-            stateTimer = 0.1f;
+            if (Random.value < chargeChance) // ← 60% mặc định
+            {
+                currentState = BossState.Turn;
+                stateTimer = 0.1f;
+            }
+            else
+            {
+                currentState = BossState.Stomp;
+                StartCoroutine(StompRoutine());
+            }
         }
     }
 
-    #endregion
+    void PlayAnim(string animName)
+    {
+        if (anim != null)
+            anim.Play(animName);
+    }
 
-    #region DEBUG GIZMOS
+    // ========================= GIZMOS FOR DEBUG =========================
 
     private void OnDrawGizmos()
     {
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, detectionRadius);
-
-        Gizmos.color = Color.blue;
-        Gizmos.DrawWireSphere(transform.position, chargeDistance);
-
-        Gizmos.color = Color.green;
-        Gizmos.DrawWireSphere(transform.position, stompSpread + 0.5f);
-
-        Gizmos.color = Color.yellow;
-        Gizmos.DrawLine(transform.position, transform.position + (Vector3)(chargeDirection * obstacleCheckDistance));
-
-        if (arenaBounds != null)
+        // 1. Vẽ tầm nhìn lao (obstacle check)
+        if (sr != null)
         {
             Gizmos.color = Color.cyan;
-            Gizmos.DrawWireCube(arenaBounds.bounds.center, arenaBounds.bounds.size);
+            Vector2 direction = sr.flipX ? Vector2.right : Vector2.left;
+            Gizmos.DrawLine(transform.position, (Vector2)transform.position + direction * obstacleCheckDistance);
+        }
+
+        // 2. Vẽ chiều cao rơi đá (nếu có arenaTrigger)
+        if (arenaTrigger != null)
+        {
+            Bounds bounds = arenaTrigger.bounds;
+            float ceilingY = bounds.max.y;
+            float rockSpawnY = ceilingY + rockSpawnHeight;
+
+            // Vẽ đường trần arena
+            Gizmos.color = Color.green;
+            Gizmos.DrawLine(
+                new Vector3(bounds.min.x, ceilingY, 0),
+                new Vector3(bounds.max.x, ceilingY, 0)
+            );
+
+            // Vẽ đường vị trí rơi đá (ngang qua giữa arena)
+            Gizmos.color = Color.red;
+            Vector3 rockLineCenter = new Vector3((bounds.min.x + bounds.max.x) * 0.5f, rockSpawnY, 0);
+            Gizmos.DrawSphere(rockLineCenter, 0.2f); // điểm trung tâm
+
+            // Vẽ đường ngang biểu thị độ cao rơi đá
+            Gizmos.DrawLine(
+                new Vector3(bounds.min.x, rockSpawnY, 0),
+                new Vector3(bounds.max.x, rockSpawnY, 0)
+            );
+
+            // Gắn label (không có trong Gizmos, nhưng bạn thấy rõ đường đỏ = vị trí rơi)
         }
     }
-
-    #endregion
 }

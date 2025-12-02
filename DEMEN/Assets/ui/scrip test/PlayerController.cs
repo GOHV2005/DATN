@@ -492,13 +492,12 @@ public class PlayerController : MonoBehaviour
         CancelEquippingActions();
         if (jumpCount < maxJumpCount)
         {
-            if (isGrounded)
-            {
-                rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-            }
+            // 👉 LUÔN ĐẶT LẠI VẬN TỐC ĐỨNG TRƯỚC KHI NHẢY
+            rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
+
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             jumpCount++;
-            isGrounded = false;
+            isGrounded = false; // vì đã rời mặt đất
         }
     }
 
@@ -682,7 +681,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // 👇 DAMAGE TỪ ENEMY
-        if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible && !isAttacking)
+        if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible /*&& !isAttacking*/)
         {
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);

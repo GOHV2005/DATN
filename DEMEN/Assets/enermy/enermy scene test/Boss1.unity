@@ -1106,6 +1106,7 @@ GameObject:
   - component: {fileID: 832026950}
   - component: {fileID: 832026948}
   - component: {fileID: 832026952}
+  - component: {fileID: 832026953}
   m_Layer: 6
   m_Name: Boss
   m_TagString: Enemy
@@ -1139,7 +1140,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 6
+  m_Constraints: 4
 --- !u!212 &832026946
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1190,7 +1191,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 3.36, y: 3.820373}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -1205,7 +1206,7 @@ Transform:
   m_GameObject: {fileID: 832026944}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 15.8, y: 1.35, z: 0}
+  m_LocalPosition: {x: 15.8, y: 0.88, z: 0}
   m_LocalScale: {x: 2.1896594, y: 2.1896594, z: 2.1896594}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1223,21 +1224,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8a79cf00c621ae4599a97c305f9f453, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRadius: 34
-  arenaBounds: {fileID: 2144753820}
+  arenaTrigger: {fileID: 2144753820}
+  player: {fileID: 1285245984}
   chargeSpeed: 12.6
-  chargeDistance: 30.5
-  stonesPerStomp: 7
-  stonePrefab: {fileID: 6035901589871229391, guid: 52ee1563aebe0e242bbfe576baffe40c,
-    type: 3}
-  stompHeight: 15.8
-  stompSpread: 0.7
-  stompDelay: 1
-  cooldownTime: 2
-  obstacleCheckDistance: 3.95
+  obstacleCheckDistance: 4.15
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 256
+    m_Bits: 1024
+  fallingRockPrefab: {fileID: 6035901589871229391, guid: 52ee1563aebe0e242bbfe576baffe40c,
+    type: 3}
+  rockCount: 5
+  rockDelay: 1
+  rockSpawnHeight: -1.73
+  chargeChance: 0.6
+  stunnedTime: 1.5
+  cooldownTime: 2
+  roarTime: 2.5
+  cameraShake: {fileID: 2086372800}
+  shakeIntensity: 0.45
+  idleAnim: Dung(bohung)
+  ramAnim: ram(bohung)
+  chargeAnim: chaynhanh(bohung)
 --- !u!61 &832026950
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -1272,17 +1279,17 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 0}
+  m_Offset: {x: 0, y: 0.09133941}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 3.36, y: 3.820373}
-    newSize: {x: 1, y: 1}
+    newSize: {x: 3.36, y: 3.820373}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 3.36, y: 3.820373}
+  m_Size: {x: 3.36, y: 3.6376944}
   m_EdgeRadius: 0
 --- !u!70 &832026951
 CapsuleCollider2D:
@@ -1318,8 +1325,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0.02130879, y: 0.023510205}
-  m_Size: {x: 3.2860067, y: 3.8210306}
+  m_Offset: {x: 0.02130879, y: 0.103390515}
+  m_Size: {x: 3.2860067, y: 3.6612706}
   m_Direction: 0
 --- !u!114 &832026952
 MonoBehaviour:
@@ -1346,6 +1353,28 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+--- !u!95 &832026953
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 832026944}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 767f0959d3de98543ac761126366ad6f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &1043929469
 GameObject:
   m_ObjectHideFlags: 0
@@ -1357,7 +1386,7 @@ GameObject:
   - component: {fileID: 1043929472}
   - component: {fileID: 1043929471}
   - component: {fileID: 1043929470}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Ground (1)
   m_TagString: Obstacle
   m_Icon: {fileID: 0}
@@ -1481,6 +1510,12 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: -89.876}
+--- !u!4 &1285245984 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6309747923429382125, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
+    type: 3}
+  m_PrefabInstance: {fileID: 264690537}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1352103053
 GameObject:
   m_ObjectHideFlags: 0
@@ -1627,7 +1662,7 @@ GameObject:
   - component: {fileID: 1959786738}
   - component: {fileID: 1959786737}
   - component: {fileID: 1959786736}
-  m_Layer: 8
+  m_Layer: 10
   m_Name: Ground (2)
   m_TagString: Obstacle
   m_Icon: {fileID: 0}
@@ -1762,6 +1797,8 @@ GameObject:
   - component: {fileID: 2086372799}
   - component: {fileID: 2086372798}
   - component: {fileID: 2086372797}
+  - component: {fileID: 2086372801}
+  - component: {fileID: 2086372800}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -1843,6 +1880,62 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2086372800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2086372796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e79d416db3093594b9a6b171939d7f25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!114 &2086372801
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2086372796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_RenderShadows: 1
+  m_RequiresDepthTextureOption: 2
+  m_RequiresOpaqueTextureOption: 2
+  m_CameraType: 0
+  m_Cameras: []
+  m_RendererIndex: -1
+  m_VolumeLayerMask:
+    serializedVersion: 2
+    m_Bits: 1
+  m_VolumeTrigger: {fileID: 0}
+  m_VolumeFrameworkUpdateModeOption: 2
+  m_RenderPostProcessing: 0
+  m_Antialiasing: 0
+  m_AntialiasingQuality: 2
+  m_StopNaN: 0
+  m_Dithering: 0
+  m_ClearDepth: 1
+  m_AllowXRRendering: 1
+  m_AllowHDROutput: 1
+  m_UseScreenCoordOverride: 0
+  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
+  m_RequiresDepthTexture: 0
+  m_RequiresColorTexture: 0
+  m_Version: 2
+  m_TaaSettings:
+    m_Quality: 3
+    m_FrameInfluence: 0.1
+    m_JitterScale: 1
+    m_MipBias: 0
+    m_VarianceClampScale: 0.9
+    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &2144753818
 GameObject:
   m_ObjectHideFlags: 0

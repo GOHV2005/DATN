@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 7514988429912913390}
   - component: {fileID: 2380170102703308536}
   - component: {fileID: 4072933668106152748}
+  - component: {fileID: -6183803887611435692}
   m_Layer: 6
   m_Name: RockBoss
   m_TagString: Enemy
@@ -307,3 +308,16 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &-6183803887611435692
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6035901589871229391}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 155b35dc954cc3144b894ae177a088ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  lifetime: 5
