@@ -23,6 +23,15 @@ public class PlayerController : MonoBehaviour
     private int jumpCount = 0;
     private bool isGrounded = false;
 
+    [Header("Footstep Sounds")]
+    public AudioClip[] footstepClips; // Kéo 2 âm thanh vào đây
+    public float footstepInterval = 0.35f;
+    public float footstepVolume = 0.6f;
+
+    private float lastFootstepTime = 0f;
+    private int nextFootstepIndex = 0;
+    private AudioSource audioSource;
+
     [Header("Ground Check")]
     public Transform groundCheck;          // 👈 Gán điểm kiểm tra dưới chân
     public float groundCheckRadius = 0.2f; // Bán kính kiểm tra
@@ -131,6 +140,7 @@ public class PlayerController : MonoBehaviour
     public Sprite emptyHeartSprite;
     public float healthPerHeart = 20f;
     public System.Action onTakeDamage; // 👈 THÊM DÒNG NÀY
+
     [Header("UI - Mana")]
     public Image manaFill;
 
@@ -170,6 +180,10 @@ public class PlayerController : MonoBehaviour
     public bool isDead = false;
 
     private float currentHealth;
+  
+    private float manaTargetRatio;
+    private bool manaMainHealing = false;
+
     public float CurrentHealth
     {
         get => currentHealth;
@@ -179,10 +193,6 @@ public class PlayerController : MonoBehaviour
             UpdateHeartUI();
         }
     }
-
-    private float manaTargetRatio;
-    private bool manaMainHealing = false;
-
     void Awake()
     {
         if (Instance != null && Instance != this)
@@ -192,10 +202,19 @@ public class PlayerController : MonoBehaviour
         }
 
         Instance = this;
-        DontDestroyOnLoad(gameObject); // 👈 GIỮ PLAYER XUYÊN SCENE
+        DontDestroyOnLoad(gameObject);
         rb = GetComponent<Rigidbody2D>();
-        defaultGravityScale = rb.gravityScale;
+        defaultGravityScale = rb.gravityScale; // ✅ ĐÚNG TÊN BIẾN
         spriteRenderers = new List<SpriteRenderer>(GetComponentsInChildren<SpriteRenderer>(true));
+
+        // 👇 KHỞI TẠO AUDIO SOURCE
+        audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+        {
+            audioSource = gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
+            audioSource.spatialBlend = 0f; // 2D sound
+        }
     }
 
     void Start()
@@ -265,6 +284,19 @@ public class PlayerController : MonoBehaviour
         else
         {
             horizontalInput = 0f;
+        }
+        if (Mathf.Abs(horizontalInput) > 0.1f && isGrounded && !isDashing && !isAttacking && !isKnockbacked && !isDead)
+        {
+            if (Time.time - lastFootstepTime >= footstepInterval)
+            {
+                if (footstepClips != null && footstepClips.Length > 0)
+                {
+                    // Luân phiên: 0 → 1 → 0 → 1...
+                    audioSource.PlayOneShot(footstepClips[nextFootstepIndex], footstepVolume);
+                    nextFootstepIndex = (nextFootstepIndex + 1) % footstepClips.Length;
+                    lastFootstepTime = Time.time;
+                }
+            }
         }
     }
     void CheckGround()
@@ -683,6 +715,8 @@ public class PlayerController : MonoBehaviour
         // 👇 DAMAGE TỪ ENEMY
         if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible /*&& !isAttacking*/)
         {
+            if (other.GetComponent<BeetleBossAI> () != null)
+                return;
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
         }
