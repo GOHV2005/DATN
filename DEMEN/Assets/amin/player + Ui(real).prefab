@@ -322,7 +322,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2637773599153387471
 Transform:
   m_ObjectHideFlags: 0
@@ -3541,6 +3541,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: footstepClips.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: 'heartImages.Array.data[0]'
       value: 
       objectReference: {fileID: 6928816544177259781}
@@ -3564,6 +3569,16 @@ PrefabInstance:
       propertyPath: 'heartImages.Array.data[4]'
       value: 
       objectReference: {fileID: 3237629584858085785}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: 'footstepClips.Array.data[0]'
+      value: 
+      objectReference: {fileID: 8300000, guid: f86ae537193308646929406d6a29136d, type: 3}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: 'footstepClips.Array.data[1]'
+      value: 
+      objectReference: {fileID: 8300000, guid: 53b22e7aca044ee4a96caa3a69ae8211, type: 3}
     - target: {fileID: 5287396196625394227, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Layer
@@ -3602,12 +3617,12 @@ PrefabInstance:
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -37.5
+      value: -13.28
       objectReference: {fileID: 0}
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 8.01
+      value: 0.92
       objectReference: {fileID: 0}
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}

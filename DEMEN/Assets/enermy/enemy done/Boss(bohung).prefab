@@ -231,12 +231,26 @@ MonoBehaviour:
   chargeChance: 0.6
   stunnedTime: 1.5
   cooldownTime: 2
-  roarTime: 2.5
+  roarTime: 4
   cameraShake: {fileID: 0}
   shakeIntensity: 0.45
   idleAnim: Dung(bohung)
   ramAnim: ram(bohung)
   chargeAnim: chaynhanh(bohung)
+  roarSound: {fileID: 8300000, guid: 36ec36f69a9f442499570cdc28533d67, type: 3}
+  roarVolume: 0.21
+  stunImpactSound: {fileID: 8300000, guid: 5826e08ae4924374c9167c179c4c45e5, type: 3}
+  stunVolume: 1
+  rockDropSound: {fileID: 8300000, guid: 19270e0d755353942bc0cb85c11d7f80, type: 3}
+  rockDropVolume: 1
+  footstepClips:
+  - {fileID: 8300000, guid: 5d4fe5f2edf5d10468736ed45955b2c1, type: 3}
+  footstepVolume: 1
+  footstepInterval: 0.4
+  bossMusic: {fileID: 8300000, guid: f6c6a31f7ff1ac34faf746330dd8b2c0, type: 3}
+  musicVolume: 0.522
+  sfxMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  musicMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
 --- !u!114 &184950589366666946
 MonoBehaviour:
   m_ObjectHideFlags: 0

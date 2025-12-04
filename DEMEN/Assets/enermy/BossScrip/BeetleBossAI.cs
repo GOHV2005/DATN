@@ -1,5 +1,6 @@
-﻿using UnityEngine;
-using System.Collections;
+﻿using System.Collections;
+using UnityEngine;
+using UnityEngine.Audio;
 
 public class BossBeetleAI : MonoBehaviour
 {
@@ -20,10 +21,10 @@ public class BossBeetleAI : MonoBehaviour
     public int rockCount = 5;
     public float rockDelay = 0.25f;
     [Tooltip("Chiều cao rơi đá tính từ TRẦN của arena (arenaTrigger.bounds.max.y)")]
-    public float rockSpawnHeight = 7f; // ← chỉnh trực tiếp trong Inspector
+    public float rockSpawnHeight = 7f;
 
     [Header("SKILL PROBABILITIES")]
-    [Range(0f, 1f)] public float chargeChance = 0.6f; // 60% lao, 40% đá
+    [Range(0f, 1f)] public float chargeChance = 0.6f;
 
     [Header("TIME SETTINGS")]
     public float stunnedTime = 1.5f;
@@ -39,12 +40,43 @@ public class BossBeetleAI : MonoBehaviour
     public string ramAnim = "ram(bohung)";
     public string chargeAnim = "chaynhanh(bohung)";
 
+    // =============== ÂM THANH CÓ VOLUME RIÊNG ===============
+    [Header("SOUND EFFECTS")]
+    public AudioClip roarSound;
+    [Range(0f, 1f)] public float roarVolume = 1f;
+
+    public AudioClip stunImpactSound;
+    [Range(0f, 1f)] public float stunVolume = 1f;
+
+    public AudioClip rockDropSound;
+    [Range(0f, 1f)] public float rockDropVolume = 1f;
+
+    [Header("FOOTSTEP SOUNDS")]
+    public AudioClip[] footstepClips;
+    [Range(0f, 1f)] public float footstepVolume = 0.7f;
+    public float footstepInterval = 0.4f;
+
+    [Header("BOSS MUSIC")]
+    public AudioClip bossMusic;
+    [Range(0f, 1f)] public float musicVolume = 0.8f;
+    private AudioSource musicAudioSource;
+
+    [Header("AUDIO MIXER")]
+    public AudioMixerGroup sfxMixerGroup;   // Group "SFX"
+    public AudioMixerGroup musicMixerGroup; // Group "Music"
+
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
     private Vector2 chargeDirection;
     private float stateTimer;
     private bool playerEnteredArena = false;
+    private AudioSource audioSource;
+    private bool isStunned = false;
+    private bool stunnedFlipX = false;
+
+    private float lastFootstepTime = 0f;
+    private int nextFootstepIndex = 0;
 
     void Start()
     {
@@ -55,6 +87,25 @@ public class BossBeetleAI : MonoBehaviour
         if (!player)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
+        // ====== SFX AudioSource ======
+        if (GetComponent<AudioSource>() == null)
+            gameObject.AddComponent<AudioSource>();
+        audioSource = GetComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;
+        // 👇 GÁN MIXER GROUP
+        if (sfxMixerGroup != null)
+            audioSource.outputAudioMixerGroup = sfxMixerGroup;
+
+        // ====== MUSIC AudioSource ======
+        musicAudioSource = gameObject.AddComponent<AudioSource>();
+        musicAudioSource.playOnAwake = false;
+        musicAudioSource.loop = true;
+        musicAudioSource.spatialBlend = 0f;
+        // 👇 GÁN MIXER GROUP
+        if (musicMixerGroup != null)
+            musicAudioSource.outputAudioMixerGroup = musicMixerGroup;
+
         PlayAnim(idleAnim);
     }
 
@@ -64,11 +115,38 @@ public class BossBeetleAI : MonoBehaviour
 
         bool isInArena = arenaTrigger && arenaTrigger.bounds.Contains(player.position);
 
-        if (!isInArena)
+        // XỬ LÝ NHẠC NỀN + KÍCH HOẠT TRẬN ĐẤN
+        if (isInArena)
         {
+            // BẬT NHẠC NẾU CHƯA BẬT
+            if (!musicAudioSource.isPlaying && bossMusic != null)
+            {
+                musicAudioSource.clip = bossMusic;
+                musicAudioSource.Play();
+            }
+
+            if (!playerEnteredArena)
+            {
+                playerEnteredArena = true;
+                currentState = BossState.Roar;
+                stateTimer = roarTime;
+                PlayAnim(ramAnim);
+                PlayRoarSound();
+                if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
+            }
+        }
+        else
+        {
+            // TẮT NHẠC KHI RA KHỎI ARENA
+            if (musicAudioSource.isPlaying)
+            {
+                musicAudioSource.Stop();
+            }
+
             rb.linearVelocity = Vector2.zero;
             PlayAnim(idleAnim);
-            UpdateFacingDirectionForNonMovingStates();
+            if (audioSource.isPlaying && audioSource.clip == roarSound)
+                audioSource.Stop();
             return;
         }
 
@@ -78,20 +156,25 @@ public class BossBeetleAI : MonoBehaviour
             currentState = BossState.Roar;
             stateTimer = roarTime;
             PlayAnim(ramAnim);
+            PlayRoarSound();
             if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
         }
 
-        // Cập nhật hướng sprite
+        // CẬP NHẬT HƯỚNG SPRITE
         if (currentState == BossState.Charge)
         {
             sr.flipX = (rb.linearVelocity.x > 0);
         }
+        else if (isStunned)
+        {
+            sr.flipX = stunnedFlipX;
+        }
         else
         {
-            UpdateFacingDirectionForNonMovingStates();
+            sr.flipX = (player.position.x > transform.position.x);
         }
 
-        // Hành vi theo trạng thái
+        // HÀNH VI THEO TRẠNG THÁI
         switch (currentState)
         {
             case BossState.Roar:
@@ -113,21 +196,37 @@ public class BossBeetleAI : MonoBehaviour
                 break;
         }
 
+        // =============== FOOTSTEP SOUNDS ===============
+        if (Mathf.Abs(rb.linearVelocity.x) > 0.1f && !isStunned)
+        {
+            bool canPlayFootstep =
+                currentState == BossState.Turn ||
+                currentState == BossState.Cooldown ||
+                currentState == BossState.Charge;
+           
+
+            if (canPlayFootstep && Time.time - lastFootstepTime >= footstepInterval)
+            {
+                if (footstepClips != null && footstepClips.Length > 0)
+                {
+                    AudioClip clip = footstepClips[nextFootstepIndex];
+                    audioSource.PlayOneShot(clip, footstepVolume);
+                    nextFootstepIndex = (nextFootstepIndex + 1) % footstepClips.Length;
+                    lastFootstepTime = Time.time;
+                }
+            }
+        }
+
         stateTimer -= Time.deltaTime;
     }
-
-    void UpdateFacingDirectionForNonMovingStates()
-    {
-        sr.flipX = (player.position.x > transform.position.x);
-    }
-
-    // ========================= STATE BEHAVIORS =========================
 
     void RoarBehavior()
     {
         rb.linearVelocity = Vector2.zero;
         if (stateTimer <= 0)
         {
+            if (audioSource.isPlaying && audioSource.clip == roarSound)
+                audioSource.Stop();
             currentState = BossState.Turn;
             stateTimer = 0.1f;
         }
@@ -152,6 +251,10 @@ public class BossBeetleAI : MonoBehaviour
         if (hit.collider != null)
         {
             rb.linearVelocity = Vector2.zero;
+            if (stunImpactSound != null)
+                audioSource.PlayOneShot(stunImpactSound, stunVolume);
+            stunnedFlipX = sr.flipX;
+            isStunned = true;
             currentState = BossState.Stunned;
             stateTimer = stunnedTime;
         }
@@ -163,6 +266,7 @@ public class BossBeetleAI : MonoBehaviour
         PlayAnim(idleAnim);
         if (stateTimer <= 0)
         {
+            isStunned = false;
             currentState = BossState.Stomp;
             StartCoroutine(StompRoutine());
         }
@@ -171,6 +275,7 @@ public class BossBeetleAI : MonoBehaviour
     IEnumerator StompRoutine()
     {
         PlayAnim(ramAnim);
+        PlayRoarSound();
 
         if (cameraShake)
             cameraShake.Shake(shakeIntensity, rockCount * rockDelay);
@@ -185,9 +290,14 @@ public class BossBeetleAI : MonoBehaviour
                     0
                 );
                 Instantiate(fallingRockPrefab, dropPos, Quaternion.identity);
+                if (rockDropSound != null)
+                    audioSource.PlayOneShot(rockDropSound, rockDropVolume);
             }
             yield return new WaitForSeconds(rockDelay);
         }
+
+        if (audioSource.isPlaying && audioSource.clip == roarSound)
+            audioSource.Stop();
 
         currentState = BossState.Cooldown;
         stateTimer = cooldownTime;
@@ -200,7 +310,7 @@ public class BossBeetleAI : MonoBehaviour
 
         if (stateTimer <= 0)
         {
-            if (Random.value < chargeChance) // ← 60% mặc định
+            if (Random.value < chargeChance)
             {
                 currentState = BossState.Turn;
                 stateTimer = 0.1f;
@@ -213,17 +323,26 @@ public class BossBeetleAI : MonoBehaviour
         }
     }
 
+    void PlayRoarSound()
+    {
+        if (audioSource != null && roarSound != null)
+        {
+            if (audioSource.isPlaying)
+                audioSource.Stop();
+            audioSource.clip = roarSound;
+            audioSource.volume = roarVolume;
+            audioSource.Play();
+        }
+    }
+
     void PlayAnim(string animName)
     {
         if (anim != null)
             anim.Play(animName);
     }
 
-    // ========================= GIZMOS FOR DEBUG =========================
-
     private void OnDrawGizmos()
     {
-        // 1. Vẽ tầm nhìn lao (obstacle check)
         if (sr != null)
         {
             Gizmos.color = Color.cyan;
@@ -231,32 +350,26 @@ public class BossBeetleAI : MonoBehaviour
             Gizmos.DrawLine(transform.position, (Vector2)transform.position + direction * obstacleCheckDistance);
         }
 
-        // 2. Vẽ chiều cao rơi đá (nếu có arenaTrigger)
         if (arenaTrigger != null)
         {
             Bounds bounds = arenaTrigger.bounds;
             float ceilingY = bounds.max.y;
             float rockSpawnY = ceilingY + rockSpawnHeight;
 
-            // Vẽ đường trần arena
             Gizmos.color = Color.green;
             Gizmos.DrawLine(
                 new Vector3(bounds.min.x, ceilingY, 0),
                 new Vector3(bounds.max.x, ceilingY, 0)
             );
 
-            // Vẽ đường vị trí rơi đá (ngang qua giữa arena)
             Gizmos.color = Color.red;
             Vector3 rockLineCenter = new Vector3((bounds.min.x + bounds.max.x) * 0.5f, rockSpawnY, 0);
-            Gizmos.DrawSphere(rockLineCenter, 0.2f); // điểm trung tâm
+            Gizmos.DrawSphere(rockLineCenter, 0.2f);
 
-            // Vẽ đường ngang biểu thị độ cao rơi đá
             Gizmos.DrawLine(
                 new Vector3(bounds.min.x, rockSpawnY, 0),
                 new Vector3(bounds.max.x, rockSpawnY, 0)
             );
-
-            // Gắn label (không có trong Gizmos, nhưng bạn thấy rõ đường đỏ = vị trí rơi)
         }
     }
 }
