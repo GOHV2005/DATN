@@ -25,8 +25,6 @@ public static class SaveSystem
         PlayerPrefs.SetInt("LastUsedSlot", slotId);
         PlayerPrefs.Save();
 
-        // ❌ XÓA DÒNG NÀY — KHÔNG CẦN LƯU INVENTORY RIÊNG
-        // SaveInventory(slotId, InventoryManager.Instance.GetInventoryData());
     }
 
     // ================== TẢI GAME ==================

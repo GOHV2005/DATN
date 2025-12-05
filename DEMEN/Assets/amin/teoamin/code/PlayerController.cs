@@ -1135,24 +1135,21 @@ public class PlayerController : MonoBehaviour
         if (cuocChimHitbox != null) cuocChimHitbox.enabled = false;
     }
 
-    // Gọi từ animation "trangbicuocchim" → khi trang bị xong
-    // Gọi ở frame cuối của "trangbicuocchim"
     public void OnCuocChimEquipped()
     {
         cuocChimObject.SetActive(true);
         IsHoldingCuocChim = true;
-        isEquippingCuocChim = false; // ✅ mở khóa
+        isEquippingCuocChim = false; 
     }
 
-    // Gọi ở frame cuối của "untrangbicuocchim"
     public void OnCuocChimUnequipped()
     {
         cuocChimObject.SetActive(false);
         IsHoldingCuocChim = false;
-        isEquippingCuocChim = false; // ✅ mở khóa
+        isEquippingCuocChim = false;
     }
 
-    // Gọi từ animation "trangbicuocchim" → frame cuối
+ 
     public void OnLongdenUnequipComplete()
     {
         IsHoldingLongden = false;
@@ -1173,7 +1170,7 @@ public class PlayerController : MonoBehaviour
     {
         isUsingCuocChim = false;
         isAttacking = false;
-        // Không tự động hủy ở đây → chỉ hủy nếu đá chết
+     
     }
     public bool ShouldDropLongdenNow()
     {
@@ -1201,12 +1198,12 @@ public class PlayerController : MonoBehaviour
     {
         if (itemName == "lồng đèn" && IsHoldingLongden)
         {
-            UnequipLongden(); // 👈 GỌI HÀM HỦY ĐÚNG
+            UnequipLongden(); 
             return true;
         }
         if (itemName == "cuốc chim" && IsHoldingCuocChim)
         {
-            UnequipCuocChim(); // 👈 GỌI HÀM HỦY ĐÚNG
+            UnequipCuocChim(); 
             return true;
         }
         return false;
@@ -1217,13 +1214,12 @@ public class PlayerController : MonoBehaviour
         if (isEquippingLongden)
         {
             isEquippingLongden = false;
-            // Tùy chọn: ẩn longden nếu chưa hoàn tất hủy
-            // longdenObject?.SetActive(IsHoldingLongden);
+
         }
         if (isEquippingCuocChim)
         {
             isEquippingCuocChim = false;
-            // cuocChimObject?.SetActive(IsHoldingCuocChim);
+
         }
         if (isEquippingKiem) isEquippingKiem = false;
     }
