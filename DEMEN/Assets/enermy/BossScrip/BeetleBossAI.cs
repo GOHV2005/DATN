@@ -65,6 +65,8 @@ public class BossBeetleAI : MonoBehaviour
     public AudioMixerGroup sfxMixerGroup;   // Group "SFX"
     public AudioMixerGroup musicMixerGroup; // Group "Music"
 
+    [Header("ARENA BARRIER")]
+    public GameObject arenaBarrier; // Kéo GameObject này từ Inspector
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
@@ -128,6 +130,11 @@ public class BossBeetleAI : MonoBehaviour
             if (!playerEnteredArena)
             {
                 playerEnteredArena = true;
+
+                // 🔥 KÍCH HOẠT BARRIER NGĂN RA KHỎI ĐẤU TRƯỜNG
+                if (arenaBarrier != null)
+                    arenaBarrier.SetActive(true);
+
                 currentState = BossState.Roar;
                 stateTimer = roarTime;
                 PlayAnim(ramAnim);
@@ -137,11 +144,14 @@ public class BossBeetleAI : MonoBehaviour
         }
         else
         {
-            // TẮT NHẠC KHI RA KHỎI ARENA
+            // TẮT NHẠC KHI RA KHỎI ARENA (về lý thuyết không thể xảy ra nếu barrier hoạt động)
             if (musicAudioSource.isPlaying)
             {
                 musicAudioSource.Stop();
             }
+
+            // ❌ KHÔNG TẮT BARRIER Ở ĐÂY! Vì đã chặn rồi thì không cho ra nữa.
+            // (Nếu bạn muốn reset trận đấu khi thoát, xử lý ở chỗ khác)
 
             rb.linearVelocity = Vector2.zero;
             PlayAnim(idleAnim);
