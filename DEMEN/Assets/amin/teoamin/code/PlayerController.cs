@@ -39,12 +39,15 @@ public class PlayerController : MonoBehaviour
     public string groundTag = "Ground";    // 👈 DÙNG TAG NHƯ BẠN MUỐN
 
     [Header("Wall Cling")]
-    public Transform wallCheck; // 👈 Gán điểm kiểm tra bên hông (phải hoặc trái)
+    public Transform wallCheck;
     public float wallCheckRadius = 0.2f;
-    public float maxWallClingTime = 2f; // thời gian bám tối đa trước khi trượt
+    public float maxWallClingTime = 2f;
+    public float wallDetachDelay = 0.12f; // 👈 thời gian chờ trước khi tắt bám tường
+
     private bool isWallClinging = false;
     private float wallClingTimer = 0f;
-    private bool isOnWall = false;
+    private float wallDetachTimer = 0f; // 👈 đếm ngược khi mất va chạm
+    private float wallClingStartX = 0f;
 
     [Header("Dash")]
     public float dashForce = 18f;
@@ -309,11 +312,9 @@ public class PlayerController : MonoBehaviour
     }
     void CheckGroundAndWall()
     {
+        // --- Ground check (ưu tiên cao nhất) ---
         bool wasGrounded = isGrounded;
         isGrounded = false;
-        bool wallDetected = false;
-
-        // --- Ground check ---
         Collider2D[] groundColliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
         foreach (Collider2D col in groundColliders)
         {
@@ -324,9 +325,19 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // --- Wall check (chỉ nếu KHÔNG grounded) ---
+        // Reset jump khi chạm đất
+        if (!wasGrounded && isGrounded)
+        {
+            jumpCount = 0;
+            isWallClinging = false;
+            wallClingTimer = 0f;
+            wallDetachTimer = 0f;
+        }
+
+        // --- Wall check (chỉ hoạt động nếu KHÔNG grounded) ---
         if (!isGrounded && wallCheck != null)
         {
+            bool wallDetected = false;
             Collider2D[] wallColliders = Physics2D.OverlapCircleAll(wallCheck.position, wallCheckRadius);
             foreach (Collider2D col in wallColliders)
             {
@@ -336,32 +347,42 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
             }
-        }
 
-        // Reset jump khi chạm đất
-        if (!wasGrounded && isGrounded)
-        {
-            jumpCount = 0;
-            isWallClinging = false;
-            wallClingTimer = 0f;
-        }
-
-        // Cập nhật trạng thái bám tường
-        if (wallDetected && !isGrounded)
-        {
-            if (!isWallClinging)
+            if (wallDetected)
             {
-                isWallClinging = true;
-                wallClingTimer = 0f;
+                // 👉 Khi CHẠM TƯỜNG: bật bám ngay (nếu chưa)
+                if (!isWallClinging)
+                {
+                    isWallClinging = true;
+                    wallClingTimer = 0f;
+                    wallClingStartX = transform.position.x;
+                }
+                // Reset debounce timer
+                wallDetachTimer = 0f;
             }
-            wallClingTimer += Time.deltaTime;
+            else
+            {
+                // 👉 Khi KHÔNG CHẠM: đếm debounce trước khi tắt
+                if (isWallClinging)
+                {
+                    wallDetachTimer += Time.deltaTime;
+                    if (wallDetachTimer >= wallDetachDelay)
+                    {
+                        isWallClinging = false;
+                        wallClingTimer = 0f;
+                    }
+                }
+            }
         }
         else
         {
-            isWallClinging = false;
+            // Không grounded nhưng không có wallCheck → tắt
+            if (isWallClinging)
+            {
+                isWallClinging = false;
+                wallClingTimer = 0f;
+            }
         }
-
-        isOnWall = wallDetected;
     }
 
     void FixedUpdate()
@@ -436,41 +457,25 @@ public class PlayerController : MonoBehaviour
         // Trong FixedUpdate(), sau khi gọi CheckGroundAndWall()
         if (isWallClinging)
         {
-            // 🔒 1. DỪNG MỌI DI CHUYỂN NGANG
-            float currentXVelocity = rb.linearVelocity.x;
+            // Giữ nguyên vị trí X khi bắt đầu bám (tránh khựng do tilemap gồ ghề)
+            transform.position = new Vector3(wallClingStartX, transform.position.y, transform.position.z);
             rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
 
-            // 🔒 2. TRIỆT TIÊU VẬN TỐC RƠI (nếu có)
-            if (wallClingTimer <= maxWallClingTime)
+            if (wallClingTimer <= maxWallClingTime) // maxWallClingTime = 2f
             {
-                // DÍNH CHẶT: không rơi
-                rb.gravityScale = 0f;
-                rb.linearVelocity = new Vector2(0f, 0f); // 👈 ĐẢM BẢO KHÔNG RƠI
+                // 🧊 2 GIÂY ĐẦU: DÍNH TƯỜNG HOÀN TOÀN
+                rb.linearVelocity = new Vector2(0f, 0f);
             }
             else
             {
-                // SAU 2 GIÂY: CHO TRƯỢT XUỐNG TỪ TỪ
-                rb.gravityScale = defaultGravityScale * 0.3f; // trượt chậm
-                                                              // KHÔNG reset velocity.y → cho phép rơi chậm
-            }
-
-            // 🔒 3. (TÙY CHỌN) GIỮ PLAYER SÁT TƯỜNG
-            if (wallCheck != null)
-            {
-                Vector2 wallDir = facingRight ? Vector2.right : Vector2.left;
-                RaycastHit2D hit = Physics2D.Raycast(wallCheck.position, wallDir, wallCheckRadius * 1.2f, groundLayer);
-                if (hit)
-                {
-                    float wallSurfaceX = hit.point.x;
-                    float playerHalfWidth = GetComponent<SpriteRenderer>().bounds.extents.x;
-                    float targetX = wallSurfaceX - (facingRight ? playerHalfWidth : -playerHalfWidth);
-                    transform.position = new Vector3(targetX, transform.position.y, transform.position.z);
-                }
+                // ⏳ SAU 2 GIÂY: TRƯỢT XUỐNG, TĂNG TỐC DẦN
+                float timeSliding = wallClingTimer - maxWallClingTime; // thời gian trượt thực tế
+                float fallSpeed = Mathf.Clamp(timeSliding * 2.5f, 0f, 10f); // hệ số 2.5 → chỉnh cho mượt
+                rb.linearVelocity = new Vector2(0f, -fallSpeed); // rơi xuống (Y âm)
             }
         }
         else
         {
-            // Không bám tường → dùng gravity mặc định
             rb.gravityScale = defaultGravityScale;
         }
 
@@ -850,29 +855,29 @@ public class PlayerController : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        // Ground Check
+        // Vòng Ground Check — ưu tiên cao nhất
         if (groundCheck != null)
         {
             Gizmos.color = isGrounded ? Color.green : Color.red;
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
 
-        // Wall Check — chỉ vẽ vị trí, không logic phức tạp
+        // Vòng Wall Check — chỉ tượng trưng, không va chạm
+        if (groundCheck != null)
+        {
+            Gizmos.color = isGrounded ? Color.green : Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        }
+
+        // 🟠 Vòng 2: Wall Check
         if (wallCheck != null)
         {
-            // Màu tím nếu đang bám (khi play), vàng nếu chỉ chạm, xám nếu không
-            Color wallColor = Color.grey;
-            if (Application.isPlaying)
-            {
-                if (isWallClinging) wallColor = Color.magenta;
-                else if (isOnWall) wallColor = Color.yellow;
-            }
-            else
-            {
-                wallColor = new Color(1f, 0.5f, 0f, 0.7f); // cam nhạt khi edit
-            }
+            // Màu cam nhạt khi không play (để dễ thấy trong Editor)
+            Color c = Application.isPlaying
+                ? (isWallClinging ? Color.magenta : Color.grey)
+                : new Color(1f, 0.5f, 0f, 0.7f);
 
-            Gizmos.color = wallColor;
+            Gizmos.color = c;
             Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
         }
     }
