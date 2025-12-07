@@ -64,7 +64,6 @@ public class DialogueSystem : MonoBehaviour
         dialoguePanel.SetActive(true);
         btnYes.gameObject.SetActive(false);
         btnNo.gameObject.SetActive(false);
-
         // 👇 GÁN SPRITE
         if (dialogue.playerSprite != null) playerPortrait.sprite = dialogue.playerSprite;
         if (dialogue.npcSprite != null) npcPortrait.sprite = dialogue.npcSprite;
@@ -236,6 +235,7 @@ public class DialogueSystem : MonoBehaviour
 
     public void CloseDialogue()
     {
+
         UIManager.IsTalkingToNPC = false; 
         dialoguePanel.SetActive(false);
         currentDialogue = null; // 👈 ĐẶT NGAY ĐẦU

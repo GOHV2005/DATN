@@ -5,6 +5,8 @@ using UnityEngine.SceneManagement;
 [RequireComponent(typeof(Collider2D))]
 public class SavePoint : MonoBehaviour
 {
+    [Header("=== CÁC OBJECT CẦN LƯU TRẠNG THÁI ===")]
+    public SaveableObject[] objectsToSave;
     [Header("Optional Visual")]
     public CheckpointVisual checkpointVisual;
 
@@ -58,7 +60,7 @@ public class SavePoint : MonoBehaviour
         PlayerPrefs.SetFloat("CheckpointX", transform.position.x);
         PlayerPrefs.SetFloat("CheckpointY", transform.position.y);
         PlayerPrefs.SetFloat("CheckpointZ", transform.position.z);
-
+        data.saveableObjects.Clear();
         // 👇 LƯU INVENTORY + TRẠNG THÁI TRANG BỊ
         InventoryManager invMgr = InventoryManager.Instance;
         if (invMgr != null)
@@ -72,6 +74,12 @@ public class SavePoint : MonoBehaviour
                 data.inventory.isHoldingLongden = player.IsHoldingLongden;
                 data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
             }
+        }
+        data.existingObjects.Clear();
+
+        foreach (var obj in FindObjectsOfType<SaveableObject>())
+        {
+            data.existingObjects.Add(obj.guid);
         }
 
         SaveSystem.SaveGame(slotIndex, data);

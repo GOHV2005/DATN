@@ -3,16 +3,24 @@ using System.Collections;
 
 public class BeeAI : MonoBehaviour
 {
-    public enum BeeState { Hovering, Chasing, Retreating, KeepingDistance }
+    public enum BeeState
+    {
+        Hovering,
+        Chasing,
+        Retreating,
+        KeepingDistance,
+        ReturningToAnchor
+    }
 
     [Header("=== THIẾT LẬP CƠ BẢN ===")]
-    public Transform anchorPoint;       // Điểm neo (tổ ong)
-    public float hoverRadius = 3f;      // Bán kính vùng bay
-    public float hoverSpeed = 1.8f;     // Tốc độ bay lang thang
-    public float chaseSpeed = 3f;       // Tốc độ đuổi
-    public float detectionRange = 5f;   // Tầm phát hiện player
-    public float retreatDistance = 3f;  // Khoảng cách bay lùi sau khi chích
-    public Vector2 keepDistanceRange = new Vector2(1.5f, 3f); // Khoảng cách giữ quanh player
+    public Transform anchorPoint;
+    public float hoverRadius = 3f;
+    public float hoverSpeed = 1.8f;
+    public float chaseSpeed = 3f;
+    public float detectionRange = 5f;
+    public float maxChaseDistance = 12f; // 👈 GIỚI HẠN TỐI ĐA TỪ NEO
+    public float retreatDistance = 3f;
+    public Vector2 keepDistanceRange = new Vector2(1.5f, 3f);
 
     [Header("=== SÁT THƯƠNG ===")]
     public float damage = 15f;
@@ -33,7 +41,7 @@ public class BeeAI : MonoBehaviour
     private bool isFacingRight = false;
     private bool isAttacking = false;
     private bool isRetreatingLocked = false;
-    private float retreatLockDuration = 0.5f; // Thời gian khóa hướng (nửa giây)
+    private float retreatLockDuration = 0.5f;
 
     void Start()
     {
@@ -65,7 +73,31 @@ public class BeeAI : MonoBehaviour
     {
         if (isDead || player == null) return;
 
-        // 🚫 Nếu đang retreat và bị khóa, chỉ cho phép retreat chạy thôi
+        // 👇 KIỂM TRA GIỚI HẠN TỐI ĐA
+        float distFromAnchor = Vector2.Distance(transform.position, anchorPoint.position);
+        if (distFromAnchor > maxChaseDistance)
+        {
+            if (currentState != BeeState.ReturningToAnchor)
+            {
+                Debug.Log("🐝 [Ong] Quá xa tổ → Quay về!");
+                currentState = BeeState.ReturningToAnchor;
+                PlayAnim(flyAnim);
+                isAttacking = false;
+            }
+        }
+        // 👇 KHI ĐANG QUAY VỀ: chỉ đuổi lại nếu player đủ gần neo
+        else if (currentState == BeeState.ReturningToAnchor && PlayerInSight())
+        {
+            // 👇 CHỈ ĐUỔI LẠI NẾU PLAYER CÁCH NEO <= 80% giới hạn
+            if (Vector2.Distance(player.position, anchorPoint.position) <= maxChaseDistance * 0.8f)
+            {
+                Debug.Log("🐝 [Ong] Player vào tầm và đủ gần → Tiếp tục đuổi!");
+                currentState = BeeState.Chasing;
+                PlayAnim(attackAnim);
+                isAttacking = true;
+            }
+        }
+
         if (isRetreatingLocked)
         {
             RetreatingBehavior();
@@ -86,16 +118,16 @@ public class BeeAI : MonoBehaviour
             case BeeState.KeepingDistance:
                 KeepingDistanceBehavior();
                 break;
+            case BeeState.ReturningToAnchor:
+                ReturningToAnchorBehavior();
+                break;
         }
     }
 
-
-    // 🌀 BAY LANG THANG
     void HoveringBehavior()
     {
         Vector2 dir = (currentTarget - (Vector2)transform.position).normalized;
         rb.linearVelocity = dir * hoverSpeed;
-
         FlipSprite(dir.x, facePlayer: false);
 
         if (Vector2.Distance(transform.position, currentTarget) < 0.3f)
@@ -111,73 +143,66 @@ public class BeeAI : MonoBehaviour
         }
     }
 
-    // 💢 TẤN CÔNG
     void ChasingBehavior()
     {
         if (!player) return;
 
         isAttacking = true;
-
         Vector2 dir = (player.position - transform.position).normalized;
         rb.linearVelocity = dir * chaseSpeed;
         FlipSprite(dir.x);
-
-        if (Vector2.Distance(transform.position, player.position) > detectionRange * 2f)
-        {
-            currentState = BeeState.Hovering;
-            isAttacking = false;
-            PlayAnim(flyAnim);
-        }
+        // ❌ KHÔNG CÓ ĐIỀU KIỆN DỪNG ĐUỔI Ở ĐÂY
     }
 
-    // 🏃‍♂️ BAY LÙI RA XA SAU KHI CHÍCH
-    // 🏃‍♂️ BAY LÙI RA XA SAU KHI CHÍCH
     void RetreatingBehavior()
     {
         if (!player) return;
 
-        // Bay ngược hướng player, nhưng giữ độ lệch góc nhẹ để không bay thẳng đứng
         Vector2 toPlayer = ((Vector2)player.position - (Vector2)transform.position).normalized;
         Vector2 retreatDir = Quaternion.Euler(0, 0, Random.Range(-20f, 20f)) * -toPlayer;
-
-        rb.linearVelocity = retreatDir * (chaseSpeed * 0.8f); // bay hơi chậm hơn tí
+        rb.linearVelocity = retreatDir * (chaseSpeed * 0.8f);
         FlipSprite(retreatDir.x);
 
-        // Khi đã lùi đủ xa thì chuyển sang giữ khoảng cách
         if (Vector2.Distance(transform.position, player.position) > retreatDistance)
         {
             StartCoroutine(KeepDistanceThenAttack());
         }
     }
 
-    // 🐝 GIỮ KHOẢNG CÁCH BAY Ở GÓC 60° PHÍA TRÊN PLAYER
     void KeepingDistanceBehavior()
     {
         if (!player) return;
 
-        // Bay quanh player ở góc 60 độ phía trên (±10 độ ngẫu nhiên)
         float angleDeg = 60f + Random.Range(-10f, 10f);
         float angleRad = angleDeg * Mathf.Deg2Rad;
         float radius = Random.Range(keepDistanceRange.x, keepDistanceRange.y);
-
         Vector2 offset = new Vector2(Mathf.Cos(angleRad), Mathf.Sin(angleRad)) * radius;
         Vector2 targetPos = (Vector2)player.position + offset;
 
         Vector2 dir = (targetPos - (Vector2)transform.position).normalized;
-        rb.linearVelocity = dir * (hoverSpeed * 0.8f); // bay chậm, nhẹ
+        rb.linearVelocity = dir * (hoverSpeed * 0.8f);
         FlipSprite(dir.x, facePlayer: true);
     }
 
-    // 🔁 Sau khi rút lui → giữ khoảng cách → chờ tấn công lại
+    void ReturningToAnchorBehavior()
+    {
+        Vector2 dir = (anchorPoint.position - transform.position).normalized;
+        rb.linearVelocity = dir * hoverSpeed;
+        FlipSprite(dir.x, facePlayer: false);
+
+        if (Vector2.Distance(transform.position, anchorPoint.position) < 0.5f)
+        {
+            currentState = BeeState.Hovering;
+            SetNewRandomTarget();
+        }
+    }
+
     IEnumerator KeepDistanceThenAttack()
     {
         currentState = BeeState.KeepingDistance;
         PlayAnim(flyAnim);
         isAttacking = false;
-
-        // Thời gian giữ khoảng cách cố định, không ngẫu nhiên quá lâu
         yield return new WaitForSeconds(3f);
-
         if (!isDead && player != null)
         {
             currentState = BeeState.Chasing;
@@ -186,7 +211,6 @@ public class BeeAI : MonoBehaviour
         }
     }
 
-
     private void OnTriggerEnter2D(Collider2D col)
     {
         if (isDead) return;
@@ -194,28 +218,24 @@ public class BeeAI : MonoBehaviour
         if (col.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
         {
             lastDamageTime = Time.time;
-
             Health hp = col.GetComponent<Health>();
             if (hp != null)
             {
-                hp.TakeDamage(damage, transform); // Gây damage player
+                hp.TakeDamage(damage, transform);
                 Debug.Log("🐝 [Ong] ĐÃ CHÍCH PLAYER!");
 
-                // Nếu player chết → quay lại Hovering
                 if (hp.GetCurrentHealth() <= 0)
                 {
                     currentState = BeeState.Hovering;
                     SetNewRandomTarget();
                     PlayAnim(flyAnim);
-                    return; // Ngừng các hành động retreat/attack
+                    return;
                 }
             }
 
-            // Nếu player còn sống → bắt đầu retreat
             StartCoroutine(StartRetreatLock());
         }
     }
-
 
     IEnumerator StartRetreatLock()
     {
@@ -223,7 +243,6 @@ public class BeeAI : MonoBehaviour
         currentState = BeeState.Retreating;
         isAttacking = false;
         PlayAnim(flyAnim);
-
         yield return new WaitForSeconds(retreatLockDuration);
         isRetreatingLocked = false;
     }
@@ -243,7 +262,6 @@ public class BeeAI : MonoBehaviour
     {
         if (facePlayer && player != null)
         {
-            // Luôn nhìn về playerKeepingDistance
             bool shouldFaceRight = player.position.x > transform.position.x;
             if (shouldFaceRight != isFacingRight)
             {
@@ -253,7 +271,6 @@ public class BeeAI : MonoBehaviour
         }
         else
         {
-            // Flip theo hướng di chuyển
             bool shouldFaceRight = dirX > 0;
             if (shouldFaceRight != isFacingRight)
             {
@@ -262,7 +279,6 @@ public class BeeAI : MonoBehaviour
             }
         }
     }
-
 
     void PlayAnim(string animName)
     {
@@ -280,5 +296,8 @@ public class BeeAI : MonoBehaviour
         }
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, detectionRange);
+        // 👇 VẼ VÙNG GIỚI HẠN TỐI ĐA
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(anchorPoint.position, maxChaseDistance);
     }
 }
