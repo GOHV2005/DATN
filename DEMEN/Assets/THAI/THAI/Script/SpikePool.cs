@@ -5,33 +5,44 @@ public class SpikePool : MonoBehaviour
 {
     public GameObject spikePrefab;
     public int poolSize = 20;
-    private List<GameObject> pool;
+    private Queue<GameObject> spikePool = new Queue<GameObject>();
 
-    void Awake()
+    void Start()
     {
-        pool = new List<GameObject>();
-        for (int i = 0; i < poolSize; i++)
+        for (int i = poolSize - 1; i >= 0; i--)
         {
             GameObject spike = Instantiate(spikePrefab);
             spike.SetActive(false);
-            pool.Add(spike);
+            spikePool.Enqueue(spike);
         }
     }
 
-    public GameObject GetSpike()
+    public GameObject GetSpike(Vector3 position)
     {
-        foreach (GameObject spike in pool)
+        if (spikePool.Count > 0)
         {
-            if (!spike.activeInHierarchy)
-            {
-                return spike;
-            }
-        }
+            GameObject spike = spikePool.Dequeue();
+            spike.transform.position = position;
+            spike.SetActive(true);
 
-        // Optional: expand pool if needed
-        GameObject newSpike = Instantiate(spikePrefab);
-        newSpike.SetActive(false);
-        pool.Add(newSpike);
-        return newSpike;
+            Rigidbody rb = spike.GetComponent<Rigidbody>();
+            rb.linearVelocity = Vector3.zero;        // reset movement
+            rb.angularVelocity = Vector3.zero; // reset rotation
+            rb.useGravity = true;              // enable falling
+
+            return spike;
+        }
+        return null;
+    }
+
+    public void ReturnSpike(GameObject spike)
+    {
+        Rigidbody rb = spike.GetComponent<Rigidbody>();
+        rb.useGravity = false;                // turn off gravity
+        rb.linearVelocity = Vector3.zero;           // clear movement
+        rb.angularVelocity = Vector3.zero;    // clear rotation
+
+        spike.SetActive(false);
+        spikePool.Enqueue(spike);
     }
 }
