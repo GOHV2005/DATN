@@ -38,6 +38,17 @@ public class PlayerController : MonoBehaviour
     public LayerMask groundLayer;          // 👈 Hoặc dùng Tag (xem dưới)
     public string groundTag = "Ground";    // 👈 DÙNG TAG NHƯ BẠN MUỐN
 
+    [Header("Wall Cling")]
+    public Transform wallCheck;
+    public float wallCheckRadius = 0.2f;
+    public float maxWallClingTime = 2f;
+    public float wallDetachDelay = 0.12f; // 👈 thời gian chờ trước khi tắt bám tường
+
+    private bool isWallClinging = false;
+    private float wallClingTimer = 0f;
+    private float wallDetachTimer = 0f; // 👈 đếm ngược khi mất va chạm
+    private float wallClingStartX = 0f;
+
     [Header("Dash")]
     public float dashForce = 18f;
     public float dashTime = 0.18f;
@@ -258,7 +269,7 @@ public class PlayerController : MonoBehaviour
         RegenerateManaIfNotDashing();
         UpdateManaUI();
         UpdateAnimation();
-        CheckGround();
+        CheckGroundAndWall();
 
         if (isDead) return;
         if (IsHoldingCuocChim && Input.GetKeyDown(KeyCode.E) && !isUsingCuocChim && !isAttacking && !isDashing && !isDead)
@@ -299,13 +310,13 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    void CheckGround()
+    void CheckGroundAndWall()
     {
+        // --- Ground check (ưu tiên cao nhất) ---
         bool wasGrounded = isGrounded;
         isGrounded = false;
-
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
-        foreach (Collider2D col in colliders)
+        Collider2D[] groundColliders = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius);
+        foreach (Collider2D col in groundColliders)
         {
             if (col.CompareTag(groundTag))
             {
@@ -314,10 +325,63 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Chỉ reset jumpCount khi VỪA MỚI CHẠM ĐẤT (tức từ không grounded → grounded)
+        // Reset jump khi chạm đất
         if (!wasGrounded && isGrounded)
         {
             jumpCount = 0;
+            isWallClinging = false;
+            wallClingTimer = 0f;
+            wallDetachTimer = 0f;
+        }
+
+        // --- Wall check (chỉ hoạt động nếu KHÔNG grounded) ---
+        if (!isGrounded && wallCheck != null)
+        {
+            bool wallDetected = false;
+            Collider2D[] wallColliders = Physics2D.OverlapCircleAll(wallCheck.position, wallCheckRadius);
+            foreach (Collider2D col in wallColliders)
+            {
+                if (col.CompareTag(groundTag))
+                {
+                    wallDetected = true;
+                    break;
+                }
+            }
+
+            if (wallDetected)
+            {
+                // 👉 Khi CHẠM TƯỜNG: bật bám ngay (nếu chưa)
+                if (!isWallClinging)
+                {
+                    isWallClinging = true;
+                    wallClingTimer = 0f;
+                    wallClingStartX = transform.position.x;
+                }
+                // Reset debounce timer
+                wallDetachTimer = 0f;
+            }
+            else
+            {
+                // 👉 Khi KHÔNG CHẠM: đếm debounce trước khi tắt
+                if (isWallClinging)
+                {
+                    wallDetachTimer += Time.deltaTime;
+                    if (wallDetachTimer >= wallDetachDelay)
+                    {
+                        isWallClinging = false;
+                        wallClingTimer = 0f;
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Không grounded nhưng không có wallCheck → tắt
+            if (isWallClinging)
+            {
+                isWallClinging = false;
+                wallClingTimer = 0f;
+            }
         }
     }
 
@@ -358,6 +422,23 @@ public class PlayerController : MonoBehaviour
 
         if (jumpRequested)
         {
+            if (isWallClinging)
+            {
+                // Nhảy ra khỏi tường (wall jump)
+                rb.linearVelocity = new Vector2(0f, 0f);
+                rb.AddForce(new Vector2((facingRight ? -1f : 1f) * jumpForce * 0.8f, jumpForce), ForceMode2D.Impulse);
+                jumpCount = 1; // đã dùng 1 lần jump
+                isWallClinging = false;
+            }
+            else if (jumpCount < maxJumpCount)
+            {
+                HandleJump();
+            }
+            jumpRequested = false;
+        }
+
+        if (jumpRequested)
+        {
             HandleJump();
             jumpRequested = false;
         }
@@ -368,9 +449,34 @@ public class PlayerController : MonoBehaviour
             dashRequested = false;
         }
 
-        if (!isDashing && !isKnockbacked)
+        if (!isDashing && !isKnockbacked && !isWallClinging)
         {
             HandleMovement();
+        }
+
+        // Trong FixedUpdate(), sau khi gọi CheckGroundAndWall()
+        if (isWallClinging)
+        {
+            // Giữ nguyên vị trí X khi bắt đầu bám (tránh khựng do tilemap gồ ghề)
+            transform.position = new Vector3(wallClingStartX, transform.position.y, transform.position.z);
+            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+
+            if (wallClingTimer <= maxWallClingTime) // maxWallClingTime = 2f
+            {
+                // 🧊 2 GIÂY ĐẦU: DÍNH TƯỜNG HOÀN TOÀN
+                rb.linearVelocity = new Vector2(0f, 0f);
+            }
+            else
+            {
+                // ⏳ SAU 2 GIÂY: TRƯỢT XUỐNG, TĂNG TỐC DẦN
+                float timeSliding = wallClingTimer - maxWallClingTime; // thời gian trượt thực tế
+                float fallSpeed = Mathf.Clamp(timeSliding * 2.5f, 0f, 10f); // hệ số 2.5 → chỉnh cho mượt
+                rb.linearVelocity = new Vector2(0f, -fallSpeed); // rơi xuống (Y âm)
+            }
+        }
+        else
+        {
+            rb.gravityScale = defaultGravityScale;
         }
 
         if (isDashing) return;
@@ -749,9 +855,31 @@ public class PlayerController : MonoBehaviour
 
     void OnDrawGizmos()
     {
-        if (groundCheck == null) return;
-        Gizmos.color = isGrounded ? Color.green : Color.red;
-        Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        // Vòng Ground Check — ưu tiên cao nhất
+        if (groundCheck != null)
+        {
+            Gizmos.color = isGrounded ? Color.green : Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        }
+
+        // Vòng Wall Check — chỉ tượng trưng, không va chạm
+        if (groundCheck != null)
+        {
+            Gizmos.color = isGrounded ? Color.green : Color.red;
+            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
+        }
+
+        // 🟠 Vòng 2: Wall Check
+        if (wallCheck != null)
+        {
+            // Màu cam nhạt khi không play (để dễ thấy trong Editor)
+            Color c = Application.isPlaying
+                ? (isWallClinging ? Color.magenta : Color.grey)
+                : new Color(1f, 0.5f, 0f, 0.7f);
+
+            Gizmos.color = c;
+            Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
+        }
     }
 
     public AttackDirection GetAttackDirection(Vector2 enemyPosition)
@@ -1135,24 +1263,21 @@ public class PlayerController : MonoBehaviour
         if (cuocChimHitbox != null) cuocChimHitbox.enabled = false;
     }
 
-    // Gọi từ animation "trangbicuocchim" → khi trang bị xong
-    // Gọi ở frame cuối của "trangbicuocchim"
     public void OnCuocChimEquipped()
     {
         cuocChimObject.SetActive(true);
         IsHoldingCuocChim = true;
-        isEquippingCuocChim = false; // ✅ mở khóa
+        isEquippingCuocChim = false; 
     }
 
-    // Gọi ở frame cuối của "untrangbicuocchim"
     public void OnCuocChimUnequipped()
     {
         cuocChimObject.SetActive(false);
         IsHoldingCuocChim = false;
-        isEquippingCuocChim = false; // ✅ mở khóa
+        isEquippingCuocChim = false;
     }
 
-    // Gọi từ animation "trangbicuocchim" → frame cuối
+ 
     public void OnLongdenUnequipComplete()
     {
         IsHoldingLongden = false;
@@ -1173,7 +1298,7 @@ public class PlayerController : MonoBehaviour
     {
         isUsingCuocChim = false;
         isAttacking = false;
-        // Không tự động hủy ở đây → chỉ hủy nếu đá chết
+     
     }
     public bool ShouldDropLongdenNow()
     {
@@ -1201,12 +1326,12 @@ public class PlayerController : MonoBehaviour
     {
         if (itemName == "lồng đèn" && IsHoldingLongden)
         {
-            UnequipLongden(); // 👈 GỌI HÀM HỦY ĐÚNG
+            UnequipLongden(); 
             return true;
         }
         if (itemName == "cuốc chim" && IsHoldingCuocChim)
         {
-            UnequipCuocChim(); // 👈 GỌI HÀM HỦY ĐÚNG
+            UnequipCuocChim(); 
             return true;
         }
         return false;
@@ -1217,13 +1342,12 @@ public class PlayerController : MonoBehaviour
         if (isEquippingLongden)
         {
             isEquippingLongden = false;
-            // Tùy chọn: ẩn longden nếu chưa hoàn tất hủy
-            // longdenObject?.SetActive(IsHoldingLongden);
+
         }
         if (isEquippingCuocChim)
         {
             isEquippingCuocChim = false;
-            // cuocChimObject?.SetActive(IsHoldingCuocChim);
+
         }
         if (isEquippingKiem) isEquippingKiem = false;
     }
@@ -1263,18 +1387,16 @@ public class PlayerController : MonoBehaviour
     void UpdateAnimation()
     {
         if (animator == null || isDead) return;
+
+        // Hủy các hành động đang diễn ra nếu có va chạm mâu thuẫn
         if (isEquippingLongden && (isDashing || isAttacking || isKnockbacked))
-        {
             isEquippingLongden = false;
-        }
         if (isEquippingCuocChim && (isDashing || isAttacking || isKnockbacked))
-        {
             isEquippingCuocChim = false;
-        }
-        if (isEquippingLongden) return; 
-        if (isDropping) return;
-        if (isEquippingKiem) return;
-        if (isEquippingCuocChim) return;
+
+        if (isEquippingLongden || isEquippingCuocChim || isEquippingKiem || isDropping)
+            return;
+
         if (isKnockbacked)
         {
             animator.Play("Hurt");
@@ -1287,14 +1409,24 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        if (isAttacking) return;
+        if (isAttacking)
+            return;
 
-        if (!isGrounded)
+        // ✅ ƯU TIÊN: nếu grounded → không bám tường
+        if (isGrounded)
         {
-            animator.Play(rb.linearVelocity.y > 0.01f ? "Jump" : "roiiiii");
+            animator.Play(Mathf.Abs(horizontalInput) > 0.1f ? "Run" : "Idle");
             return;
         }
 
-        animator.Play(Mathf.Abs(horizontalInput) > 0.1f ? "Run" : "Idle");
+        // ✅ BÁM TƯỜNG
+        if (isWallClinging)
+        {
+            animator.Play("bamtuong");
+            return;
+        }
+
+        // Nhảy/rơi
+        animator.Play(rb.linearVelocity.y > 0.01f ? "Jump" : "roiiiii");
     }
 }

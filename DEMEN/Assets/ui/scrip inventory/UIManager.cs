@@ -41,11 +41,11 @@ public class UIManager : MonoBehaviour
         if (targetPanel.activeSelf)
         {
             HideAll();
-            Time.timeScale = 1f;
+            //Time.timeScale = 1f;
         }
         else
         {
-            Time.timeScale = 0f;
+            //Time.timeScale = 0f;
             HideAll();
             targetPanel.SetActive(true);
             IsUIOpen = true;
