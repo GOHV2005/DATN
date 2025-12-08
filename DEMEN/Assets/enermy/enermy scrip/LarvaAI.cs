@@ -31,11 +31,11 @@ public class LarvaAI : MonoBehaviour
     private Coroutine currentCoroutine;
     private bool facingRight = true;
     private Animator anim;
-    private SpriteRenderer sr; // 👈 THÊM
+    private SpriteRenderer sr; 
 
     void Start()
     {
-        sr = GetComponent<SpriteRenderer>(); // 👈 THÊM
+        sr = GetComponent<SpriteRenderer>(); 
         anim = GetComponent<Animator>();
         if (anim == null)
         {

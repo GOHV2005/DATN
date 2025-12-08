@@ -821,7 +821,7 @@ public class PlayerController : MonoBehaviour
         // 👇 DAMAGE TỪ ENEMY
         if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible /*&& !isAttacking*/)
         {
-            if (other.GetComponent<BeetleBossAI> () != null)
+            if (other.GetComponent<BossMantisAI> () != null)
                 return;
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);

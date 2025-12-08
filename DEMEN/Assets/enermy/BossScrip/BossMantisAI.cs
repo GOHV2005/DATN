@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 
-public class BeetleBossAI : MonoBehaviour
+public class BossMantisAI : MonoBehaviour
 {
     public enum BossState { Idle, Moving, UsingSkill }
 
