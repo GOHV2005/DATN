@@ -7,7 +7,7 @@ QualitySettings:
   m_CurrentQuality: 2
   m_QualitySettings:
   - serializedVersion: 4
-    name: Low
+    name: "Th\u1EA5p"
     pixelLightCount: 0
     shadows: 0
     shadowResolution: 0
@@ -47,19 +47,20 @@ QualitySettings:
     asyncUploadBufferSize: 16
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 0}
-    terrainQualityOverrides: 0
+    customRenderPipeline: {fileID: 11400000, guid: c7575b2c9b4232f4fb11d141c97f3a60,
+      type: 2}
+    terrainQualityOverrides: 255
     terrainPixelError: 1
-    terrainDetailDensityScale: 1
-    terrainBasemapDistance: 1000
-    terrainDetailDistance: 80
-    terrainTreeDistance: 5000
-    terrainBillboardStart: 50
-    terrainFadeLength: 5
+    terrainDetailDensityScale: 0.192
+    terrainBasemapDistance: 54
+    terrainDetailDistance: 37
+    terrainTreeDistance: 886
+    terrainBillboardStart: 30
+    terrainFadeLength: 1.8
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: Medium
+    name: "Trung B\xECnh"
     pixelLightCount: 1
     shadows: 0
     shadowResolution: 0
@@ -82,7 +83,7 @@ QualitySettings:
     useLegacyDetailDistribution: 1
     adaptiveVsync: 0
     vSyncCount: 1
-    realtimeGICPUUsage: 25
+    realtimeGICPUUsage: 50
     adaptiveVsyncExtraA: 0
     adaptiveVsyncExtraB: 0
     lodBias: 0.7
@@ -99,8 +100,9 @@ QualitySettings:
     asyncUploadBufferSize: 16
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 0}
-    terrainQualityOverrides: 0
+    customRenderPipeline: {fileID: 11400000, guid: c7575b2c9b4232f4fb11d141c97f3a60,
+      type: 2}
+    terrainQualityOverrides: 255
     terrainPixelError: 1
     terrainDetailDensityScale: 1
     terrainBasemapDistance: 1000
@@ -111,7 +113,7 @@ QualitySettings:
     terrainMaxTrees: 50
     excludedTargetPlatforms: []
   - serializedVersion: 4
-    name: High
+    name: Cao
     pixelLightCount: 2
     shadows: 0
     shadowResolution: 1
@@ -134,7 +136,7 @@ QualitySettings:
     useLegacyDetailDistribution: 1
     adaptiveVsync: 0
     vSyncCount: 1
-    realtimeGICPUUsage: 50
+    realtimeGICPUUsage: 75
     adaptiveVsyncExtraA: 0
     adaptiveVsyncExtraB: 0
     lodBias: 1
@@ -151,16 +153,17 @@ QualitySettings:
     asyncUploadBufferSize: 16
     asyncUploadPersistentBuffer: 1
     resolutionScalingFixedDPIFactor: 1
-    customRenderPipeline: {fileID: 0}
-    terrainQualityOverrides: 0
-    terrainPixelError: 1
-    terrainDetailDensityScale: 1
-    terrainBasemapDistance: 1000
-    terrainDetailDistance: 80
+    customRenderPipeline: {fileID: 11400000, guid: c7575b2c9b4232f4fb11d141c97f3a60,
+      type: 2}
+    terrainQualityOverrides: 255
+    terrainPixelError: 85.6
+    terrainDetailDensityScale: 0.694
+    terrainBasemapDistance: 6997
+    terrainDetailDistance: 797
     terrainTreeDistance: 5000
-    terrainBillboardStart: 50
-    terrainFadeLength: 5
-    terrainMaxTrees: 50
+    terrainBillboardStart: 1494
+    terrainFadeLength: 141.9
+    terrainMaxTrees: 5095
     excludedTargetPlatforms: []
   m_TextureMipmapLimitGroupNames: []
   m_PerPlatformDefaultQuality:

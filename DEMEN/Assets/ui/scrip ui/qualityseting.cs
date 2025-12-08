@@ -6,42 +6,54 @@ public class QualitySettingsManager : MonoBehaviour
     [Header("UI")]
     public TMP_Dropdown qualityDropdown;
 
-    private readonly string[] vietnameseNames = { "Thấp", "Trung Bình", "Cao" }; // 3 mức
-
     void Start()
     {
-        // Luôn dùng đúng số lượng names đã định nghĩa
+        // 🔥 LẤY SỐ LƯỢNG MỨC THỰC TẾ TỪ UNITY
+        string[] actualQualityNames = QualitySettings.names;
+
+        // (Tùy chọn) Dịch tên sang tiếng Việt — nhưng PHẢI CÓ ĐỦ SỐ LƯỢNG
+        string[] vietnameseNames = GetVietnameseNames(actualQualityNames.Length);
+
+        // Cập nhật dropdown
         qualityDropdown.ClearOptions();
         qualityDropdown.AddOptions(new System.Collections.Generic.List<string>(vietnameseNames));
 
-        // Lấy current level, nhưng giới hạn trong [0, 2]
         int current = QualitySettings.GetQualityLevel();
         current = Mathf.Clamp(current, 0, vietnameseNames.Length - 1);
 
-        // ⚠️ RẤT QUAN TRỌNG: Đặt lại quality level nếu nó vượt quá
-        QualitySettings.SetQualityLevel(current, true);
-
-        // Gán giá trị an toàn
         qualityDropdown.value = current;
         qualityDropdown.RefreshShownValue();
 
         qualityDropdown.onValueChanged.AddListener(SetQuality);
     }
 
+    string[] GetVietnameseNames(int count)
+    {
+        // Đảm bảo luôn trả đủ `count` phần tử
+        if (count <= 1) return new string[] { "Mặc Định" };
+        if (count == 2) return new string[] { "Thấp", "Cao" };
+        if (count == 3) return new string[] { "Thấp", "Trung Bình", "Cao" };
+        if (count == 4) return new string[] { "Rất Thấp", "Thấp", "Trung Bình", "Cao" };
+        if (count >= 5) return new string[] { "Rất Thấp", "Thấp", "Trung Bình", "Cao", "Rất Cao" };
+
+        // Fallback
+        string[] names = new string[count];
+        for (int i = 0; i < count; i++)
+            names[i] = "Mức " + (i + 1);
+        return names;
+    }
+
     public void SetQuality(int index)
     {
-        // Phòng thủ: chỉ xử lý nếu index hợp lệ
-        if (index >= 0 && index < vietnameseNames.Length)
+        // Kiểm tra an toàn
+        if (index >= 0 && index < QualitySettings.names.Length)
         {
             QualitySettings.SetQualityLevel(index, true);
-            Debug.Log("Chất lượng đã đổi: " + vietnameseNames[index]);
+            Debug.Log($"Chất lượng đã đổi: {QualitySettings.names[index]} (index: {index})");
         }
         else
         {
-            // Nếu vẫn còn index lỗi → reset về mặc định
-            Debug.LogWarning("Index không hợp lệ. Đặt lại về 'Trung Bình'.");
-            qualityDropdown.value = 1; // Trung Bình
-            QualitySettings.SetQualityLevel(1, true);
+            Debug.LogWarning($"Index {index} không hợp lệ. Tổng mức: {QualitySettings.names.Length}");
         }
     }
 }
