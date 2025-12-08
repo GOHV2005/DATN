@@ -38,6 +38,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        Debug.Log("Minigame GameManager Start() called");
         SetupGame();
     }
 

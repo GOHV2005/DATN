@@ -5,14 +5,14 @@ public class SceneManagerHelper : MonoBehaviour
 {
     public static SceneManagerHelper Instance;
 
-    private string previousScene; // lưu Scene trước khi vào minigame
+    public string previousScene;
 
     private void Awake()
     {
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // giữ object qua các scene
+            DontDestroyOnLoad(gameObject);
         }
         else
         {
@@ -20,10 +20,10 @@ public class SceneManagerHelper : MonoBehaviour
         }
     }
 
-    public void GoToMinigame(string Minigame2)
+    public void GoToMinigame(string minigameName)
     {
-        previousScene = SceneManager.GetActiveScene().name; // lưu scene hiện tại
-        SceneManager.LoadScene(Minigame2);
+        previousScene = SceneManager.GetActiveScene().name;
+        SceneManager.LoadScene(minigameName);
     }
 
     public void ReturnToPreviousScene()
@@ -34,14 +34,7 @@ public class SceneManagerHelper : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("Previous scene not set!");
-        }
-    }
-    private void OnTriggerEnter2D(Collider2D collision)
-    {
-        if (collision.CompareTag("Player"))
-        {
-            SceneManagerHelper.Instance.GoToMinigame("Minigame2");
+            Debug.LogWarning("Không tìm thấy previousScene để quay lại!");
         }
     }
 }
