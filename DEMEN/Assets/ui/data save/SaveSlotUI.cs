@@ -44,11 +44,34 @@ public class SaveSlotUI : MonoBehaviour
         else
         {
             PlayerPrefs.SetInt("CurrentSlot", slotIndex);
-            string sceneName = "CutScence";
 
-            if (data != null && data.scenes.Count > 0)
-                sceneName = data.scenes[data.scenes.Count - 1].sceneName;
+            // Nếu chưa có save data → tạo mới (rỗng nhưng hợp lệ)
+            if (data == null || data.scenes.Count == 0)
+            {
+                SaveData newData = new SaveData();
 
+                // 👇 TẠO MỘT CHECKPOINT "RỖNG" HOẶC DỰ PHÒNG
+                // Ví dụ: dùng scene mặc định + vị trí (0,0,0)
+                // Hoặc bạn có thể lưu scene hiện tại nếu đang trong gameplay
+                SceneSaveData defaultCheckpoint = new SceneSaveData
+                {
+                    sceneName = "CutScence", // hoặc "MainMenu"? tuỳ bạn
+                    position = Vector3.zero,
+                    playTime = 0f
+                };
+                newData.AddScene(defaultCheckpoint);
+
+                // Lưu vào hệ thống
+                SaveSystem.SaveGame(slotIndex, newData);
+
+                // Cập nhật lại data local để load đúng
+                data = newData;
+
+                Debug.Log($"[SAVE SLOT] Created new save file for Slot {slotIndex}");
+            }
+
+            // Luôn load từ data (đã có hoặc mới tạo)
+            string sceneName = data.scenes[data.scenes.Count - 1].sceneName;
             SceneLoader.LoadScene(sceneName);
         }
     }

@@ -24,7 +24,7 @@ public class SceneGateTrigger : MonoBehaviour
     public int sortingOrder = 1000;              // 👈 Order in Layer
     [Header("=== Text Wrapping ===")]
     public float textWidth = 200f; // Kéo thanh trượt trong Inspector
-    private TextMeshProUGUI floatingText;
+    private TextMeshPro floatingText;
 
     void Start()
     {
@@ -83,7 +83,7 @@ public class SceneGateTrigger : MonoBehaviour
         var rectTransform = textObj.AddComponent<RectTransform>();
         rectTransform.sizeDelta = new Vector2(15f, 5f); // 👈 ĐẶT KÍCH THƯỚC KHUNG
 
-        floatingText = textObj.AddComponent<TextMeshProUGUI>();
+        floatingText = textObj.AddComponent<TextMeshPro>();
         floatingText.text = "";
         floatingText.fontSize = 8;
         floatingText.alignment = TextAlignmentOptions.Center;

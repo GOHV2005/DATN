@@ -1130,48 +1130,46 @@ public class PlayerController : MonoBehaviour
 
     void PerformRespawn()
     {
+        int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
+        SaveData saveData = SaveSystem.LoadGame(currentSlot);
+
         string targetScene = SceneManager.GetActiveScene().name;
         Vector3 spawnPosition = Vector3.zero;
         bool foundSave = false;
-        int chosenSlot = -1;
 
-        for (int slotIndex = 0; slotIndex < 3; slotIndex++)
+        // 👇 CHỈ DÙNG SAVE CỦA CURRENT SLOT — KHÔNG DUYỆT QUA CÁC SLOT KHÁC
+        if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
         {
-            SaveData saveData = SaveSystem.LoadGame(slotIndex);
-            if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
-            {
-                SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
-                targetScene = latest.sceneName;
-                spawnPosition = latest.position;
-                foundSave = true;
-                chosenSlot = slotIndex;
-                break;
-            }
+            SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
+            targetScene = latest.sceneName;
+            spawnPosition = latest.position;
+            foundSave = true;
         }
 
+        // Nếu không có save trong current slot → dùng vị trí mặc định trong scene hiện tại
         if (!foundSave)
         {
             GameObject defaultSpawn = GameObject.FindWithTag("Respawn");
             if (defaultSpawn != null)
             {
                 spawnPosition = defaultSpawn.transform.position;
+                targetScene = SceneManager.GetActiveScene().name; // luôn ở scene hiện tại
             }
             else
             {
                 spawnPosition = Vector3.zero;
+                targetScene = SceneManager.GetActiveScene().name;
             }
-            targetScene = SceneManager.GetActiveScene().name;
         }
 
+        // Lưu thông tin respawn (dù có save hay không)
         PlayerPrefs.SetString("RespawnScene", targetScene);
         PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
         PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
         PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
         PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
-        if (chosenSlot >= 0)
-        {
-            PlayerPrefs.SetInt("CurrentSlot", chosenSlot);
-        }
+        // 👇 GIỮ NGUYÊN CURRENT SLOT — KHÔNG GÁN LẠI
+        // PlayerPrefs.SetInt("CurrentSlot", currentSlot); // không cần, vì đã là current rồi
 
         SceneManager.LoadScene(targetScene);
     }
