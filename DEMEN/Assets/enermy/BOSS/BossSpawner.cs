@@ -1,21 +1,12 @@
-﻿// BossSpawner.cs
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Boss chỉ đứng yên và spawn enemy theo từng wave.
-/// Cấu hình wave qua Inspector bằng ScriptableObject WaveData.
-/// </summary>
 public class BossSpawner : MonoBehaviour
 {
     [Header("Wave Settings")]
     public List<WaveData> waves;
-    public GameObject enemyPrefab; // Phải có EnemyDeathHandler
     public Transform spawnPoint;
-
-    [Header("Game End")]
-    public bool endGameAfterAllWaves = true;
 
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
@@ -23,68 +14,83 @@ public class BossSpawner : MonoBehaviour
 
     void Start()
     {
+        Debug.Log("[SPAWNER] Start() called.");
+
         if (waves == null || waves.Count == 0)
         {
-            Debug.LogError("Vui lòng gán các Wave vào BossSpawner trong Inspector!");
+            Debug.LogError("[SPAWNER] ❌ Không có wave nào được gán!");
             return;
         }
 
-        // Đăng ký sự kiện: khi enemy chết → gọi OnEnemyKilled
         EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
+        Debug.Log($"[SPAWNER] Đã đăng ký sự kiện OnEnemyDied. Tổng wave: {waves.Count}");
 
         StartCoroutine(DelayBeforeFirstWave(2f));
     }
 
     void OnDestroy()
     {
-        // Hủy đăng ký để tránh lỗi
         EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
+        Debug.Log("[SPAWNER] OnDestroy: Hủy đăng ký OnEnemyDied.");
     }
 
     IEnumerator DelayBeforeFirstWave(float delay)
     {
+        Debug.Log($"[SPAWNER] Chờ {delay}s trước wave đầu...");
         yield return new WaitForSeconds(delay);
         StartNextWave();
     }
 
     void StartNextWave()
     {
-        if (currentWaveIndex >= waves.Count) return;
+        Debug.Log($"[SPAWNER] StartNextWave() gọi. currentWaveIndex = {currentWaveIndex}");
 
-        WaveData wave = waves[currentWaveIndex];
+        if (currentWaveIndex >= waves.Count)
+        {
+            Debug.Log("[SPAWNER] ❌ currentWaveIndex vượt quá số wave. Dừng.");
+            return;
+        }
+
+        WaveData currentWave = waves[currentWaveIndex];
+        if (currentWave.enemyPrefab == null)
+        {
+            Debug.LogError($"[SPAWNER] ❌ Wave {currentWaveIndex + 1} chưa gán enemyPrefab!");
+            return;
+        }
+
         isSpawning = true;
-        StartCoroutine(SpawnWave(wave));
+        Debug.Log($"[SPAWNER] Bắt đầu spawn Wave {currentWaveIndex + 1}...");
+        StartCoroutine(SpawnWave(currentWave));
     }
 
     IEnumerator SpawnWave(WaveData wave)
     {
         for (int i = 0; i < wave.enemyCount; i++)
         {
-            SpawnEnemy();
+            Instantiate(wave.enemyPrefab, spawnPoint.position, Quaternion.identity);
+            activeEnemyCount++;
+            Debug.Log($"[SPAWNER] Đã spawn enemy #{i + 1}/{wave.enemyCount} của wave {currentWaveIndex + 1}");
             yield return new WaitForSeconds(wave.spawnInterval);
         }
-        isSpawning = false;
-        Debug.Log($"Wave {currentWaveIndex + 1} đã spawn xong.");
-    }
 
-    void SpawnEnemy()
-    {
-        Instantiate(enemyPrefab, spawnPoint.position, Quaternion.identity);
-        activeEnemyCount++;
+        isSpawning = false;
+        Debug.Log($"[SPAWNER] ✅ Wave {currentWaveIndex + 1} đã spawn xong. Tổng enemy còn sống: {activeEnemyCount}");
     }
 
     void OnEnemyKilled()
     {
         activeEnemyCount--;
-        Debug.Log($"Còn lại {activeEnemyCount} enemy");
+        Debug.Log($"[SPAWNER] 🧨 Một enemy vừa chết! Còn lại: {activeEnemyCount}, isSpawning: {isSpawning}");
 
         if (activeEnemyCount <= 0 && !isSpawning)
         {
+            Debug.Log("[SPAWNER] 🎯 Tất cả enemy đã chết và không còn spawn → chuẩn bị wave tiếp theo");
             currentWaveIndex++;
+
             if (currentWaveIndex < waves.Count)
             {
-                Debug.Log("Chuẩn bị wave tiếp theo...");
-                Invoke(nameof(StartNextWave), 2f);
+                Debug.Log($"[SPAWNER] 🔄 Sẽ bắt đầu Wave {currentWaveIndex + 1} sau 1.5s");
+                Invoke(nameof(StartNextWave), 1.5f);
             }
             else
             {
@@ -95,13 +101,6 @@ public class BossSpawner : MonoBehaviour
 
     void OnAllWavesCompleted()
     {
-        Debug.Log("✅ Tất cả wave đã hoàn thành! Màn chơi kết thúc.");
-
-        // Bạn có thể thêm logic kết thúc ở đây sau, ví dụ:
-        // - Hiển thị text "You Win"
-        // - Dừng thời gian: Time.timeScale = 0f;
-        // - Load scene thắng: SceneManager.LoadScene("WinScene");
-
-        // Hiện tại chỉ log để bạn dễ test.
+        Debug.Log("🎉 [SPAWNER] Tất cả wave đã hoàn thành!");
     }
 }

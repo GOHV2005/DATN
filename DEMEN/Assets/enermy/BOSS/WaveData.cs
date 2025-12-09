@@ -1,9 +1,13 @@
 ﻿// WaveData.cs
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "New Wave", menuName = "Wave/Wave Data")]
+[CreateAssetMenu(fileName = "Wave", menuName = "Game/Wave Data")]
 public class WaveData : ScriptableObject
 {
     public int enemyCount = 5;
-    public float spawnInterval = 1f; // thời gian giữa mỗi lần spawn
+    [Tooltip("Thời gian (giây) giữa mỗi enemy được spawn")]
+    public float spawnInterval = 1f;
+
+    [Tooltip("Chọn loại enemy cho wave này")]
+    public GameObject enemyPrefab; // ← Mỗi wave chọn 1 loại
 }

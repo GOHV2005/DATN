@@ -127,6 +127,7 @@ public class Health : MonoBehaviour
             for (int i = 0; i < dropItemCount; i++)
                 SpawnDroppedItem();
         }
+        EnemyDeathHandler.OnEnemyDied?.Invoke();
         Destroy(gameObject);
     }
 

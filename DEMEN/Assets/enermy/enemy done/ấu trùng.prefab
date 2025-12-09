@@ -47,6 +47,7 @@ GameObject:
   - component: {fileID: 4591170693453779666}
   - component: {fileID: 8122018786448661426}
   - component: {fileID: 2680202172387579267}
+  - component: {fileID: 1093768835355869257}
   m_Layer: 6
   m_Name: "\u1EA5u tr\xF9ng"
   m_TagString: Enemy
@@ -308,6 +309,18 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 2.8
+--- !u!114 &1093768835355869257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2515958518276470902}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 094edbd21c18b894c95da8f928e0d21d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &6235612697782008119
 GameObject:
   m_ObjectHideFlags: 0
