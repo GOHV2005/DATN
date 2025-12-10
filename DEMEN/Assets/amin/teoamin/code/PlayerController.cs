@@ -289,7 +289,11 @@ public class PlayerController : MonoBehaviour
         {
             horizontalInput = Input.GetAxisRaw("Horizontal");
             if (Input.GetKeyDown(KeyCode.Space)) jumpRequested = true;
-            if (Input.GetKeyDown(KeyCode.Q)) dashRequested = true;
+
+            // 👇 Ngăn dash khi đang bám tường
+            if (Input.GetKeyDown(KeyCode.Q) && !isWallClinging)
+                dashRequested = true;
+
             if (Input.GetMouseButtonDown(0)) attackRequested = true;
         }
         else
@@ -443,7 +447,7 @@ public class PlayerController : MonoBehaviour
             jumpRequested = false;
         }
 
-        if (dashRequested)
+        if (dashRequested && !isWallClinging) // 👈 THÊM ĐIỀU KIỆN
         {
             HandleDash();
             dashRequested = false;

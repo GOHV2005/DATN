@@ -168,7 +168,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 523844683030640136, guid: 05407c885d0b0e64ca2b17c4898c2541, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -304,8 +304,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   visionRange: 52.9
-  attackRange: 17.1
-  revealAttackRange: 17.1
+  attackRange: 13
+  revealAttackRange: 15.2
   attackSpeed: 10
   moveSpeed: 2
   returnSpeed: 3
@@ -313,7 +313,7 @@ MonoBehaviour:
   stealthWarningDuration: 0.4
   directAttackDamage: 2
   strongAttackDamage: 1
-  strongAttackRange: 19.8
+  strongAttackRange: 19.4
   strongAttackCooldown: 5
   shockwaveProjectilePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
@@ -336,7 +336,7 @@ Animator:
   m_GameObject: {fileID: 5802665204702974707}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: c2e77dfed876e4f4eb6317e260a26632, type: 2}
+  m_Controller: {fileID: 9100000, guid: 209e895aa7539b94ba763802323056a2, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
