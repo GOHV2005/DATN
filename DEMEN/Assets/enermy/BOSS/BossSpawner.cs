@@ -1,9 +1,14 @@
-﻿using System.Collections;
+﻿// BossSpawner.cs
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class BossSpawner : MonoBehaviour
 {
+    [Header("Trigger Settings")]
+    public Collider2D bossTriggerZone; // Kéo vùng trigger vào đây
+    public string playerTag = "Player"; // Đảm bảo player có tag này
+
     [Header("Wave Settings")]
     public List<WaveData> waves;
     public Transform spawnPoint;
@@ -11,55 +16,75 @@ public class BossSpawner : MonoBehaviour
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
     private bool isSpawning = false;
+    private bool hasCombatStarted = false; // ← DÙNG ĐỂ KIỂM TRA ĐÃ BẮT ĐẦU CHƯA
 
     void Start()
     {
-        Debug.Log("[SPAWNER] Start() called.");
-
         if (waves == null || waves.Count == 0)
         {
-            Debug.LogError("[SPAWNER] ❌ Không có wave nào được gán!");
+            Debug.LogError("[BossSpawner] ❌ Chưa gán wave!");
             return;
         }
 
-        EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
-        Debug.Log($"[SPAWNER] Đã đăng ký sự kiện OnEnemyDied. Tổng wave: {waves.Count}");
-
-        StartCoroutine(DelayBeforeFirstWave(2f));
+        if (bossTriggerZone == null)
+        {
+            Debug.LogWarning("[BossSpawner] ⚠️ Chưa gán BossTriggerZone → sẽ auto-start wave.");
+            StartCombat();
+        }
+        else
+        {
+            // Đảm bảo trigger là "Is Trigger"
+            bossTriggerZone.isTrigger = true;
+            EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
+            Debug.Log("[BossSpawner] Đợi player vào vùng boss...");
+        }
     }
 
     void OnDestroy()
     {
         EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
-        Debug.Log("[SPAWNER] OnDestroy: Hủy đăng ký OnEnemyDied.");
     }
+
+    // 🔥 KÍCH HOẠT KHI PLAYER VÀO VÙNG
+    void OnTriggerEnter2D(Collider2D other)
+    {
+        if (hasCombatStarted) return;
+
+        if (other.CompareTag(playerTag))
+        {
+            Debug.Log("[BossSpawner] 👑 Player đã vào vùng boss! Bắt đầu combat...");
+            StartCombat();
+        }
+    }
+
+    void StartCombat()
+    {
+        if (hasCombatStarted) return;
+
+        hasCombatStarted = true;
+        StartCoroutine(DelayBeforeFirstWave(1f)); // delay nhỏ trước wave 1
+    }
+
+    // ================ PHẦN WAVE (giữ nguyên như cũ) ================
 
     IEnumerator DelayBeforeFirstWave(float delay)
     {
-        Debug.Log($"[SPAWNER] Chờ {delay}s trước wave đầu...");
         yield return new WaitForSeconds(delay);
         StartNextWave();
     }
 
     void StartNextWave()
     {
-        Debug.Log($"[SPAWNER] StartNextWave() gọi. currentWaveIndex = {currentWaveIndex}");
-
-        if (currentWaveIndex >= waves.Count)
-        {
-            Debug.Log("[SPAWNER] ❌ currentWaveIndex vượt quá số wave. Dừng.");
-            return;
-        }
+        if (currentWaveIndex >= waves.Count) return;
 
         WaveData currentWave = waves[currentWaveIndex];
         if (currentWave.enemyPrefab == null)
         {
-            Debug.LogError($"[SPAWNER] ❌ Wave {currentWaveIndex + 1} chưa gán enemyPrefab!");
+            Debug.LogError($"[BossSpawner] Wave {currentWaveIndex + 1} chưa gán enemyPrefab!");
             return;
         }
 
         isSpawning = true;
-        Debug.Log($"[SPAWNER] Bắt đầu spawn Wave {currentWaveIndex + 1}...");
         StartCoroutine(SpawnWave(currentWave));
     }
 
@@ -69,27 +94,23 @@ public class BossSpawner : MonoBehaviour
         {
             Instantiate(wave.enemyPrefab, spawnPoint.position, Quaternion.identity);
             activeEnemyCount++;
-            Debug.Log($"[SPAWNER] Đã spawn enemy #{i + 1}/{wave.enemyCount} của wave {currentWaveIndex + 1}");
             yield return new WaitForSeconds(wave.spawnInterval);
         }
 
         isSpawning = false;
-        Debug.Log($"[SPAWNER] ✅ Wave {currentWaveIndex + 1} đã spawn xong. Tổng enemy còn sống: {activeEnemyCount}");
+        Debug.Log($"[BossSpawner] ✅ Wave {currentWaveIndex + 1} đã spawn xong.");
     }
 
     void OnEnemyKilled()
     {
         activeEnemyCount--;
-        Debug.Log($"[SPAWNER] 🧨 Một enemy vừa chết! Còn lại: {activeEnemyCount}, isSpawning: {isSpawning}");
 
         if (activeEnemyCount <= 0 && !isSpawning)
         {
-            Debug.Log("[SPAWNER] 🎯 Tất cả enemy đã chết và không còn spawn → chuẩn bị wave tiếp theo");
             currentWaveIndex++;
-
             if (currentWaveIndex < waves.Count)
             {
-                Debug.Log($"[SPAWNER] 🔄 Sẽ bắt đầu Wave {currentWaveIndex + 1} sau 1.5s");
+                Debug.Log($"[BossSpawner] ➡️ Bắt đầu Wave {currentWaveIndex + 1}...");
                 Invoke(nameof(StartNextWave), 1.5f);
             }
             else
@@ -101,6 +122,7 @@ public class BossSpawner : MonoBehaviour
 
     void OnAllWavesCompleted()
     {
-        Debug.Log("🎉 [SPAWNER] Tất cả wave đã hoàn thành!");
+        Debug.Log("🎉 [BossSpawner] Tất cả wave hoàn thành! Boss có thể bắt đầu chiến đấu thực sự.");
+        // Sau này bạn có thể gọi: bossAI.StartBossFight();
     }
 }
