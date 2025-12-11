@@ -41,12 +41,14 @@ public class PlayerController : MonoBehaviour
     [Header("Wall Cling")]
     public Transform wallCheck;
     public float wallCheckRadius = 0.2f;
-    public float maxWallClingTime = 2f;
-    public float wallDetachDelay = 0.12f; // 👈 thời gian chờ trước khi tắt bám tường
+    public float wallDetachDelay = 0.12f;
+
+    // 👇 BIẾN MỚI
+    public float wallClingManaDrainPerSecond = 15f; // mana tiêu mỗi giây khi bám
 
     private bool isWallClinging = false;
     private float wallClingTimer = 0f;
-    private float wallDetachTimer = 0f; // 👈 đếm ngược khi mất va chạm
+    private float wallDetachTimer = 0f;
     private float wallClingStartX = 0f;
 
     [Header("Dash")]
@@ -351,22 +353,19 @@ public class PlayerController : MonoBehaviour
                     break;
                 }
             }
-
             if (wallDetected)
             {
-                // 👉 Khi CHẠM TƯỜNG: bật bám ngay (nếu chưa)
-                if (!isWallClinging)
+                // ✅ CHỈ CHO BÁM NẾU MANA ĐỦ (≥ 20%)
+                if (!isWallClinging && currentMana >= maxMana * 0.2f)
                 {
                     isWallClinging = true;
                     wallClingTimer = 0f;
                     wallClingStartX = transform.position.x;
                 }
-                // Reset debounce timer
                 wallDetachTimer = 0f;
             }
             else
             {
-                // 👉 Khi KHÔNG CHẠM: đếm debounce trước khi tắt
                 if (isWallClinging)
                 {
                     wallDetachTimer += Time.deltaTime;
@@ -424,12 +423,13 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        // 👇 XỬ LÝ NHẢY (wall jump + ground jump) — CHỈ CÓ 1 LẦN
         if (jumpRequested)
         {
             if (isWallClinging)
             {
-                // Nhảy ra khỏi tường (wall jump)
-                rb.linearVelocity = new Vector2(0f, 0f);
+                // Wall Jump: nhảy ra khỏi tường
+                rb.linearVelocity = Vector2.zero;
                 rb.AddForce(new Vector2((facingRight ? -1f : 1f) * jumpForce * 0.8f, jumpForce), ForceMode2D.Impulse);
                 jumpCount = 1; // đã dùng 1 lần jump
                 isWallClinging = false;
@@ -441,58 +441,58 @@ public class PlayerController : MonoBehaviour
             jumpRequested = false;
         }
 
-        if (jumpRequested)
-        {
-            HandleJump();
-            jumpRequested = false;
-        }
-
-        if (dashRequested && !isWallClinging) // 👈 THÊM ĐIỀU KIỆN
+        // 👇 XỬ LÝ DASH — NGĂN KHI BÁM TƯỜNG
+        if (dashRequested && !isWallClinging)
         {
             HandleDash();
             dashRequested = false;
         }
 
+        // 👇 DI CHUYỂN — NGĂN KHI BÁM TƯỜNG
         if (!isDashing && !isKnockbacked && !isWallClinging)
         {
             HandleMovement();
         }
 
-        // Trong FixedUpdate(), sau khi gọi CheckGroundAndWall()
+        // 👇 XỬ LÝ BÁM TƯỜNG — ĐỨNG YÊN HOÀN TOÀN
         if (isWallClinging)
         {
-            // Giữ nguyên vị trí X khi bắt đầu bám (tránh khựng do tilemap gồ ghề)
+            // Giữ nguyên vị trí X khi bắt đầu bám
             transform.position = new Vector3(wallClingStartX, transform.position.y, transform.position.z);
-            rb.linearVelocity = new Vector2(0f, rb.linearVelocity.y);
+            rb.linearVelocity = Vector2.zero;
+            rb.gravityScale = 0f;
 
-            if (wallClingTimer <= maxWallClingTime) // maxWallClingTime = 2f
+            // Tiêu hao mana
+            currentMana -= wallClingManaDrainPerSecond * Time.fixedDeltaTime;
+            if (currentMana < 0f) currentMana = 0f;
+
+            // Cập nhật UI mana real-time
+            if (manaFill != null)
             {
-                // 🧊 2 GIÂY ĐẦU: DÍNH TƯỜNG HOÀN TOÀN
-                rb.linearVelocity = new Vector2(0f, 0f);
+                manaFill.fillAmount = currentMana / maxMana;
+            }
+
+            // Hết mana → ngưng bám
+            if (currentMana <= 0f)
+            {
+                isWallClinging = false;
+                wallClingTimer = 0f;
+            }
+        }
+        else
+        {
+            // 👇 KHÔI PHỤC GRAVITY — KẾT HỢP JUMP FLOAT
+            if (useJumpFloat && !isGrounded && rb.linearVelocity.y < 0f)
+            {
+                rb.gravityScale = Input.GetKey(KeyCode.Space) ? floatGravityScale : defaultGravityScale;
             }
             else
             {
-                // ⏳ SAU 2 GIÂY: TRƯỢT XUỐNG, TĂNG TỐC DẦN
-                float timeSliding = wallClingTimer - maxWallClingTime; // thời gian trượt thực tế
-                float fallSpeed = Mathf.Clamp(timeSliding * 2.5f, 0f, 10f); // hệ số 2.5 → chỉnh cho mượt
-                rb.linearVelocity = new Vector2(0f, -fallSpeed); // rơi xuống (Y âm)
+                rb.gravityScale = defaultGravityScale;
             }
         }
-        else
-        {
-            rb.gravityScale = defaultGravityScale;
-        }
 
-        if (isDashing) return;
-
-        if (useJumpFloat && !isGrounded && rb.linearVelocity.y < 0f)
-        {
-            rb.gravityScale = Input.GetKey(KeyCode.Space) ? floatGravityScale : defaultGravityScale;
-        }
-        else
-        {
-            rb.gravityScale = defaultGravityScale;
-        }
+        // 👇 KHÔNG CÓ KHỐI ĐẶT GRAVITY NÀO Ở DƯỚI NỮA → TRÁNH GHI ĐÈ
     }
 
     public void DropItem(string name, int qty, Sprite sprite, string desc, System.Action onComplete = null)
@@ -866,21 +866,12 @@ public class PlayerController : MonoBehaviour
             Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
         }
 
-        // Vòng Wall Check — chỉ tượng trưng, không va chạm
-        if (groundCheck != null)
-        {
-            Gizmos.color = isGrounded ? Color.green : Color.red;
-            Gizmos.DrawWireSphere(groundCheck.position, groundCheckRadius);
-        }
-
-        // 🟠 Vòng 2: Wall Check
+        // 🟠 Vòng Wall Check — chỉ 1 lần
         if (wallCheck != null)
         {
-            // Màu cam nhạt khi không play (để dễ thấy trong Editor)
             Color c = Application.isPlaying
                 ? (isWallClinging ? Color.magenta : Color.grey)
                 : new Color(1f, 0.5f, 0f, 0.7f);
-
             Gizmos.color = c;
             Gizmos.DrawWireSphere(wallCheck.position, wallCheckRadius);
         }
@@ -1026,7 +1017,7 @@ public class PlayerController : MonoBehaviour
 
     void RegenerateManaIfNotDashing()
     {
-        if (isDashing || isDead) return;
+        if (isDashing || isDead || isWallClinging) return;
 
         float regenRate = manaRegenRate;
 
