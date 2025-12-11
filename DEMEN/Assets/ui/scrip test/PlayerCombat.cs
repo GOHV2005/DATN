@@ -44,7 +44,7 @@ public class PlayerCombat : MonoBehaviour
         // Gây damage cho tất cả enemy trúng
         foreach (Collider2D enemy in hitEnemies)
         {
-            enemy.GetComponent<EnemyHealth>()?.TakeDamage(attackDamage);
+            enemy.GetComponent<EnemyHealtha>()?.TakeDamage(attackDamage);
         }
 
         Debug.Log("Player attacked!");
