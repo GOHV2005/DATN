@@ -972,8 +972,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8192232287199687743, guid: 1de867499033deb478f3fd2e627a3648,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 166518789}
   m_SourcePrefab: {fileID: 100100000, guid: 1de867499033deb478f3fd2e627a3648, type: 3}
+--- !u!1 &166518788 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8192232287199687743, guid: 1de867499033deb478f3fd2e627a3648,
+    type: 3}
+  m_PrefabInstance: {fileID: 166518787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &166518789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166518788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: bdcc21bc-611d-4d8c-a138-9b6cd7e44cf1
+  sceneName: Scene-Grass
 --- !u!1 &172292695
 GameObject:
   m_ObjectHideFlags: 0
@@ -6473,14 +6497,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
+      propertyPath: objectsToSave.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
+        type: 3}
       propertyPath: 'objectsToSave.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2015688162}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
       propertyPath: 'objectsToSave.Array.data[1]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 166518789}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
       propertyPath: 'objectsToSave.Array.data[2]'
@@ -13203,8 +13232,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2015688162}
   m_SourcePrefab: {fileID: 100100000, guid: 2953c04b0ee0003488178033cfc086f8, type: 3}
+--- !u!1 &2015688161 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
+    type: 3}
+  m_PrefabInstance: {fileID: 2015688160}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2015688162
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2015688161}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: 771cbf2d-3572-45af-807b-b2cb2f4650fe
+  sceneName: Scene-Grass
 --- !u!1 &2065018849
 GameObject:
   m_ObjectHideFlags: 0

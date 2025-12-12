@@ -441,7 +441,6 @@ MonoBehaviour:
   sr: {fileID: 3151038737267626061}
   deadEyes: {fileID: 7340819836852597273}
   arenaCollider: {fileID: 3735352239280299643}
-  mainCamera: {fileID: 0}
   shockwavePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
   walkSpeed: 2
@@ -453,6 +452,16 @@ MonoBehaviour:
   skill1Damage: 3
   skill2Damage: 2
   skill3Damage: 1
+  walkClip: {fileID: 0}
+  attackClip: {fileID: 8300000, guid: 97625967737862642a93ecb9ec4cbcb7, type: 3}
+  strongAttackClip: {fileID: 8300000, guid: 5826e08ae4924374c9167c179c4c45e5, type: 3}
+  walkVolume: 0.5
+  attackVolume: 1
+  strongAttackVolume: 0.28
+  arenaBgm: {fileID: 8300000, guid: 393d9c8fac9116844a6a964294f727ac, type: 3}
+  musicVolume: 0.34
+  sfxMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  musicMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
 --- !u!114 &8504633884341089480
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -466,6 +475,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+  currentHealth: 0
   knockbackForce: 0
   knockbackDuration: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
