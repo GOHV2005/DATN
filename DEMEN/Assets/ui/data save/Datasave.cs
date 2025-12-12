@@ -9,9 +9,6 @@ public class SceneSaveData
     public Vector3 position;
     public float playTime;
 
-    // 👇 DANH SÁCH OBJECT TRONG SCENE NÀY
-    public List<string> existingObjects = new List<string>();
-
     public SceneSaveData() { }
 
     public SceneSaveData(string sceneName, Vector3 position, float playTime)
