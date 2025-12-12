@@ -7,17 +7,15 @@ public class SavePoint : MonoBehaviour
 {
     [Header("=== CÁC OBJECT CẦN LƯU TRẠNG THÁI ===")]
     public SaveableObject[] objectsToSave;
+
     [Header("Optional Visual")]
     public CheckpointVisual checkpointVisual;
 
-    // KHÔNG DÙNG BIẾN CỜ NỮA — KIỂM TRA TRỰC TIẾP MỖI FRAME
     void Update()
     {
         if (Keyboard.current == null) return;
 
-        // ✅ KIỂM TRA TRỰC TIẾP: "CÓ PLAYER NÀO TRONG VÙNG KHÔNG?"
         bool isPlayerInside = IsPlayerInsideTrigger();
-
         checkpointVisual?.SetPlayerInRange(isPlayerInside);
 
         if (isPlayerInside && Keyboard.current.eKey.wasPressedThisFrame)
@@ -28,11 +26,14 @@ public class SavePoint : MonoBehaviour
 
     private bool IsPlayerInsideTrigger()
     {
-        // Cách đơn giản: tìm tất cả collider trong vùng trigger
+        var boxCollider = GetComponent<BoxCollider2D>();
+        if (boxCollider == null) return false;
+
         Collider2D[] colliders = Physics2D.OverlapBoxAll(
             (Vector2)transform.position,
-            GetComponent<BoxCollider2D>()?.size ?? Vector2.one,
-            0f
+            boxCollider.size,
+            0f,
+            1 << gameObject.layer // hoặc dùng LayerMask nếu cần
         );
 
         foreach (var col in colliders)
@@ -48,43 +49,58 @@ public class SavePoint : MonoBehaviour
         int slotIndex = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData data = SaveSystem.LoadGame(slotIndex) ?? new SaveData();
 
-        SceneSaveData checkpoint = new SceneSaveData
+        string currentSceneName = SceneManager.GetActiveScene().name;
+
+        // Lấy hoặc tạo SceneSaveData cho scene hiện tại
+        SceneSaveData checkpoint = data.GetScene(currentSceneName);
+        if (checkpoint == null)
         {
-            sceneName = SceneManager.GetActiveScene().name,
-            position = transform.position,
-            playTime = PlayTimeTracker.Instance != null ? PlayTimeTracker.Instance.GetPlayTime() : 0f
-        };
+            checkpoint = new SceneSaveData();
+            checkpoint.sceneName = currentSceneName;
+        }
+
+        checkpoint.position = transform.position;
+        checkpoint.playTime = PlayTimeTracker.Instance != null ? PlayTimeTracker.Instance.GetPlayTime() : 0f;
+
+        // 👇 LƯU ONLY SAVEABLE OBJECTS TRONG SCENE HIỆN TẠI
+        checkpoint.existingObjects.Clear();
+        var allSaveables = FindObjectsOfType<SaveableObject>();
+        foreach (var obj in allSaveables)
+        {
+            checkpoint.existingObjects.Add(obj.guid);
+        }
+
         data.AddScene(checkpoint);
 
-        PlayerPrefs.SetString("LastCheckpointScene", SceneManager.GetActiveScene().name);
+        // Lưu checkpoint vào PlayerPrefs để respawn nhanh (nếu cần)
+        PlayerPrefs.SetString("LastCheckpointScene", currentSceneName);
         PlayerPrefs.SetFloat("CheckpointX", transform.position.x);
         PlayerPrefs.SetFloat("CheckpointY", transform.position.y);
         PlayerPrefs.SetFloat("CheckpointZ", transform.position.z);
-        data.saveableObjects.Clear();
+
         // 👇 LƯU INVENTORY + TRẠNG THÁI TRANG BỊ
+        data.inventory = new InventoryData();
         InventoryManager invMgr = InventoryManager.Instance;
         if (invMgr != null)
         {
-            data.inventory = invMgr.GetInventoryData(); // item list
+            for (int i = 0; i < invMgr.itemSlots.Length; i++)
+            {
+                data.inventory.AddItem(invMgr.itemSlots[i], i);
+            }
 
-            // 👇 GÁN TRẠNG THÁI TRANG BỊ
             var player = PlayerController.Instance;
             if (player != null)
             {
                 data.inventory.isHoldingLongden = player.IsHoldingLongden;
                 data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
+                data.inventory.isHoldingKiem = player.IsHoldingKiem;
             }
-        }
-        data.existingObjects.Clear();
-
-        foreach (var obj in FindObjectsOfType<SaveableObject>())
-        {
-            data.existingObjects.Add(obj.guid);
         }
 
         SaveSystem.SaveGame(slotIndex, data);
         PlayerPrefs.SetInt("CurrentSlot", slotIndex);
 
-        Debug.Log($"[CHECKPOINT] Saved (longden={data.inventory.isHoldingLongden}, cuoc={data.inventory.isHoldingCuocChim})");
+        Debug.Log($"[CHECKPOINT] Saved in {currentSceneName} with {checkpoint.existingObjects.Count} objects. " +
+                  $"Longden={data.inventory.isHoldingLongden}, Cuoc={data.inventory.isHoldingCuocChim}, Kiem={data.inventory.isHoldingKiem}");
     }
 }
