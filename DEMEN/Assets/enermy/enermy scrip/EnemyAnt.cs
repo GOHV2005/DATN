@@ -193,11 +193,11 @@ public class EnemyAnt : MonoBehaviour
     }
 
     // 👇 GỌI TỪ HEALTH KHI BỊ ĐÁNH
-    public void OnTakeDamage()
+    /*public void OnTakeDamage()
     {
         Debug.Log("[Ant] Bị đánh! → Phản đòn!");
-        SetState(State.Aggressive);
-    }
+        //SetState(State.Aggressive);
+    }*/
 
     // 👇 GÂY SÁT THƯƠNG KHI VA CHẠM
     private void OnTriggerEnter2D(Collider2D other)

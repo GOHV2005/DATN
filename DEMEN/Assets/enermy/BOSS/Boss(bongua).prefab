@@ -330,7 +330,6 @@ MonoBehaviour:
   sr: {fileID: 662212404403255821}
   deadEyes: {fileID: 8697008918282617341}
   arenaCollider: {fileID: 8429353105066279678}
-  mainCamera: {fileID: 0}
   shockwavePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
   walkSpeed: 2
@@ -355,6 +354,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+  currentHealth: 0
   knockbackForce: 0
   knockbackDuration: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
@@ -466,7 +466,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 25.572056, y: -2.1674042}
+  m_Offset: {x: 26.333504, y: -2.1674042}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -476,5 +476,5 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 80.48339, y: 25.818024}
+  m_Size: {x: 225.16228, y: 25.818024}
   m_EdgeRadius: 0

@@ -1,7 +1,8 @@
-﻿// BossSpawner.cs — phần spawn đã được sửa để ĐÚNG SỐ LƯỢNG
+﻿// BossSpawner.cs — spawn enemy ĐỀU ở 2 điểm + tự động chuyển scene "END"
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement; // ✅ THÊM DÒNG NÀY
 
 public class BossSpawner : MonoBehaviour
 {
@@ -11,14 +12,13 @@ public class BossSpawner : MonoBehaviour
 
     [Header("Wave Settings")]
     public List<WaveData> waves;
-    public Transform spawnPoint;
+    public Transform[] spawnPoints;
+
 
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
     private bool isSpawning = false;
     private bool hasCombatStarted = false;
-
-    // ➤ THÊM: Ngăn wave bị spawn lại
     private bool[] waveSpawned;
 
     void Start()
@@ -29,8 +29,14 @@ public class BossSpawner : MonoBehaviour
             return;
         }
 
+        if (spawnPoints == null || spawnPoints.Length != 2)
+        {
+            Debug.LogError("[BossSpawner] ❌ Cần đúng 2 spawn points!");
+            return;
+        }
+
         EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
-        waveSpawned = new bool[waves.Count]; // theo dõi wave nào đã spawn
+        waveSpawned = new bool[waves.Count];
 
         if (bossTriggerZone == null)
         {
@@ -40,8 +46,9 @@ public class BossSpawner : MonoBehaviour
         {
             bossTriggerZone.isTrigger = true;
         }
-    }
+        
 
+    }
     void OnDestroy()
     {
         EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
@@ -59,7 +66,7 @@ public class BossSpawner : MonoBehaviour
     {
         if (hasCombatStarted) return;
         hasCombatStarted = true;
-        StartNextWave(); // không cần delay nếu bạn muốn
+        StartNextWave();
     }
 
     void StartNextWave()
@@ -67,7 +74,6 @@ public class BossSpawner : MonoBehaviour
         if (!hasCombatStarted) return;
         if (currentWaveIndex >= waves.Count) return;
 
-        // ➤ KIỂM TRA: WAVE NÀY ĐÃ SPAWN CHƯA?
         if (waveSpawned[currentWaveIndex])
         {
             Debug.LogWarning($"[BossSpawner] Wave {currentWaveIndex + 1} đã spawn rồi! Bỏ qua.");
@@ -81,25 +87,35 @@ public class BossSpawner : MonoBehaviour
             return;
         }
 
-        waveSpawned[currentWaveIndex] = true; // đánh dấu đã spawn
+        waveSpawned[currentWaveIndex] = true;
         isSpawning = true;
         StartCoroutine(SpawnWave(wave));
     }
 
     IEnumerator SpawnWave(WaveData wave)
     {
-        int countToSpawn = wave.enemyCount;
-        Debug.Log($"[SPAWN] Bắt đầu spawn {countToSpawn} enemy cho Wave {currentWaveIndex + 1}");
+        int total = wave.enemyCount;
+        int half = total / 2;
+        int extra = total % 2;
 
-        for (int i = 0; i < countToSpawn; i++)
+        Debug.Log($"[SPAWN] Wave {currentWaveIndex + 1}: {total} enemy → {half + extra} ở điểm 0, {half} ở điểm 1");
+
+        for (int i = 0; i < half + extra; i++)
         {
-            Instantiate(wave.enemyPrefab, spawnPoint.position, Quaternion.identity);
+            Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
+            activeEnemyCount++;
+            yield return new WaitForSeconds(wave.spawnInterval);
+        }
+
+        for (int i = 0; i < half; i++)
+        {
+            Instantiate(wave.enemyPrefab, spawnPoints[1].position, Quaternion.identity);
             activeEnemyCount++;
             yield return new WaitForSeconds(wave.spawnInterval);
         }
 
         isSpawning = false;
-        Debug.Log($"[SPAWN] Đã spawn đúng {countToSpawn} enemy.");
+        Debug.Log($"[SPAWN] Hoàn tất spawn {total} enemy chia đều giữa 2 điểm.");
     }
 
     void OnEnemyKilled()
@@ -122,6 +138,7 @@ public class BossSpawner : MonoBehaviour
 
     void OnAllWavesCompleted()
     {
-        Debug.Log("🎉 Tất cả wave đã hoàn thành!");
+        Debug.Log("🎉 Tất cả wave đã hoàn thành! Chuyển sang scene END.");
+        SceneManager.LoadScene("END"); // ✅ CHUYỂN SCENE
     }
 }

@@ -6,7 +6,7 @@ public class Health : MonoBehaviour
     public System.Action onDeath;
     [Header("🩸 Health Settings")]
     public float maxHealth = 3f;
-    private float currentHealth;
+    public float currentHealth;
 
     [Header("💥 Knockback Settings")]
     public float knockbackForce = 30f;

@@ -11,7 +11,6 @@ public class BossMantisAI : MonoBehaviour
     public SpriteRenderer sr;
     public SpriteRenderer deadEyes; // 👈 PHẢI LÀ CON CỦA BOSS TRONG HIERARCHY
     public Collider2D arenaCollider;
-    public Camera mainCamera;
 
     [Header("Prefabs & Effects")]
     public GameObject shockwavePrefab;
@@ -76,7 +75,7 @@ public class BossMantisAI : MonoBehaviour
     {
         currentState = BossState.UsingSkill;
         anim.Play("TanCongManh(Bongua)");
-        yield return StartCoroutine(CameraShake(2f));
+        yield return new WaitForSeconds(2f);
         anim.Play("Dung(BoNgua)");
         currentState = BossState.Moving;
         StartCoroutine(SkillLoop());
@@ -206,19 +205,6 @@ public class BossMantisAI : MonoBehaviour
         }
     }
 
-    // ================= CAMERA SHAKE =================
-    IEnumerator CameraShake(float duration)
-    {
-        Vector3 original = mainCamera.transform.position;
-        float elapsed = 0f;
-        while (elapsed < duration)
-        {
-            mainCamera.transform.position = original + new Vector3(Random.Range(-0.15f, 0.15f), Random.Range(-0.15f, 0.15f), 0);
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-        mainCamera.transform.position = original;
-    }
 
     // ================= GIZMOS =================
     private void OnDrawGizmosSelected()
