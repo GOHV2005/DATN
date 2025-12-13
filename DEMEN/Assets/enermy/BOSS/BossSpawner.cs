@@ -13,6 +13,7 @@ public class BossSpawner : MonoBehaviour
     [Header("Wave Settings")]
     public List<WaveData> waves;
     public Transform[] spawnPoints;
+    public AudioSource arena;
 
     [Header("Animation")]
     public Animator animator; // 👈 THÊM: reference đến Animator
