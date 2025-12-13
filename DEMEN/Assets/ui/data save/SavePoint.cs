@@ -71,6 +71,7 @@ public class SavePoint : MonoBehaviour
             var player = PlayerController.Instance;
             if (player != null)
             {
+                data.playerHealth = player.CurrentHealth;
                 data.inventory.isHoldingLongden = player.IsHoldingLongden;
                 data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
                 data.inventory.isHoldingKiem = player.IsHoldingKiem;
@@ -89,7 +90,6 @@ public class SavePoint : MonoBehaviour
                 obj.GetComponent<SaveData.ISaveable>()?.CaptureState() // nếu có state
             ));
         }
-
         SaveSystem.SaveGame(slotIndex, data);
         PlayerPrefs.SetInt("CurrentSlot", slotIndex);
 

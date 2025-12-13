@@ -3,6 +3,7 @@ using UnityEngine;
 
 public static class SaveSystem
 {
+
     // ================== ĐƯỜNG DẪN FILE ==================
     private static string GetFilePath(int slotIndex)
     {

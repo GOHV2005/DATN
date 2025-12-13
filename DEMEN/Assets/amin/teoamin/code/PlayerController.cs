@@ -250,6 +250,7 @@ public class PlayerController : MonoBehaviour
         // 👇 KHÔI PHỤC INVENTORY VÀ TRẠNG THÁI TRANG BỊ
         if (saveData != null)
         {
+            CurrentHealth = saveData.playerHealth;
             saveData.RestoreInventory(); // 👈 DÒNG QUAN TRỌNG NHẤT
         }
 

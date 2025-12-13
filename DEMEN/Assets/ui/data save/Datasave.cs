@@ -67,10 +67,10 @@ public class SaveData
 {
     public List<SceneSaveData> scenes = new List<SceneSaveData>();
     public InventoryData inventory = new InventoryData();
-    // 👇 MỚI: DANH SÁCH OBJECT CÓ THỂ LƯU
     public List<SaveableObjectRef> saveableObjects = new List<SaveableObjectRef>();
     public List<string> existingObjects = new List<string>();
 
+    public float playerHealth = 100f;
     // Trong class SaveData, thêm class lồng:
 
     [Serializable]
@@ -85,6 +85,34 @@ public class SaveData
             this.guid = guid;
             this.sceneName = scene;
             this.savedState = state;
+        }
+    }
+    public void CaptureSceneObjects(string sceneName)
+    {
+        ISaveable[] saveables = GameObject.FindObjectsOfType<MonoBehaviour>(true) as ISaveable[];
+        foreach (var saveable in saveables)
+        {
+            string id = saveable.GetUniqueID();
+            object state = saveable.CaptureState();
+
+            var existing = saveableObjects.Find(s => s.guid == id && s.sceneName == sceneName);
+            if (existing != null)
+                existing.savedState = state;
+            else
+                saveableObjects.Add(new SaveableObjectRef(id, sceneName, state));
+        }
+    }
+    public void RestoreSceneObjects(string sceneName)
+    {
+        ISaveable[] saveables = GameObject.FindObjectsOfType<MonoBehaviour>(true) as ISaveable[];
+        foreach (var saveable in saveables)
+        {
+            string id = saveable.GetUniqueID();
+            var data = saveableObjects.Find(s => s.guid == id && s.sceneName == sceneName);
+            if (data != null)
+            {
+                saveable.RestoreState(data.savedState);
+            }
         }
     }
     public void AddScene(SceneSaveData scene)
