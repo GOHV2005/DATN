@@ -13176,12 +13176,12 @@ PrefabInstance:
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -118.16
+      value: -119.4516
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -169.3601
+      value: -170.8954
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
@@ -13223,41 +13223,23 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7452141058802109982, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: dropItemPrefab
-      value: 
-      objectReference: {fileID: 671203211820296829, guid: 8eba5b0d3b235764fa87ab4fde825981,
-        type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 2015688162}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2953c04b0ee0003488178033cfc086f8, type: 3}
---- !u!1 &2015688161 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
+--- !u!114 &2015688162 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5734546756135817944, guid: 2953c04b0ee0003488178033cfc086f8,
     type: 3}
   m_PrefabInstance: {fileID: 2015688160}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2015688162
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2015688161}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  guid: 771cbf2d-3572-45af-807b-b2cb2f4650fe
-  sceneName: Scene-Grass
 --- !u!1 &2065018849
 GameObject:
   m_ObjectHideFlags: 0
