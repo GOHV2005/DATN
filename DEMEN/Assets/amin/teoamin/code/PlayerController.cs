@@ -154,6 +154,12 @@ public class PlayerController : MonoBehaviour
     public float healthPerHeart = 20f;
     public System.Action onTakeDamage; // 👈 THÊM DÒNG NÀY
 
+    [Header("Audio Clips")]
+    public AudioClip jumpSound;
+    public AudioClip equipKiemSound;
+    public AudioClip attackNormalSound;
+    public AudioClip attackKiemSound;
+
     [Header("UI - Mana")]
     public Image manaFill;
 
@@ -634,14 +640,17 @@ public class PlayerController : MonoBehaviour
         CancelEquippingActions();
         if (jumpCount < maxJumpCount)
         {
-            // 👉 LUÔN ĐẶT LẠI VẬN TỐC ĐỨNG TRƯỚC KHI NHẢY
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, 0f);
-
             rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             jumpCount++;
-            isGrounded = false; // vì đã rời mặt đất
+            isGrounded = false;
+
+            // Phát âm thanh nhảy
+            if (jumpSound != null && audioSource != null)
+                audioSource.PlayOneShot(jumpSound, 0.8f);
         }
     }
+
 
     void HandleDash()
     {
@@ -726,16 +735,24 @@ public class PlayerController : MonoBehaviour
         isAttacking = true;
         CancelEquippingActions();
 
-        // 👇 DÙNG ANIMATION PHÙ HỢP
         string attackAnim = "Attack";
-        if (IsHoldingKiem) attackAnim = "Chem";
-        else if (IsHoldingCuocChim) attackAnim = "sudungcuocchim";
+        AudioClip soundToPlay = attackNormalSound; // mặc định
+
+        if (IsHoldingKiem)
+        {
+            attackAnim = "Chem";
+            soundToPlay = attackKiemSound;
+        }
+        else if (IsHoldingCuocChim)
+        {
+            attackAnim = "sudungcuocchim";
+            soundToPlay = attackNormalSound; // hoặc âm thanh riêng nếu muốn
+        }
 
         animator.Play(attackAnim);
 
         attackedEnemies.Clear();
 
-        // 👇 BẬT HITBOX PHÙ HỢP
         Collider2D hitbox = null;
         if (IsHoldingKiem) hitbox = kiemHitbox;
         else if (IsHoldingCuocChim) hitbox = cuocChimHitbox;
@@ -748,7 +765,12 @@ public class PlayerController : MonoBehaviour
         }
 
         attackCooldownTimer = attackCooldown;
+
+        // Phát âm thanh tấn công
+        if (soundToPlay != null && audioSource != null)
+            audioSource.PlayOneShot(soundToPlay, 0.8f);
     }
+
     IEnumerator DisableHitboxAfterDelay(float delay, Collider2D hitbox)
     {
         yield return new WaitForSeconds(delay);
@@ -1367,7 +1389,12 @@ public class PlayerController : MonoBehaviour
         IsHoldingKiem = true;
         kiemObject?.SetActive(true);
         isEquippingKiem = false;
+
+        // Phát âm thanh trang bị kiếm
+        if (equipKiemSound != null && audioSource != null)
+            audioSource.PlayOneShot(equipKiemSound, 0.8f);
     }
+
 
     // Animation Event: frame cuối của "untrangbikiem"
     public void OnKiemUnequipComplete()

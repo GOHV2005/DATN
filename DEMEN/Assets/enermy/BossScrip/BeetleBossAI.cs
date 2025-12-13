@@ -273,7 +273,7 @@ public class BossBeetleAI : MonoBehaviour
     void StunnedBehavior()
     {
         rb.linearVelocity = Vector2.zero;
-        PlayAnim(idleAnim);
+        PlayAnim("choan(bohung)");
         if (stateTimer <= 0)
         {
             isStunned = false;

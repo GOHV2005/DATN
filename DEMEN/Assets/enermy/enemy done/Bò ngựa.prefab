@@ -103,6 +103,7 @@ GameObject:
   - component: {fileID: 4079697748019049104}
   - component: {fileID: 1727199360668235089}
   - component: {fileID: 7452141058802109982}
+  - component: {fileID: 5734546756135817944}
   m_Layer: 6
   m_Name: "B\xF2 ng\u1EF1a"
   m_TagString: Enemy
@@ -120,7 +121,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 2.52, y: -2.36, z: 0}
-  m_LocalScale: {x: 1.7581531, y: 1.7640059, z: 0.377594}
+  m_LocalScale: {x: 1.0958568, y: 1.099505, z: 0.23535435}
   m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 6860988702842394005}
@@ -149,7 +150,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -303,9 +304,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f099fa56a8650342b62d7c8f7fdb8f7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visionRange: 52.9
-  attackRange: 13
-  revealAttackRange: 15.2
+  visionRange: 32.7
+  attackRange: 10.9
+  revealAttackRange: 12
   attackSpeed: 10
   moveSpeed: 2
   returnSpeed: 3
@@ -313,7 +314,7 @@ MonoBehaviour:
   stealthWarningDuration: 0.4
   directAttackDamage: 2
   strongAttackDamage: 1
-  strongAttackRange: 19.4
+  strongAttackRange: 14.2
   strongAttackCooldown: 5
   shockwaveProjectilePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
@@ -361,11 +362,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+  currentHealth: 0
   knockbackForce: 10
   knockbackDuration: 5
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.1
-  dropItemPrefab: {fileID: 0}
+  dropItemPrefab: {fileID: 671203211820296829, guid: 8eba5b0d3b235764fa87ab4fde825981,
+    type: 3}
   dropItemCount: 1
   dropForce: 5
   randomAngleRange: 30
@@ -373,3 +376,17 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 8
+--- !u!114 &5734546756135817944
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5802665204702974707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: 771cbf2d-3572-45af-807b-b2cb2f4650fe
+  sceneName: Scene-Grass

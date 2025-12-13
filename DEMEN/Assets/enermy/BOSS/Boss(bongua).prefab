@@ -341,6 +341,16 @@ MonoBehaviour:
   skill1Damage: 3
   skill2Damage: 2
   skill3Damage: 1
+  walkClip: {fileID: 0}
+  attackClip: {fileID: 8300000, guid: 97625967737862642a93ecb9ec4cbcb7, type: 3}
+  strongAttackClip: {fileID: 8300000, guid: 5826e08ae4924374c9167c179c4c45e5, type: 3}
+  walkVolume: 0.5
+  attackVolume: 0.7
+  strongAttackVolume: 0.8
+  arenaBgm: {fileID: 0}
+  musicVolume: 0.8
+  sfxMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  musicMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
 --- !u!114 &9139292324155191431
 MonoBehaviour:
   m_ObjectHideFlags: 0

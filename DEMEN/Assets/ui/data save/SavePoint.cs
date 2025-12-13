@@ -48,43 +48,52 @@ public class SavePoint : MonoBehaviour
         int slotIndex = PlayerPrefs.GetInt("CurrentSlot", 0);
         SaveData data = SaveSystem.LoadGame(slotIndex) ?? new SaveData();
 
+        string currentScene = SceneManager.GetActiveScene().name;
+
         SceneSaveData checkpoint = new SceneSaveData
         {
-            sceneName = SceneManager.GetActiveScene().name,
+            sceneName = currentScene,
             position = transform.position,
             playTime = PlayTimeTracker.Instance != null ? PlayTimeTracker.Instance.GetPlayTime() : 0f
         };
         data.AddScene(checkpoint);
 
-        PlayerPrefs.SetString("LastCheckpointScene", SceneManager.GetActiveScene().name);
+        PlayerPrefs.SetString("LastCheckpointScene", currentScene);
         PlayerPrefs.SetFloat("CheckpointX", transform.position.x);
         PlayerPrefs.SetFloat("CheckpointY", transform.position.y);
         PlayerPrefs.SetFloat("CheckpointZ", transform.position.z);
-        data.saveableObjects.Clear();
-        // 👇 LƯU INVENTORY + TRẠNG THÁI TRANG BỊ
+
+        // Lưu inventory
         InventoryManager invMgr = InventoryManager.Instance;
         if (invMgr != null)
         {
-            data.inventory = invMgr.GetInventoryData(); // item list
-
-            // 👇 GÁN TRẠNG THÁI TRANG BỊ
+            data.inventory = invMgr.GetInventoryData();
             var player = PlayerController.Instance;
             if (player != null)
             {
                 data.inventory.isHoldingLongden = player.IsHoldingLongden;
                 data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
+                data.inventory.isHoldingKiem = player.IsHoldingKiem;
             }
         }
-        data.existingObjects.Clear();
 
+        // ✅ Lưu SaveableObject chỉ của scene hiện tại
+        data.saveableObjects.RemoveAll(o => o.sceneName == currentScene); // xóa bản lưu cũ của scene này
         foreach (var obj in FindObjectsOfType<SaveableObject>())
         {
-            data.existingObjects.Add(obj.guid);
+            if (obj.sceneName != currentScene) continue;
+
+            data.saveableObjects.Add(new SaveData.SaveableObjectRef(
+                obj.guid,
+                obj.sceneName,
+                obj.GetComponent<SaveData.ISaveable>()?.CaptureState() // nếu có state
+            ));
         }
 
         SaveSystem.SaveGame(slotIndex, data);
         PlayerPrefs.SetInt("CurrentSlot", slotIndex);
 
-        Debug.Log($"[CHECKPOINT] Saved (longden={data.inventory.isHoldingLongden}, cuoc={data.inventory.isHoldingCuocChim})");
+        Debug.Log($"[CHECKPOINT] Saved scene '{currentScene}' with {data.saveableObjects.Count} saveable objects.");
     }
+
 }

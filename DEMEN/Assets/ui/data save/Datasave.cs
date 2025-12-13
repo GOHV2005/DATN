@@ -72,11 +72,12 @@ public class SaveData
     public List<string> existingObjects = new List<string>();
 
     // Trong class SaveData, thêm class lồng:
+
     [Serializable]
     public class SaveableObjectRef
     {
         public string guid;
-        public string sceneName;
+        public string sceneName;  // 👈 Dùng để phân biệt scene
         public object savedState;
 
         public SaveableObjectRef(string guid, string scene, object state)

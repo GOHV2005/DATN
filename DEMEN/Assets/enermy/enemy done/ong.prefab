@@ -95,8 +95,8 @@ Transform:
   m_GameObject: {fileID: 7957346970046628801}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -2.54, y: 0.87, z: 0}
-  m_LocalScale: {x: 0.71722007, y: 0.71722007, z: 0.71722007}
+  m_LocalPosition: {x: -3.2362, y: 0.2092, z: 0}
+  m_LocalScale: {x: 0.44417438, y: 0.44417438, z: 0.44417438}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 5138987232537925846}
@@ -124,7 +124,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -143,7 +143,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 1989797388566967148, guid: 53d82b05a5b39f640a6da61c3ca06625,
     type: 3}
@@ -247,6 +247,7 @@ MonoBehaviour:
   hoverSpeed: 3.73
   chaseSpeed: 5.26
   detectionRange: 10.38
+  maxChaseDistance: 12
   retreatDistance: 3
   keepDistanceRange: {x: 5, y: 8}
   damage: 1
@@ -288,6 +289,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 5
+  currentHealth: 0
   knockbackForce: 30
   knockbackDuration: 0.15
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}

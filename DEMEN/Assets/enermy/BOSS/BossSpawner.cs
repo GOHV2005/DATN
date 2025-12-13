@@ -30,7 +30,8 @@ public class BossSpawner : MonoBehaviour
             Debug.LogError("[BossSpawner] ❌ Chưa gán wave!");
             return;
         }
-
+        if (arena != null)
+            arena.Stop(); // dừng nhạc lúc load scene
         if (spawnPoints == null || spawnPoints.Length != 2)
         {
             Debug.LogError("[BossSpawner] ❌ Cần đúng 2 spawn points!");
@@ -63,6 +64,7 @@ public class BossSpawner : MonoBehaviour
     {
         if (!hasCombatStarted && other.CompareTag(playerTag))
         {
+            arena.Play();
             StartCombat();
         }
     }

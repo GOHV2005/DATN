@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using UnityEngine;
+using UnityEngine.Audio;
 
 public class BossMantisAI : MonoBehaviour
 {
@@ -9,7 +10,7 @@ public class BossMantisAI : MonoBehaviour
     public Transform player;
     public Animator anim;
     public SpriteRenderer sr;
-    public SpriteRenderer deadEyes; // 👈 PHẢI LÀ CON CỦA BOSS TRONG HIERARCHY
+    public SpriteRenderer deadEyes;
     public Collider2D arenaCollider;
 
     [Header("Prefabs & Effects")]
@@ -24,9 +25,28 @@ public class BossMantisAI : MonoBehaviour
     public float playerNearDistance = 6f;
 
     [Header("DAMAGE")]
-    public int skill1Damage = 100; // Skill1 = Skill2 → sát thương khi lao
+    public int skill1Damage = 100;
     public int skill2Damage = 100;
     public int skill3Damage = 80;
+
+    [Header("SFX")]
+    public AudioClip walkClip;
+    public AudioClip attackClip;
+    public AudioClip strongAttackClip;
+    [Range(0f, 1f)] public float walkVolume = 0.5f;
+    [Range(0f, 1f)] public float attackVolume = 0.7f;
+    [Range(0f, 1f)] public float strongAttackVolume = 0.8f;
+
+    [Header("BGM")]
+    public AudioClip arenaBgm;
+    [Range(0f, 1f)] public float musicVolume = 0.8f;
+
+    [Header("Mixer")]
+    public AudioMixerGroup sfxMixerGroup;
+    public AudioMixerGroup musicMixerGroup;
+
+    private AudioSource sfxSource;
+    private AudioSource musicSource;
 
     private BossState currentState = BossState.Idle;
     private bool combatStarted = false;
@@ -40,6 +60,22 @@ public class BossMantisAI : MonoBehaviour
 
         sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 1f);
         if (deadEyes != null) deadEyes.gameObject.SetActive(false);
+
+        // AudioSource cho SFX
+        sfxSource = gameObject.AddComponent<AudioSource>();
+        sfxSource.playOnAwake = false;
+        sfxSource.spatialBlend = 0f;
+        if (sfxMixerGroup != null)
+            sfxSource.outputAudioMixerGroup = sfxMixerGroup;
+
+        // AudioSource cho Music
+        musicSource = gameObject.AddComponent<AudioSource>();
+        musicSource.playOnAwake = false;
+        musicSource.loop = true;
+        musicSource.spatialBlend = 0f;
+        musicSource.volume = musicVolume;
+        if (musicMixerGroup != null)
+            musicSource.outputAudioMixerGroup = musicMixerGroup;
     }
 
     void Update()
@@ -49,34 +85,51 @@ public class BossMantisAI : MonoBehaviour
             if (arenaCollider.bounds.Contains(player.position))
             {
                 combatStarted = true;
-                StartCoroutine(StartCombat());
+                StartCombat();
+                PlayArenaBgm();
             }
         }
-        // Cập nhật vị trí DeadEyes theo hướng nhìn
+
+        // DeadEyes cập nhật theo hướng boss
         if (deadEyes != null)
         {
             Vector3 localPos = deadEyes.transform.localPosition;
-            localPos.x = sr.flipX ? 0.79f : -0.79f; // 👈 đảo X khi flip
+            localPos.x = sr.flipX ? 0.79f : -0.79f;
             deadEyes.transform.localPosition = localPos;
-        }
-        if (currentState == BossState.Moving)
-        {
-            WalkTowardsPlayer(walkSpeed);
-        }
-
-        // Cập nhật hướng DeadEyes theo boss (nếu đang hiện)
-        if (deadEyes != null && deadEyes.gameObject.activeSelf)
-        {
             deadEyes.flipX = sr.flipX;
         }
+
+        if (currentState == BossState.Moving)
+            WalkTowardsPlayer(walkSpeed);
     }
 
-    IEnumerator StartCombat()
+    void StartCombat()
+    {
+        combatStarted = true;
+        PlayArenaBgm();
+        StartCoroutine(PlayStartAttackSequence());
+    }
+
+    IEnumerator PlayStartAttackSequence()
     {
         currentState = BossState.UsingSkill;
-        anim.Play("TanCongManh(Bongua)");
+
+        for (int i = 0; i < 3; i++)
+        {
+            PlayAnimWithSfx("TanCongManh(Bongua)", strongAttackClip, strongAttackVolume);
+            yield return new WaitForSeconds(0.8f); // thời gian animation, chỉnh theo animation thực tế
+        }
+
+        PlayAnim("Dung(BoNgua)");
+        currentState = BossState.Moving;
+        StartCoroutine(SkillLoop());
+    }
+
+
+    IEnumerator CombatRoutine()
+    {
         yield return new WaitForSeconds(2f);
-        anim.Play("Dung(BoNgua)");
+        PlayAnim("Dung(BoNgua)");
         currentState = BossState.Moving;
         StartCoroutine(SkillLoop());
     }
@@ -87,7 +140,7 @@ public class BossMantisAI : MonoBehaviour
         Vector3 dir = (player.position - transform.position).normalized;
         transform.position += new Vector3(dir.x * speed * Time.deltaTime, 0, 0);
         sr.flipX = dir.x > 0;
-        anim.Play("DiBo(BoNgua)");
+        PlayAnimWithSfx("DiBo(BoNgua)", walkClip, walkVolume);
     }
 
     IEnumerator SkillLoop()
@@ -97,11 +150,11 @@ public class BossMantisAI : MonoBehaviour
             currentState = BossState.UsingSkill;
             float r = Random.Range(0f, 1f);
 
-            if (r <= 0.2f) // 20% Skill1
+            if (r <= 0.2f)
                 yield return StartCoroutine(Skill1());
-            else if (r <= 0.6f) // 40% Skill3
+            else if (r <= 0.6f)
                 yield return StartCoroutine(Skill3());
-            else // 40% Skill2
+            else
                 yield return StartCoroutine(Skill2CheckNear());
 
             currentState = BossState.Moving;
@@ -109,10 +162,8 @@ public class BossMantisAI : MonoBehaviour
         }
     }
 
-    // ================= SKILL 1: chỉ cảnh báo → skill2 =================
     IEnumerator Skill1()
     {
-        // Chỉ hiện DeadEyes → rồi dùng chung logic tấn công như Skill 2
         if (deadEyes != null)
         {
             deadEyes.gameObject.SetActive(true);
@@ -123,35 +174,21 @@ public class BossMantisAI : MonoBehaviour
         yield return StartCoroutine(PerformAttack(skill1Damage));
     }
 
-    // ================= SKILL 2: chỉ khi player GẦN =================
     IEnumerator Skill2CheckNear()
     {
         if (player == null) yield break;
-        float distance = Vector2.Distance(player.position, transform.position);
-        if (distance > playerNearDistance) yield break;
-
+        if (Vector2.Distance(player.position, transform.position) > playerNearDistance) yield break;
         yield return StartCoroutine(PerformAttack(skill2Damage));
     }
-    IEnumerator PerformAttack(int damage)
-    {
-        currentAttackDamage = damage;
-        isAttackActive = true;
-        anim.Play("TanCong(BoNgua)");
-        yield return StartCoroutine(AttackForward(attackSpeed, chargeDistance));
-        anim.Play("Dung(BoNgua)");
-        isAttackActive = false;
-    }
-    // ================= SKILL 3: chỉ khi player XA =================
+
     IEnumerator Skill3()
     {
         if (player == null) yield break;
-        float distance = Vector2.Distance(player.position, transform.position);
-        if (distance <= playerNearDistance) yield break;
+        if (Vector2.Distance(player.position, transform.position) <= playerNearDistance) yield break;
 
-        anim.Play("TanCongManh(Bongua)");
-        yield return new WaitForSeconds(0.8f); // đợi animation xong
+        PlayAnimWithSfx("TanCongManh(Bongua)", strongAttackClip, strongAttackVolume);
+        yield return new WaitForSeconds(0.8f);
 
-        // Spawn shockwave
         if (shockwavePrefab != null)
         {
             GameObject wave = Instantiate(shockwavePrefab, transform.position, Quaternion.identity);
@@ -163,28 +200,31 @@ public class BossMantisAI : MonoBehaviour
             }
         }
 
-        // Lao (có thể bỏ nếu không muốn)
         currentAttackDamage = skill3Damage;
         isAttackActive = true;
-        anim.Play("TanCong(BoNgua)");
+        PlayAnimWithSfx("TanCong(BoNgua)", attackClip, attackVolume);
         yield return StartCoroutine(AttackForward(attackSpeed, chargeDistance));
-        anim.Play("Dung(BoNgua)");
+        PlayAnim("Dung(BoNgua)");
+        isAttackActive = false;
+    }
+
+    IEnumerator PerformAttack(int damage)
+    {
+        currentAttackDamage = damage;
+        isAttackActive = true;
+        PlayAnimWithSfx("TanCong(BoNgua)", attackClip, attackVolume);
+        yield return StartCoroutine(AttackForward(attackSpeed, chargeDistance));
+        PlayAnim("Dung(BoNgua)");
         isAttackActive = false;
     }
 
     IEnumerator AttackForward(float speed, float distance)
     {
-        Vector3 start = transform.position;
         Vector3 dir = (player.position.x > transform.position.x) ? Vector3.right : Vector3.left;
         sr.flipX = dir.x > 0;
-
         float traveled = 0f;
         while (traveled < distance)
         {
-            // (Tùy chọn) Kiểm tra vật cản — nếu cần
-            // RaycastHit2D hit = Physics2D.Raycast(transform.position, dir, speed * Time.deltaTime, ...);
-            // if (hit) break;
-
             float step = speed * Time.deltaTime;
             transform.position += dir * step;
             traveled += step;
@@ -192,21 +232,39 @@ public class BossMantisAI : MonoBehaviour
         }
     }
 
-    // ================= DAMAGE TRIGGER =================
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player") && isAttackActive)
         {
             PlayerController pc = other.GetComponent<PlayerController>();
             if (pc != null)
-            {
                 pc.TakeDamageFromEnemy(currentAttackDamage, transform.position);
-            }
+        }
+    }
+
+    void PlayAnim(string animName)
+    {
+        if (anim != null) anim.Play(animName);
+    }
+
+    void PlayAnimWithSfx(string animName, AudioClip clip, float volume)
+    {
+        PlayAnim(animName);
+        if (clip != null) sfxSource.PlayOneShot(clip, volume);
+    }
+
+    void PlayArenaBgm()
+    {
+        if (arenaBgm != null && musicSource != null && !musicSource.isPlaying)
+        {
+            musicSource.clip = arenaBgm;
+            musicSource.pitch = 1f; // đảm bảo nhạc chạy đúng tốc độ
+            musicSource.volume = musicVolume;
+            musicSource.Play();
         }
     }
 
 
-    // ================= GIZMOS =================
     private void OnDrawGizmosSelected()
     {
         if (arenaCollider != null)

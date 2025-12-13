@@ -226,7 +226,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 3.36, y: 3.820373}
+  m_Size: {x: 3.6416667, y: 4.017059}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -335,7 +335,7 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 3.36, y: 3.820373}
-    newSize: {x: 3.36, y: 3.820373}
+    newSize: {x: 3.6416667, y: 4.017059}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -367,7 +367,7 @@ MonoBehaviour:
   rockDelay: 1
   rockSpawnHeight: -1.73
   chargeChance: 0.6
-  stunnedTime: 1.5
+  stunnedTime: 3
   cooldownTime: 2
   roarTime: 4
   cameraShake: {fileID: 0}
@@ -403,6 +403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 20
+  currentHealth: 0
   knockbackForce: 0
   knockbackDuration: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
@@ -476,7 +477,7 @@ BoxCollider2D:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
     oldSize: {x: 3.36, y: 3.820373}
-    newSize: {x: 3.36, y: 3.820373}
+    newSize: {x: 3.6416667, y: 4.017059}
     adaptiveTilingThreshold: 0.5
     drawMode: 0
     adaptiveTiling: 0
@@ -509,6 +510,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   guid: e3fbc270-fe96-43ff-ad28-f12a3f1ea07b
+  sceneName: 
 --- !u!114 &494558591968200877
 MonoBehaviour:
   m_ObjectHideFlags: 0

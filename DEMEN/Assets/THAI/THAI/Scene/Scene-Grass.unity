@@ -972,8 +972,32 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8192232287199687743, guid: 1de867499033deb478f3fd2e627a3648,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 166518789}
   m_SourcePrefab: {fileID: 100100000, guid: 1de867499033deb478f3fd2e627a3648, type: 3}
+--- !u!1 &166518788 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8192232287199687743, guid: 1de867499033deb478f3fd2e627a3648,
+    type: 3}
+  m_PrefabInstance: {fileID: 166518787}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &166518789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 166518788}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: bdcc21bc-611d-4d8c-a138-9b6cd7e44cf1
+  sceneName: Scene-Grass
 --- !u!1 &172292695
 GameObject:
   m_ObjectHideFlags: 0
@@ -6473,14 +6497,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
+      propertyPath: objectsToSave.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
+        type: 3}
       propertyPath: 'objectsToSave.Array.data[0]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2015688162}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
       propertyPath: 'objectsToSave.Array.data[1]'
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 166518789}
     - target: {fileID: 262003525068468219, guid: 3a3c55287fc06064697e2b3369d3dd1e,
         type: 3}
       propertyPath: 'objectsToSave.Array.data[2]'
@@ -13147,12 +13176,12 @@ PrefabInstance:
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -118.16
+      value: -119.4516
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -169.3601
+      value: -170.8954
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
@@ -13194,17 +13223,23 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 7452141058802109982, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: dropItemPrefab
-      value: 
-      objectReference: {fileID: 671203211820296829, guid: 8eba5b0d3b235764fa87ab4fde825981,
-        type: 3}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 2953c04b0ee0003488178033cfc086f8, type: 3}
+--- !u!114 &2015688162 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5734546756135817944, guid: 2953c04b0ee0003488178033cfc086f8,
+    type: 3}
+  m_PrefabInstance: {fileID: 2015688160}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2065018849
 GameObject:
   m_ObjectHideFlags: 0

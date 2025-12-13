@@ -25,7 +25,7 @@ Transform:
   m_GameObject: {fileID: 1585017369857111174}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 66.9, y: 0.69999385, z: 0}
+  m_LocalPosition: {x: 66.9, y: -2.000003, z: 0}
   m_LocalScale: {x: 12.852489, y: 12.852489, z: 12.852489}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -56,7 +56,7 @@ Transform:
   m_GameObject: {fileID: 1893568247832331722}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -12.79, y: 0.7, z: 0}
+  m_LocalPosition: {x: -12.79, y: -2, z: 0}
   m_LocalScale: {x: 12.852489, y: 12.852489, z: 12.852489}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -78,6 +78,7 @@ GameObject:
   - component: {fileID: 8309165192126934435}
   - component: {fileID: 5536484014021292506}
   - component: {fileID: 6291702659381257417}
+  - component: {fileID: 5161161113965939025}
   m_Layer: 6
   m_Name: "c\xE0o c\xE0o"
   m_TagString: Enemy
@@ -94,8 +95,8 @@ Transform:
   m_GameObject: {fileID: 4096056002824667810}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 13.6693, y: -1.4179, z: 0}
-  m_LocalScale: {x: 1.80954, y: 1.6084801, z: 1.4074199}
+  m_LocalPosition: {x: 22.0374, y: -2.2338, z: 0}
+  m_LocalScale: {x: 1.2583542, y: 1.1185371, z: 0.97871983}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 7810515173210357551}
@@ -123,7 +124,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -142,7 +143,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -2315448999738698007, guid: 65c114539f692cf41a3f92d7abebc4a2,
     type: 3}
@@ -246,11 +247,11 @@ MonoBehaviour:
   patrolDistance: 9.44
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 32776
+    m_Bits: 8
   stepJumpDistance: 5
   stepJumpHeight: 10
   idleTime: 1
-  detectionRange: 34.2
+  detectionRange: 50.7
   groundTolerance: 0.5
   chargeTime: 1
   attackJumpTime: 0.8
@@ -293,11 +294,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  currentHealth: 0
   knockbackForce: 5
   knockbackDuration: 0.15
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.15
-  dropItemPrefab: {fileID: 0}
+  dropItemPrefab: {fileID: 671203211820296829, guid: 8eba5b0d3b235764fa87ab4fde825981,
+    type: 3}
   dropItemCount: 1
   dropForce: 5
   randomAngleRange: 30
@@ -342,6 +345,20 @@ CapsuleCollider2D:
   m_Offset: {x: 0.01905582, y: -0.015272244}
   m_Size: {x: 2.4820971, y: 2.7851858}
   m_Direction: 0
+--- !u!114 &5161161113965939025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4096056002824667810}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94332b4eafc493c43acc4e9864e129f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  guid: c50404b7-13bf-47bc-ac19-1d4e93356974
+  sceneName: Scene3-Part2
 --- !u!1 &6348343776642719485
 GameObject:
   m_ObjectHideFlags: 0
