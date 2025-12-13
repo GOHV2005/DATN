@@ -146,4 +146,9 @@ public class GameManager : MonoBehaviour
     {
         SceneManagerHelper.Instance.ReturnToPreviousScene();
     }
+    public void WinMinigame()
+    {
+        // Player thắng minigame → quay lại scene chính và thông báo thắng
+        SceneManagerHelper.Instance.ReturnToPreviousScene(true); // true = thắng
+    }
 }
