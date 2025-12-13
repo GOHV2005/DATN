@@ -13,7 +13,9 @@ public class BossSpawner : MonoBehaviour
     [Header("Wave Settings")]
     public List<WaveData> waves;
     public Transform[] spawnPoints;
-    public AudioSource arena;
+
+    [Header("Animation")]
+    public Animator animator; // 👈 THÊM: reference đến Animator
 
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
@@ -39,6 +41,10 @@ public class BossSpawner : MonoBehaviour
         EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
         waveSpawned = new bool[waves.Count];
 
+        // 👇 TỰ ĐỘNG LẤY Animator nếu chưa gán
+        if (animator == null)
+            animator = GetComponent<Animator>();
+
         if (bossTriggerZone == null)
         {
             StartCombat();
@@ -47,9 +53,8 @@ public class BossSpawner : MonoBehaviour
         {
             bossTriggerZone.isTrigger = true;
         }
-
-
     }
+
     void OnDestroy()
     {
         EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
@@ -96,6 +101,10 @@ public class BossSpawner : MonoBehaviour
 
     IEnumerator SpawnWave(WaveData wave)
     {
+        // 👇 BẬT ANIMATION SPAWN ("SpamEne")
+        if (animator != null)
+            animator.SetBool("IsSpamming", true);
+
         int total = wave.enemyCount;
         int half = total / 2;
         int extra = total % 2;
@@ -118,6 +127,10 @@ public class BossSpawner : MonoBehaviour
 
         isSpawning = false;
         Debug.Log($"[SPAWN] Hoàn tất spawn {total} enemy chia đều giữa 2 điểm.");
+
+        // 👇 TẮT ANIMATION SPAWN → VỀ IDLE ("DungYen")
+        if (animator != null)
+            animator.SetBool("IsSpamming", false);
     }
 
     void OnEnemyKilled()
