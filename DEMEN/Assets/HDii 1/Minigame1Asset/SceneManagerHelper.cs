@@ -5,36 +5,65 @@ public class SceneManagerHelper : MonoBehaviour
 {
     public static SceneManagerHelper Instance;
 
-    public string previousScene;
+    private string savedSceneName;
+    private Vector3 savedPlayerPosition;
+
+    public bool minigameWonStatus = false; // Lưu trạng thái thắng
 
     private void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        Instance = this; // Không dùng DontDestroyOnLoad
+    }
+
+    // Chuyển sang minigame
+    public void GoToMinigame(string minigameName, Transform player)
+    {
+        savedSceneName = SceneManager.GetActiveScene().name;
+        savedPlayerPosition = player.position;
+
+        SceneManager.LoadScene(minigameName);
     }
 
     public void GoToMinigame(string minigameName)
     {
-        previousScene = SceneManager.GetActiveScene().name;
-        SceneManager.LoadScene(minigameName);
+        Transform player = GameObject.FindGameObjectWithTag("Player")?.transform;
+        if (player == null)
+        {
+            Debug.LogError("Player not found!");
+            return;
+        }
+        GoToMinigame(minigameName, player);
+    }
+
+    // Quay về scene chính, player thắng hay không
+    public void ReturnToPreviousScene(bool playerWon)
+    {
+        minigameWonStatus = playerWon;
+
+        SceneManager.sceneLoaded += OnMainSceneLoaded;
+        SceneManager.LoadScene(savedSceneName);
     }
 
     public void ReturnToPreviousScene()
     {
-        if (!string.IsNullOrEmpty(previousScene))
+        ReturnToPreviousScene(false);
+    }
+
+    private void OnMainSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        SceneManager.sceneLoaded -= OnMainSceneLoaded;
+
+        // Khôi phục player
+        GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
+        if (playerObj != null)
+            playerObj.transform.position = savedPlayerPosition;
+
+        // Nếu thắng minigame → gọi gate controller
+        if (minigameWonStatus)
         {
-            SceneManager.LoadScene(previousScene);
-        }
-        else
-        {
-            Debug.LogWarning("Không tìm thấy previousScene để quay lại!");
+            MinigameGateController gate = FindObjectOfType<MinigameGateController>();
+            if (gate != null)
+                gate.OnMinigameWon();
         }
     }
 }
