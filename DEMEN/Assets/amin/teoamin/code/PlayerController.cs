@@ -147,6 +147,14 @@ public class PlayerController : MonoBehaviour
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
 
+    [Header("Wall Jump")]
+    public float wallJumpForceXMultiplier = 1.1f;
+    public float wallJumpForceYMultiplier = 1.0f;
+    public float wallJumpDetachTime = 0.15f; // ⛔ thời gian không cho check wall lại
+
+    private float wallJumpLockTimer = 0f;
+
+
     [Header("UI - Health (Heart System)")]
     public Image[] heartImages;
     public Sprite fullHeartSprite;
@@ -270,6 +278,13 @@ public class PlayerController : MonoBehaviour
             StartCoroutine(FadePanel(1f, 0f));
         }
     }
+    public void SetHealth(float value)
+    {
+        isDead = false;                
+        rb.simulated = true;           
+        CurrentHealth = Mathf.Clamp(value, 0f, maxHealth);
+    }
+
 
     void Update()
     {
@@ -336,6 +351,12 @@ public class PlayerController : MonoBehaviour
                 isGrounded = true;
                 break;
             }
+        }
+        // ⛔ ĐANG TRONG THỜI GIAN LOCK WALL → KHÔNG CHECK
+        if (wallJumpLockTimer > 0f)
+        {
+            wallJumpLockTimer -= Time.deltaTime;
+            return;
         }
 
         // Reset jump khi chạm đất
@@ -435,18 +456,36 @@ public class PlayerController : MonoBehaviour
         {
             if (isWallClinging)
             {
-                // Wall Jump: nhảy ra khỏi tường
+                // 🔥 WALL JUMP KIỂU HORNET
                 rb.linearVelocity = Vector2.zero;
-                rb.AddForce(new Vector2((facingRight ? -1f : 1f) * jumpForce * 0.8f, jumpForce), ForceMode2D.Impulse);
-                jumpCount = 1; // đã dùng 1 lần jump
+
+                float jumpDir = facingRight ? -1f : 1f;
+
+                Vector2 force = new Vector2(
+                    jumpDir * jumpForce * wallJumpForceXMultiplier,
+                    jumpForce * wallJumpForceYMultiplier
+                );
+
+                rb.AddForce(force, ForceMode2D.Impulse);
+
+                // ✅ THOÁT BÁM TƯỜNG HOÀN TOÀN
                 isWallClinging = false;
+                wallJumpLockTimer = wallJumpDetachTime;
+
+                jumpCount = 1; // đã dùng 1 lần jump
+
+                // 🔊 ÂM THANH NHẢY
+                if (jumpSound != null && audioSource != null)
+                    audioSource.PlayOneShot(jumpSound, 0.8f);
             }
             else if (jumpCount < maxJumpCount)
             {
                 HandleJump();
             }
+
             jumpRequested = false;
         }
+
 
         // 👇 XỬ LÝ DASH — NGĂN KHI BÁM TƯỜNG
         if (dashRequested && !isWallClinging)
@@ -500,6 +539,16 @@ public class PlayerController : MonoBehaviour
         }
 
         // 👇 KHÔNG CÓ KHỐI ĐẶT GRAVITY NÀO Ở DƯỚI NỮA → TRÁNH GHI ĐÈ
+    }
+    public void ForceDropFromWall()
+    {
+        if (!isWallClinging) return;
+
+        isWallClinging = false;
+        wallJumpLockTimer = 0.1f; // ⛔ tránh dính lại ngay
+
+        // Giữ Y, giảm X cho cảm giác rơi thẳng
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x * 0.2f, rb.linearVelocity.y);
     }
 
     public void DropItem(string name, int qty, Sprite sprite, string desc, System.Action onComplete = null)
@@ -735,7 +784,7 @@ public class PlayerController : MonoBehaviour
 
         isAttacking = true;
         CancelEquippingActions();
-
+        ForceDropFromWall();
         string attackAnim = "Attack";
         AudioClip soundToPlay = attackNormalSound; // mặc định
 
@@ -1115,10 +1164,12 @@ public class PlayerController : MonoBehaviour
         if (animator != null)
         {
             animator.Play("chet");
+            AutoSaveRAM.Instance?.Clear();
             StartCoroutine(RespawnAfterDeath());
         }
         else
         {
+            AutoSaveRAM.Instance?.Clear();
             RespawnImmediately();
         }
     }

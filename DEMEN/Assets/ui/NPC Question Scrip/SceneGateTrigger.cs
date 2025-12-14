@@ -49,6 +49,7 @@ public class SceneGateTrigger : MonoBehaviour
                 {
                     InventoryManager.Instance?.RemoveItem(requiredItemName, 1);
                 }
+                AutoSaveRAM.Instance?.Capture();
                 SceneLoader.LoadScene(targetSceneName);
             }
             // Nếu enableTransition = false → KHÔNG LÀM GÌ CẢ (không hiện text)

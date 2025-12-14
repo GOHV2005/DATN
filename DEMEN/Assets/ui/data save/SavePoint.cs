@@ -69,14 +69,21 @@ public class SavePoint : MonoBehaviour
         {
             data.inventory = invMgr.GetInventoryData();
             var player = PlayerController.Instance;
+
             if (player != null)
             {
-                data.playerHealth = player.CurrentHealth;
+                // ❤️ HỒI FULL MÁU KHI SAVE POINT
+                player.CurrentHealth = player.maxHealth;
+
+                // 🔒 LƯU MÁU FULL VÀO SAVE
+                data.playerHealth = player.maxHealth;
+
                 data.inventory.isHoldingLongden = player.IsHoldingLongden;
                 data.inventory.isHoldingCuocChim = player.IsHoldingCuocChim;
                 data.inventory.isHoldingKiem = player.IsHoldingKiem;
             }
         }
+
 
         // ✅ Lưu SaveableObject chỉ của scene hiện tại
         data.saveableObjects.RemoveAll(o => o.sceneName == currentScene); // xóa bản lưu cũ của scene này

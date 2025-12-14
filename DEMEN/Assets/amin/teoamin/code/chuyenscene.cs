@@ -9,6 +9,7 @@ public class chuyenscene : MonoBehaviour
     {
         if (collision.CompareTag("Player"))
         {
+            AutoSaveRAM.Instance?.Capture();
             SceneLoader.LoadScene(SceneName);
         }
     }
