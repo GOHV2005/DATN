@@ -328,7 +328,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 18.23816, y: 0.08425903}
+  m_Offset: {x: 2.2832565, y: 3.6496}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -338,7 +338,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 52.210052, y: 23.295288}
+  m_Size: {x: 84.11986, y: 30.42597}
   m_EdgeRadius: 0
 --- !u!114 &587445235539456447
 MonoBehaviour:
@@ -370,6 +370,7 @@ GameObject:
   - component: {fileID: 4401863854545358134}
   - component: {fileID: 1469152241853929}
   - component: {fileID: 5859009351444176503}
+  - component: {fileID: 2653003672689457855}
   m_Layer: 0
   m_Name: Camera - Main
   m_TagString: MainCamera
@@ -386,7 +387,7 @@ Transform:
   m_GameObject: {fileID: 4401863854545358122}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -66.031845, y: -23.063564, z: -40}
+  m_LocalPosition: {x: -57.931843, y: 78.17644, z: -40}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -545,6 +546,18 @@ MonoBehaviour:
     m_Bits: 16384
   transparentAlpha: 0.63
   fadeSpeed: 0.2
+--- !u!114 &2653003672689457855
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4401863854545358122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e79d416db3093594b9a6b171939d7f25, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &4401863855019763837
 GameObject:
   m_ObjectHideFlags: 0
@@ -997,7 +1010,7 @@ Transform:
   m_GameObject: {fileID: 4401863856316295335}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -66.031845, y: -23.063564, z: -40}
+  m_LocalPosition: {x: -57.931843, y: 78.17644, z: -40}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
