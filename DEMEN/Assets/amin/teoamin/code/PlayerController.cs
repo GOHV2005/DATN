@@ -186,6 +186,8 @@ public class PlayerController : MonoBehaviour
     public AudioClip attackNormalSound;
     public AudioClip attackKiemSound;
     public AudioClip dashSound;
+    public AudioClip HurtSound;
+
     [Header("UI - Mana")]
     public Image manaFill;
 
@@ -1049,6 +1051,7 @@ public class PlayerController : MonoBehaviour
                 return;
             AttackDirection dir = GetAttackDirection(other.transform.position);
             TakeDamage(damageOnTouch, dir);
+            audioSource.PlayOneShot(HurtSound);
         }
     }
     private void OnRockDestroyed()
