@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -14,6 +15,10 @@ public enum AttackDirection
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
 {
+    [Header("Audio Mixer")]
+    public AudioMixer audioMixer;
+    public AudioMixerGroup playerMixerGroup;
+
     [Header("Movement")]
     public float walkSpeed = 5f;
     public float runMultiplier = 1.6f;
@@ -109,11 +114,14 @@ public class PlayerController : MonoBehaviour
     private bool isAttacking = false;
     private float attackCooldownTimer = 0f;
     private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
+    private int attackComboStep = 0;       // 0 = chưa đánh, 1 = Attack, 2 = Attack2
+    private float lastAttackTime = 0f;
+    public float comboResetTime = 1f;      // ⏱ 1 giây reset combo
+    public float attackLungeDistance = 3f; // 👉 khoảng lao tới
+    public float attackLungeDuration = 0.1f;
 
     [Header("Longden Equipment")]
     public GameObject longdenObject; // Kéo GameObject longden vào đây (đã có sẵn trong scene)
-
-
     private bool isEquippingLongden = false;
     public bool IsHoldingLongden { get; set; } = false;
     private bool longdenJustUnequipped = false;
@@ -140,8 +148,18 @@ public class PlayerController : MonoBehaviour
     public bool IsHoldingKiem { get; set; } = false;
     public bool kiemJustUnequipped = false;
     public bool justUnequippedKiem = false;
+    // === COMBO KIẾM ===
+    private int swordComboStep = 0;      // 0 → 1 → 2 → 3
+    private float lastSwordAttackTime;
+    public float swordComboResetTime = 1f;
+
+    public float swordLungeDistance = 2.8f;
+    public float swordLungeDuration = 0.1f;
 
     public void MarkKiemAsJustUnequipped() => kiemJustUnequipped = true;
+    [Header("Sword Combo Timing")]
+    public float swordAttackDuration = 0.32f; // ⏱ thời gian CHUNG cho Chem/Chem2/Chem3
+
 
     [Header("Jump Float")]
     public bool useJumpFloat = true;
@@ -211,6 +229,7 @@ public class PlayerController : MonoBehaviour
     private float manaTargetRatio;
     private bool manaMainHealing = false;
 
+
     public float CurrentHealth
     {
         get => currentHealth;
@@ -237,11 +256,12 @@ public class PlayerController : MonoBehaviour
         // 👇 KHỞI TẠO AUDIO SOURCE
         audioSource = GetComponent<AudioSource>();
         if (audioSource == null)
-        {
             audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.playOnAwake = false;
-            audioSource.spatialBlend = 0f; // 2D sound
-        }
+
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f; // 2D
+        audioSource.outputAudioMixerGroup = playerMixerGroup;
+
     }
 
     void Start()
@@ -336,6 +356,10 @@ public class PlayerController : MonoBehaviour
                     lastFootstepTime = Time.time;
                 }
             }
+        }
+        if (swordComboStep > 0 && Time.time - lastSwordAttackTime > swordComboResetTime)
+        {
+            swordComboStep = 0;
         }
     }
     void CheckGroundAndWall()
@@ -683,6 +707,12 @@ public class PlayerController : MonoBehaviour
         }
 
         if (attackCooldownTimer > 0f) attackCooldownTimer -= Time.deltaTime;
+
+        if (attackComboStep > 0 && Time.time - lastAttackTime > comboResetTime)
+        {
+            attackComboStep = 0;
+        }
+
     }
 
     void HandleJump()
@@ -785,18 +815,87 @@ public class PlayerController : MonoBehaviour
         isAttacking = true;
         CancelEquippingActions();
         ForceDropFromWall();
-        string attackAnim = "Attack";
-        AudioClip soundToPlay = attackNormalSound; // mặc định
 
+        string attackAnim = "Attack";
+        AudioClip soundToPlay = attackNormalSound;
+
+        // 🔥 COMBO LOGIC
+        if (attackComboStep == 0)
+        {
+            attackComboStep = 1;
+            attackAnim = "Attack";
+        }
+        else if (attackComboStep == 1 && Time.time - lastAttackTime <= comboResetTime)
+        {
+            attackComboStep = 2;
+            attackAnim = "Attack2";
+        }
+        else
+        {
+            attackComboStep = 1;
+            attackAnim = "Attack";
+        }
+
+        lastAttackTime = Time.time;
+
+        // ⚔️ ƯU TIÊN VŨ KHÍ
         if (IsHoldingKiem)
         {
-            attackAnim = "Chem";
-            soundToPlay = attackKiemSound;
+            // ===== COMBO KIẾM 3 HIT =====
+            if (swordComboStep == 0)
+            {
+                swordComboStep = 1;
+                animator.Play("Chem");
+            }
+            else if (swordComboStep == 1 && Time.time - lastSwordAttackTime <= swordComboResetTime)
+            {
+                swordComboStep = 2;
+                animator.Play("Chem2");
+            }
+            else if (swordComboStep == 2 && Time.time - lastSwordAttackTime <= swordComboResetTime)
+            {
+                swordComboStep = 3;
+                animator.Play("Chem3");
+            }
+            else
+            {
+                swordComboStep = 1;
+                animator.Play("Chem");
+            }
+
+            lastSwordAttackTime = Time.time;
+
+            attackedEnemies.Clear();
+
+            if (kiemHitbox != null)
+            {
+                kiemHitbox.enabled = true;
+                string animName = "Chem";
+
+                if (swordComboStep == 2) animName = "Chem2";
+                else if (swordComboStep == 3) animName = "Chem3";
+
+                StartCoroutine(
+                    DisableHitboxAfterDelay(
+                        swordAttackDuration,
+                        kiemHitbox
+                    )
+                );
+
+            }
+
+            // 🔊 sound
+            audioSource?.PlayOneShot(attackKiemSound, 0.8f);
+
+            // 🚀 lao tới
+            StartCoroutine(SwordAttackLunge());
+            return;
         }
+
         else if (IsHoldingCuocChim)
         {
             attackAnim = "sudungcuocchim";
-            soundToPlay = attackNormalSound; // hoặc âm thanh riêng nếu muốn
+            soundToPlay = attackNormalSound;
         }
 
         animator.Play(attackAnim);
@@ -816,9 +915,43 @@ public class PlayerController : MonoBehaviour
 
         attackCooldownTimer = attackCooldown;
 
-        // Phát âm thanh tấn công
+        // 🔊 SOUND
         if (soundToPlay != null && audioSource != null)
             audioSource.PlayOneShot(soundToPlay, 0.8f);
+
+        // 🚀 LAO TỚI
+        StartCoroutine(AttackLunge());
+    }
+    IEnumerator SwordAttackLunge()
+    {
+        float elapsed = 0f;
+        float dir = facingRight ? 1f : -1f;
+
+        Vector2 startPos = rb.position;
+        Vector2 targetPos = startPos + Vector2.right * dir * swordLungeDistance;
+
+        while (elapsed < swordLungeDuration)
+        {
+            rb.MovePosition(Vector2.Lerp(startPos, targetPos, elapsed / swordLungeDuration));
+            elapsed += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
+    }
+
+    IEnumerator AttackLunge()
+    {
+        float elapsed = 0f;
+        float dir = facingRight ? 1f : -1f;
+
+        Vector2 startPos = rb.position;
+        Vector2 targetPos = startPos + Vector2.right * dir * attackLungeDistance;
+
+        while (elapsed < attackLungeDuration)
+        {
+            rb.MovePosition(Vector2.Lerp(startPos, targetPos, elapsed / attackLungeDuration));
+            elapsed += Time.fixedDeltaTime;
+            yield return new WaitForFixedUpdate();
+        }
     }
 
     IEnumerator DisableHitboxAfterDelay(float delay, Collider2D hitbox)
@@ -826,6 +959,15 @@ public class PlayerController : MonoBehaviour
         yield return new WaitForSeconds(delay);
         if (hitbox != null) hitbox.enabled = false;
         isAttacking = false;
+        if (attackComboStep >= 2)
+        {
+            attackComboStep = 0;
+        }
+        if (IsHoldingKiem && swordComboStep >= 3)
+        {
+            swordComboStep = 0;
+        }
+
     }
 
     float GetAnimationLength(string animName)
@@ -1484,7 +1626,7 @@ public class PlayerController : MonoBehaviour
         if (isAttacking)
             return;
 
-        // ✅ ƯU TIÊN: nếu grounded → không bám tường
+        // ✅ ƯU TIÊN: nếu grounded → không bám tườngFat
         if (isGrounded)
         {
             animator.Play(Mathf.Abs(horizontalInput) > 0.1f ? "Run" : "Idle");

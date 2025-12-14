@@ -3300,10 +3300,20 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 610416325041316976, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 17
+      objectReference: {fileID: 0}
     - target: {fileID: 669230892645160873, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Layer
       value: 15
+      objectReference: {fileID: 0}
+    - target: {fileID: 1092516539667192339, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 1185599634212194732, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3472,6 +3482,12 @@ PrefabInstance:
       objectReference: {fileID: 8102997851761991258}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: audioMixer
+      value: 
+      objectReference: {fileID: 24100000, guid: fe69674f4c3e9614cbc17c22ba56237d,
+        type: 2}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: kiemHitbox
       value: 
       objectReference: {fileID: 5507685720838667059}
@@ -3513,7 +3529,7 @@ PrefabInstance:
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: attackCooldown
-      value: 1
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3591,6 +3607,12 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
+      propertyPath: playerMixerGroup
+      value: 
+      objectReference: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d,
+        type: 2}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
       propertyPath: attackNormalSound
       value: 
       objectReference: {fileID: 8300000, guid: a56e50dcdbe4eea438cb3eb6cedb4bcb, type: 3}
@@ -3603,6 +3625,21 @@ PrefabInstance:
         type: 3}
       propertyPath: groundLayer.m_Bits
       value: 9
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: swordLungeDistance
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: attackLungeDistance
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: swordAttackDuration
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 5166886404858295374, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3659,6 +3696,11 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 15
       objectReference: {fileID: 0}
+    - target: {fileID: 5777679482746736801, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 17
+      objectReference: {fileID: 0}
     - target: {fileID: 5861227861522778953, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_Layer
@@ -3687,12 +3729,12 @@ PrefabInstance:
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -34.7
+      value: -144.53
       objectReference: {fileID: 0}
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 49.7
+      value: -6.77
       objectReference: {fileID: 0}
     - target: {fileID: 6433867304277662427, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -3738,6 +3780,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_SortingOrder
       value: 16
+      objectReference: {fileID: 0}
+    - target: {fileID: 6648917041537268754, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: 17
       objectReference: {fileID: 0}
     - target: {fileID: 6907690624338189124, guid: 31d0d0a13417a89438c4a0ad7ce6b1f2,
         type: 3}
@@ -5051,13 +5098,13 @@ PrefabInstance:
         type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: f4a283a2e6c57ae48995031ab3b20d18,
+      objectReference: {fileID: 11400000, guid: 64afd44bf01ce404e97c7cfd77c81ef0,
         type: 2}
     - target: {fileID: 3906603769150158476, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -3210866110504469942, guid: f4a283a2e6c57ae48995031ab3b20d18,
+      objectReference: {fileID: -1506241878258846377, guid: 64afd44bf01ce404e97c7cfd77c81ef0,
         type: 2}
     - target: {fileID: 3906603769150158476, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
@@ -5456,13 +5503,13 @@ PrefabInstance:
         type: 3}
       propertyPath: m_fontAsset
       value: 
-      objectReference: {fileID: 11400000, guid: f4a283a2e6c57ae48995031ab3b20d18,
+      objectReference: {fileID: 11400000, guid: 64afd44bf01ce404e97c7cfd77c81ef0,
         type: 2}
     - target: {fileID: 5079612929935717672, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -3210866110504469942, guid: f4a283a2e6c57ae48995031ab3b20d18,
+      objectReference: {fileID: -1506241878258846377, guid: 64afd44bf01ce404e97c7cfd77c81ef0,
         type: 2}
     - target: {fileID: 5079612929935717672, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
