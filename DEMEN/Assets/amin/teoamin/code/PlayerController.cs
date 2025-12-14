@@ -185,7 +185,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip equipKiemSound;
     public AudioClip attackNormalSound;
     public AudioClip attackKiemSound;
-
+    public AudioClip dashSound;
     [Header("UI - Mana")]
     public Image manaFill;
 
@@ -795,6 +795,12 @@ public class PlayerController : MonoBehaviour
             GameObject smoke = Instantiate(dashSmokePrefab);
             smoke.GetComponent<AutoDestroyAfterAnim>().Init(targetObject.position, facingRight);
         }
+        // 🔊 DASH SOUND (chỉ play 1 lần)
+        if (dashSound != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(dashSound);
+        }
+
     }
 
     void EndDash()
