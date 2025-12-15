@@ -3634,6 +3634,11 @@ PrefabInstance:
         type: 2}
     - target: {fileID: 2184686802394060048, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
+      propertyPath: waves.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2184686802394060048, guid: 9d2d1316115dadb49a4e9eeeda391166,
+        type: 3}
       propertyPath: 'waves.Array.data[3]'
       value: 
       objectReference: {fileID: 11400000, guid: 2870fe791008db148a160d42aebaa0dc,
@@ -6813,6 +6818,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1209080102}
   - component: {fileID: 1209080101}
+  - component: {fileID: 1209080103}
   m_Layer: 0
   m_Name: _0161_abyss_0
   m_TagString: Untagged
@@ -6870,7 +6876,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 2
-  m_Size: {x: 191.69029, y: 16.6875}
+  m_Size: {x: 229.18411, y: 16.6875}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -6885,12 +6891,63 @@ Transform:
   m_GameObject: {fileID: 1209080100}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 344.6, y: -136.86, z: 0}
+  m_LocalPosition: {x: 338.633, y: -136.86, z: 0}
   m_LocalScale: {x: 0.31829298, y: 0.31829298, z: 0.31829298}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!68 &1209080103
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1209080100}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: -140.40985, y: -0.9456539}
+  - {x: -112.84473, y: -2.1931272}
+  - {x: -81.96846, y: -3.4345198}
+  - {x: -48.733, y: -3.738312}
+  - {x: 19.996538, y: -3.6955974}
+  - {x: 50.706642, y: -4.5661783}
+  - {x: 82.37199, y: -2.5460095}
+  - {x: 110.61273, y: -4.5182867}
+  - {x: 115.268036, y: 8.448855}
+  - {x: 114.59206, y: 0}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!4 &1244720064 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6309747923429382125, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
@@ -6957,7 +7014,7 @@ MonoBehaviour:
       type: 3}
     lines:
     - isPlayer: 1
-      text: a
+      text: "N\xE0y b\xE0 gi\xE0! Mau th\u1EA3 D\u1EBF Cho\u1EAFt ra!"
       isQuestRequest: 0
       isAcceptLine: 0
       isRefuseLine: 0
@@ -6965,9 +7022,251 @@ MonoBehaviour:
       isQuestComplete: 0
       isDoneIfPlayerComeBack: 0
     - isPlayer: 0
-      text: 'b
-
-'
+      text: "B\xC0 GI\xC0!? Ng\u01B0\u01A1i v\u1EEBa g\u1ECDi ai l\xE0 b\xE0 gi\xE0
+        h\u1EA3!?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ta m\u1EDBi 20 n\u1ED3i b\xE1nh ch\u01B0ng th\xF4i nh\xE9!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "\u1ED2\u2026 xin l\u1ED7i qu\xFD c\xF4."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "V\u1EADy th\xEC\u2026 qu\xFD c\xF4 c\xF3 th\u1EC3 th\u1EA3 ng\u01B0\u1EDDi
+        b\u1EA1n b\xE9 nh\u1ECF c\u1EE7a t\xF4i ra \u0111\u01B0\u1EE3c kh\xF4ng?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "H\u1EEBm\u2026 nghe c\u0169ng \u0111\u01B0\u1EE3c \u0111\u1EA5y."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Nh\u01B0ng ng\u01B0\u01A1i l\xE0 ai m\xE0 d\xE1m v\xE0o l\xE3nh \u0111\u1ECBa
+        c\u1EE7a ta?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "Ta l\xE0 D\u1EBF M\xE8n."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "D\u1EBF\u2026 M\xE8n?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ta ch\u01B0a t\u1EEBng nghe t\xEAn."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "\u0110\u01B0\u01A1ng nhi\xEAn r\u1ED3i."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "Ta \u0111\u1EBFn t\u1EEB khu r\u1EEBng ph\xEDa T\xE2y, n\u01A1i m\xE0
+        ki\u1EBFn ch\u01B0a d\xE1m b\xE9n m\u1EA3ng"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\u1ED2~ gh\xEA g\u1EDBm nh\u1EC9."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Th\u1EBF D\u1EBF M\xE8n r\u1EEBng T\xE2y \u0111\u1EBFn \u0111\xE2y l\xE0m
+        c\xE1i ch\xF3 g\xEC?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ta \u0111\u1EBFn \u0111\u1EC3 gi\u1EA3i c\u1EE9u ng\u01B0\u1EDDi b\u1EA1n
+        c\u1EE7a ta. D\u1EBF Cho\u1EAFt."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\xC0~ c\xE1i con d\u1EBF n\xE2u n\xE2u, nh\u1ECF nh\u1ECF, tr\xF4ng
+        nh\u01B0 \u0111\u1ED1ng\u2026"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\xC0 th\xF4i, n\xF3i v\u1EADy h\u01A1i th\xF4."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "N\xF3 \u0111ang n\u1EB1m tr\xEAn d\u0129a kia k\xECa."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i\u2026 mang b\u1EA1n ta l\xEAn d\u0129a \u0111\u1EC3
+        l\xE0m g\xEC!?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\u0102n ch\u1EE9 l\xE0m g\xEC."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Th\u1ECBt d\u1EBF gi\xF2n, dai, b\u1ED5 d\u01B0\u1EE1ng, t\u1ED1t cho
+        nhan s\u1EAFc n\u1EEF ho\xE0ng l\u1EAFm."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ngon c\xE1i qu\u1EA7n qu\xE8!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "B\xE0 gi\xE0 mau th\u1EA3 b\u1EA1n ta ra ngay!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "TA \u0110\xC3 B\u1EA2O TA KH\xD4NG PH\u1EA2I B\xC0 GI\xC0!!!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i \u0111\xFAng l\xE0 th\u1EB1ng \u0111\u1EA7u khu\u1EA5t,
+        m\u1ED3m m\xE9p v\xF4 gi\xE1o d\u1EE5c!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\u2026"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "Th\u1EBF gi\u1EDD b\xE0\u2026 \xE0 nh\u1EA7m\u2026 n\u1EEF ho\xE0ng
+        \u0111\u1ECBnh sao?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "R\u1EA5t \u0111\u01A1n gi\u1EA3n."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Qu\u1EF3 xu\u1ED1ng xin l\u1ED7i, ho\u1EB7c rap cho ta nghe r\u1ED3i
+        ta s\u1EBD c\xE2n nh\u1EAFc\u2026"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "C\xF2n kh\xF4ng th\xEC \u0111\u1EC3 ta d\u1EA1y ng\u01B0\u01A1i bi\u1EBFt."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "AI M\u1EDAI L\xC0 K\u1EBA CAI TR\u1ECA \u1EDE \u0110\xC2Y!"
       isQuestRequest: 0
       isAcceptLine: 0
       isRefuseLine: 0
@@ -6981,7 +7280,15 @@ MonoBehaviour:
       type: 3}
     lines:
     - isPlayer: 0
-      text: a
+      text: "Khoan\u2026 khoan \u0111\xE3!"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "\u0110\u1EE7 r\u1ED3i! \u0110\u1EE7 r\u1ED3i!"
       isQuestRequest: 0
       isAcceptLine: 0
       isRefuseLine: 0
@@ -6989,7 +7296,39 @@ MonoBehaviour:
       isQuestComplete: 0
       isDoneIfPlayerComeBack: 0
     - isPlayer: 1
-      text: b
+      text: Sao?
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 1
+      text: "N\xE3y c\xF2n \u0111\xF2i \u0103n b\u1EA1n ta c\u01A1 m\xE0?"
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ta\u2026 ta th\u1EEBa nh\u1EADn."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i m\u1EA1nh h\u01A1n ta t\u01B0\u1EDFng."
+      isQuestRequest: 0
+      isAcceptLine: 0
+      isRefuseLine: 0
+      isMissingItem: 0
+      isQuestComplete: 0
+      isDoneIfPlayerComeBack: 0
+    - isPlayer: 0
+      text: "Th\u1EA3 con d\u1EBF kia ra!"
       isQuestRequest: 0
       isAcceptLine: 0
       isRefuseLine: 0
@@ -8555,7 +8894,7 @@ GameObject:
   - component: {fileID: 1657689977}
   m_Layer: 0
   m_Name: Aspid__0000_c_inner_large_grey_0 (12)
-  m_TagString: Untagged
+  m_TagString: Ground
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -8665,7 +9004,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -3.3112268}
+  m_Offset: {x: 0, y: -3.1744053}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -8675,7 +9014,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 24.5, y: 12.752546}
+  m_Size: {x: 24.5, y: 13.02619}
   m_EdgeRadius: 0
 --- !u!1 &1681684499
 GameObject:
