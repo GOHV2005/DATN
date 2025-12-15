@@ -191,6 +191,7 @@ public class QuestNPC : MonoBehaviour
             }
         }
     }
+
     void ShowInteractionPrompt()
     {
         if (interactionPrompt != null) interactionPrompt.SetActive(true);

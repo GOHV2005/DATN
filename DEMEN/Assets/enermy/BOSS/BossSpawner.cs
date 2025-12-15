@@ -1,22 +1,22 @@
-﻿// BossSpawner.cs — spawn enemy ĐỀU ở 2 điểm + tự động chuyển scene "END"
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement; // ✅ THÊM DÒNG NÀY
+using UnityEngine.Audio;
 
 public class BossSpawner : MonoBehaviour
 {
-    [Header("Trigger Settings")]
-    public Collider2D bossTriggerZone;
-    public string playerTag = "Player";
-
     [Header("Wave Settings")]
     public List<WaveData> waves;
     public Transform[] spawnPoints;
-    public AudioSource arena;
+
+    [Header("Boss Music (Code Controlled)")]
+    public AudioClip bossMusic;
+    public AudioMixerGroup bossMixerGroup;
 
     [Header("Animation")]
-    public Animator animator; // 👈 THÊM: reference đến Animator
+    public Animator animator;
+
+    private AudioSource arenaSource;
 
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
@@ -24,93 +24,97 @@ public class BossSpawner : MonoBehaviour
     private bool hasCombatStarted = false;
     private bool[] waveSpawned;
 
-    void Start()
+    void Awake()
     {
-        if (waves == null || waves.Count == 0)
-        {
-            Debug.LogError("[BossSpawner] ❌ Chưa gán wave!");
-            return;
-        }
-        if (arena != null)
-            arena.Stop(); // dừng nhạc lúc load scene
-        if (spawnPoints == null || spawnPoints.Length != 2)
-        {
-            Debug.LogError("[BossSpawner] ❌ Cần đúng 2 spawn points!");
-            return;
-        }
-
-        EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
         waveSpawned = new bool[waves.Count];
+        CreateArenaAudioSource();
 
-        // 👇 TỰ ĐỘNG LẤY Animator nếu chưa gán
         if (animator == null)
             animator = GetComponent<Animator>();
-
-        if (bossTriggerZone == null)
-        {
-            StartCombat();
-        }
-        else
-        {
-            bossTriggerZone.isTrigger = true;
-        }
     }
 
-    void OnDestroy()
+    void CreateArenaAudioSource()
     {
-        EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
+        arenaSource = gameObject.AddComponent<AudioSource>();
+
+        arenaSource.clip = bossMusic;
+        arenaSource.outputAudioMixerGroup = bossMixerGroup;
+
+        arenaSource.playOnAwake = false;
+        arenaSource.loop = true;
+
+        // 🔥 ÉP NHẠC NỀN
+        arenaSource.spatialBlend = 0f; // 2D
+        arenaSource.volume = 1f;
+        arenaSource.mute = false;
+
+        Debug.Log("🎵 Arena AudioSource created by code");
     }
 
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        if (!hasCombatStarted && other.CompareTag(playerTag))
-        {
-            arena.Play();
-            StartCombat();
-        }
-    }
+    // ===================== COMBAT =====================
 
-    void StartCombat()
+    public void StartCombat()
     {
-        if (hasCombatStarted) return;
+        Debug.Log("🔥 StartCombat()");
+
         hasCombatStarted = true;
+        currentWaveIndex = 0;
+        activeEnemyCount = 0;
+
+        for (int i = 0; i < waveSpawned.Length; i++)
+            waveSpawned[i] = false;
+
+        PlayBossMusic();
         StartNextWave();
     }
 
+    void PlayBossMusic()
+    {
+        if (arenaSource == null || bossMusic == null)
+        {
+            Debug.LogError("❌ Boss music missing");
+            return;
+        }
+
+        arenaSource.Stop();
+        arenaSource.Play();
+
+        Debug.Log($"🎵 Boss music PLAY → {bossMusic.name}");
+    }
+
+    void StopBossMusic()
+    {
+        if (arenaSource != null && arenaSource.isPlaying)
+        {
+            arenaSource.Stop();
+            Debug.Log("🎵 Boss music STOP");
+        }
+    }
+
+    // ===================== WAVES =====================
+
     void StartNextWave()
     {
-        if (!hasCombatStarted) return;
-        if (currentWaveIndex >= waves.Count) return;
+        if (!hasCombatStarted || currentWaveIndex >= waves.Count)
+            return;
 
         if (waveSpawned[currentWaveIndex])
-        {
-            Debug.LogWarning($"[BossSpawner] Wave {currentWaveIndex + 1} đã spawn rồi! Bỏ qua.");
             return;
-        }
-
-        WaveData wave = waves[currentWaveIndex];
-        if (wave.enemyPrefab == null)
-        {
-            Debug.LogError($"[BossSpawner] Wave {currentWaveIndex + 1} thiếu enemyPrefab!");
-            return;
-        }
 
         waveSpawned[currentWaveIndex] = true;
         isSpawning = true;
-        StartCoroutine(SpawnWave(wave));
+
+        StartCoroutine(SpawnWave(waves[currentWaveIndex]));
     }
 
     IEnumerator SpawnWave(WaveData wave)
     {
-        // 👇 BẬT ANIMATION SPAWN ("SpamEne")
         if (animator != null)
             animator.SetBool("IsSpamming", true);
 
         int total = wave.enemyCount;
         int half = total / 2;
         int extra = total % 2;
-
-        Debug.Log($"[SPAWN] Wave {currentWaveIndex + 1}: {total} enemy → {half + extra} ở điểm 0, {half} ở điểm 1");
 
         for (int i = 0; i < half + extra; i++)
         {
@@ -127,11 +131,17 @@ public class BossSpawner : MonoBehaviour
         }
 
         isSpawning = false;
-        Debug.Log($"[SPAWN] Hoàn tất spawn {total} enemy chia đều giữa 2 điểm.");
 
-        // 👇 TẮT ANIMATION SPAWN → VỀ IDLE ("DungYen")
         if (animator != null)
             animator.SetBool("IsSpamming", false);
+    }
+    void OnEnable()
+    {
+        EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
+    }
+    void OnDisable()
+    {
+        EnemyDeathHandler.OnEnemyDied -= OnEnemyKilled;
     }
 
     void OnEnemyKilled()
@@ -141,20 +151,21 @@ public class BossSpawner : MonoBehaviour
         if (activeEnemyCount <= 0 && !isSpawning)
         {
             currentWaveIndex++;
+
             if (currentWaveIndex < waves.Count)
-            {
                 StartNextWave();
-            }
             else
-            {
                 OnAllWavesCompleted();
-            }
         }
     }
 
     void OnAllWavesCompleted()
     {
-        Debug.Log("🎉 Tất cả wave đã hoàn thành! Chuyển sang scene END.");
-        SceneManager.LoadScene("END"); // ✅ CHUYỂN SCENE
+        Debug.Log("🎉 Boss defeated");
+        StopBossMusic();
+
+        var boss = FindObjectOfType<BossFinalController>();
+        if (boss != null)
+            boss.OnBossDefeated();
     }
 }
