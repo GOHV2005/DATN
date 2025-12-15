@@ -3635,8 +3635,14 @@ PrefabInstance:
     - target: {fileID: 2184686802394060048, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
       propertyPath: waves.Array.size
-      value: 2
+      value: 4
       objectReference: {fileID: 0}
+    - target: {fileID: 2184686802394060048, guid: 9d2d1316115dadb49a4e9eeeda391166,
+        type: 3}
+      propertyPath: 'waves.Array.data[2]'
+      value: 
+      objectReference: {fileID: 11400000, guid: 8fa340c2adf3ea247acf4d800c68116c,
+        type: 2}
     - target: {fileID: 2184686802394060048, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
       propertyPath: 'waves.Array.data[3]'
