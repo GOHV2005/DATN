@@ -55,7 +55,7 @@ public class SaveSlotUI : MonoBehaviour
                 // Hoặc bạn có thể lưu scene hiện tại nếu đang trong gameplay
                 SceneSaveData defaultCheckpoint = new SceneSaveData
                 {
-                    sceneName = "CutScence", // hoặc "MainMenu"? tuỳ bạn
+                    sceneName = "a", // hoặc "MainMenu"? tuỳ bạn
                     position = Vector3.zero,
                     playTime = 0f
                 };
