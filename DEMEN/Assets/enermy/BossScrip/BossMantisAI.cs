@@ -4,277 +4,292 @@ using UnityEngine.Audio;
 
 public class BossMantisAI : MonoBehaviour
 {
-    public enum BossState { Idle, Moving, UsingSkill }
+    public enum BossState { Idle, Moving, UsingSkill, Dead }
+    BossState currentState = BossState.Idle;
 
-    [Header("References")]
+    [Header("REFERENCES")]
     public Transform player;
     public Animator anim;
     public SpriteRenderer sr;
     public SpriteRenderer deadEyes;
     public Collider2D arenaCollider;
+    public GameObject arenaBarrier;
 
-    [Header("Prefabs & Effects")]
+    [Header("BOSS HP")]
+    public int maxHP = 1000;
+    private int currentHP;
+    private bool isDead = false;
+
+    [Header("PREFABS")]
     public GameObject shockwavePrefab;
+    public GameObject smokePrefab;
 
-    [Header("Movement & Attack")]
+    [Header("MOVE")]
     public float walkSpeed = 2f;
-    public float attackSpeed = 10f;
-    public float skill1MinDistanceFromPlayer = 8f;
-    public float deadEyesTime = 1.5f;
-    public float chargeDistance = 5f;
-    public float playerNearDistance = 6f;
+    public float dashSpeed = 12f;
+    public float dashDistance = 6f;
+    public float approachSpeed = 3f;
+    public float warningDistance = 3f;
+
+    [Header("SKILL 3")]
+    public float warningTime = 0.8f;
 
     [Header("DAMAGE")]
     public int skill1Damage = 100;
     public int skill2Damage = 100;
-    public int skill3Damage = 80;
+    public int skill3Damage = 150;
 
-    [Header("SFX")]
-    public AudioClip walkClip;
+    [Header("AUDIO")]
     public AudioClip attackClip;
     public AudioClip strongAttackClip;
-    [Range(0f, 1f)] public float walkVolume = 0.5f;
-    [Range(0f, 1f)] public float attackVolume = 0.7f;
-    [Range(0f, 1f)] public float strongAttackVolume = 0.8f;
-
-    [Header("BGM")]
+    public AudioClip teleportClip;
     public AudioClip arenaBgm;
-    [Range(0f, 1f)] public float musicVolume = 0.8f;
 
-    [Header("Mixer")]
-    public AudioMixerGroup sfxMixerGroup;
-    public AudioMixerGroup musicMixerGroup;
+    public AudioMixerGroup sfxMixer;
+    public AudioMixerGroup musicMixer;
 
-    private AudioSource sfxSource;
-    private AudioSource musicSource;
+    AudioSource sfxSource;
+    AudioSource musicSource;
 
-    private BossState currentState = BossState.Idle;
-    private bool combatStarted = false;
-    private bool isAttackActive = false;
-    private int currentAttackDamage = 0;
+    bool combatStarted;
+    bool isAttackActive;
+    int currentDamage;
 
+    // ================= START =================
     void Start()
     {
-        if (player == null)
+        currentHP = maxHP;
+
+        if (!player)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-        sr.color = new Color(sr.color.r, sr.color.g, sr.color.b, 1f);
-        if (deadEyes != null) deadEyes.gameObject.SetActive(false);
+        deadEyes.gameObject.SetActive(false);
 
-        // AudioSource cho SFX
         sfxSource = gameObject.AddComponent<AudioSource>();
-        sfxSource.playOnAwake = false;
+        sfxSource.outputAudioMixerGroup = sfxMixer;
         sfxSource.spatialBlend = 0f;
-        if (sfxMixerGroup != null)
-            sfxSource.outputAudioMixerGroup = sfxMixerGroup;
 
-        // AudioSource cho Music
         musicSource = gameObject.AddComponent<AudioSource>();
-        musicSource.playOnAwake = false;
+        musicSource.outputAudioMixerGroup = musicMixer;
         musicSource.loop = true;
         musicSource.spatialBlend = 0f;
-        musicSource.volume = musicVolume;
-        if (musicMixerGroup != null)
-            musicSource.outputAudioMixerGroup = musicMixerGroup;
     }
 
     void Update()
     {
-        if (!combatStarted && player != null && arenaCollider != null)
-        {
-            if (arenaCollider.bounds.Contains(player.position))
-            {
-                combatStarted = true;
-                StartCombat();
-                PlayArenaBgm();
-            }
-        }
+        if (isDead) return;
 
-        // DeadEyes cập nhật theo hướng boss
-        if (deadEyes != null)
+        // ====== KÍCH HOẠT COMBAT ======
+        if (!combatStarted && arenaCollider.bounds.Contains(player.position))
         {
-            Vector3 localPos = deadEyes.transform.localPosition;
-            localPos.x = sr.flipX ? 0.79f : -0.79f;
-            deadEyes.transform.localPosition = localPos;
-            deadEyes.flipX = sr.flipX;
+            combatStarted = true;
+            StartCoroutine(CombatIntro());
         }
 
         if (currentState == BossState.Moving)
-            WalkTowardsPlayer(walkSpeed);
+            MoveToPlayer();
     }
 
-    void StartCombat()
+    // ================= INTRO =================
+    IEnumerator CombatIntro()
     {
-        combatStarted = true;
-        PlayArenaBgm();
-        StartCoroutine(PlayStartAttackSequence());
-    }
+        // 🔒 KHÓA ARENA
+        if (arenaBarrier)
+            arenaBarrier.SetActive(true);
 
-    IEnumerator PlayStartAttackSequence()
-    {
-        currentState = BossState.UsingSkill;
+        PlayMusic();
+
+        currentState = BossState.Idle;
 
         for (int i = 0; i < 3; i++)
         {
-            PlayAnimWithSfx("TanCongManh(Bongua)", strongAttackClip, strongAttackVolume);
-            yield return new WaitForSeconds(0.8f); // thời gian animation, chỉnh theo animation thực tế
+            anim.Play("TanCongManh(Bongua)");
+            sfxSource.PlayOneShot(strongAttackClip);
+            yield return new WaitForSeconds(0.8f);
         }
 
-        PlayAnim("Dung(BoNgua)");
         currentState = BossState.Moving;
-        StartCoroutine(SkillLoop());
+
+        StartCoroutine(CombatLoop());
     }
 
-
-    IEnumerator CombatRoutine()
+    // ================= COMBAT LOOP =================
+    IEnumerator CombatLoop()
     {
-        yield return new WaitForSeconds(2f);
-        PlayAnim("Dung(BoNgua)");
-        currentState = BossState.Moving;
-        StartCoroutine(SkillLoop());
-    }
-
-    void WalkTowardsPlayer(float speed)
-    {
-        if (player == null) return;
-        Vector3 dir = (player.position - transform.position).normalized;
-        transform.position += new Vector3(dir.x * speed * Time.deltaTime, 0, 0);
-        sr.flipX = dir.x > 0;
-        PlayAnimWithSfx("DiBo(BoNgua)", walkClip, walkVolume);
-    }
-
-    IEnumerator SkillLoop()
-    {
-        while (true)
+        while (!isDead)
         {
             currentState = BossState.UsingSkill;
-            float r = Random.Range(0f, 1f);
 
-            if (r <= 0.2f)
-                yield return StartCoroutine(Skill1());
-            else if (r <= 0.6f)
-                yield return StartCoroutine(Skill3());
+            float r = Random.value;
+            if (r < 0.33f)
+                yield return SkillDash();
+            else if (r < 0.66f)
+                yield return SkillShockwave();
             else
-                yield return StartCoroutine(Skill2CheckNear());
+                yield return SkillTeleport();
 
             currentState = BossState.Moving;
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.2f);
         }
     }
 
-    IEnumerator Skill1()
+    // ================= MOVE =================
+    void MoveToPlayer()
     {
-        if (deadEyes != null)
+        Vector3 dir = (player.position - transform.position).normalized;
+        transform.position += new Vector3(dir.x * walkSpeed * Time.deltaTime, 0, 0);
+        sr.flipX = dir.x > 0;
+        anim.Play("DiBo(BoNgua)");
+    }
+
+    // ================= SKILL 1 =================
+    IEnumerator SkillDash()
+    {
+        anim.Play("TanCong(BoNgua)");
+        sfxSource.PlayOneShot(attackClip);
+        yield return DashForward(dashSpeed, dashDistance, skill1Damage);
+    }
+
+    // ================= SKILL 2 =================
+    IEnumerator SkillShockwave()
+    {
+        anim.Play("TanCongManh(Bongua)");
+        sfxSource.PlayOneShot(strongAttackClip);
+        yield return new WaitForSeconds(0.6f);
+
+        float dir = player.position.x > transform.position.x ? 1 : -1;
+        Instantiate(shockwavePrefab, transform.position, Quaternion.identity)
+            .GetComponent<ShockwaveProjectile>()
+            ?.Initialize(dir, skill2Damage);
+    }
+
+    // ================= SKILL 3 (STEALTH) =================
+    IEnumerator SkillTeleport()
+    {
+        // 1️⃣ Bật animation tấn công mạnh trước khi tàn hình
+        anim.Play("TanCongManh(Bongua)");
+        sfxSource.PlayOneShot(strongAttackClip);
+
+        // 2️⃣ Spawn smoke
+        SpawnSmoke();
+        sfxSource.PlayOneShot(teleportClip);
+
+        // 3️⃣ Tàn hình
+        sr.enabled = false;
+        deadEyes.gameObject.SetActive(false);
+
+        // 4️⃣ Random vị trí trong arena
+        float x = Random.Range(
+            arenaCollider.bounds.min.x + 1f,
+            arenaCollider.bounds.max.x - 1f
+        );
+        transform.position = new Vector3(x, transform.position.y, 0);
+
+        // 5️⃣ Tiến gần player
+        while (Vector2.Distance(transform.position, player.position) > warningDistance)
         {
-            deadEyes.gameObject.SetActive(true);
-            yield return new WaitForSeconds(deadEyesTime);
-            deadEyes.gameObject.SetActive(false);
+            Vector3 dir = (player.position - transform.position).normalized;
+            transform.position += new Vector3(dir.x * approachSpeed * Time.deltaTime, 0, 0);
+            yield return null;
         }
 
-        yield return StartCoroutine(PerformAttack(skill1Damage));
+        // 6️⃣ Bật DeadEyes cảnh báo
+        deadEyes.gameObject.SetActive(true);
+        yield return new WaitForSeconds(warningTime);
+        deadEyes.gameObject.SetActive(false);
+
+        // 7️⃣ Hiện nguyên hình + lao về player
+        sr.enabled = true;
+        anim.Play("TanCongManh(Bongua)");
+        yield return DashForward(dashSpeed * 1.3f, dashDistance * 1.3f, skill3Damage);
     }
 
-    IEnumerator Skill2CheckNear()
+    // ================= DASH CORE =================
+    IEnumerator DashForward(float speed, float distance, int dmg)
     {
-        if (player == null) yield break;
-        if (Vector2.Distance(player.position, transform.position) > playerNearDistance) yield break;
-        yield return StartCoroutine(PerformAttack(skill2Damage));
-    }
-
-    IEnumerator Skill3()
-    {
-        if (player == null) yield break;
-        if (Vector2.Distance(player.position, transform.position) <= playerNearDistance) yield break;
-
-        PlayAnimWithSfx("TanCongManh(Bongua)", strongAttackClip, strongAttackVolume);
-        yield return new WaitForSeconds(0.8f);
-
-        if (shockwavePrefab != null)
-        {
-            GameObject wave = Instantiate(shockwavePrefab, transform.position, Quaternion.identity);
-            ShockwaveProjectile proj = wave.GetComponent<ShockwaveProjectile>();
-            if (proj != null)
-            {
-                float dirX = (player.position.x > transform.position.x) ? 1f : -1f;
-                proj.Initialize(dirX, skill3Damage);
-            }
-        }
-
-        currentAttackDamage = skill3Damage;
         isAttackActive = true;
-        PlayAnimWithSfx("TanCong(BoNgua)", attackClip, attackVolume);
-        yield return StartCoroutine(AttackForward(attackSpeed, chargeDistance));
-        PlayAnim("Dung(BoNgua)");
-        isAttackActive = false;
-    }
+        currentDamage = dmg;
 
-    IEnumerator PerformAttack(int damage)
-    {
-        currentAttackDamage = damage;
-        isAttackActive = true;
-        PlayAnimWithSfx("TanCong(BoNgua)", attackClip, attackVolume);
-        yield return StartCoroutine(AttackForward(attackSpeed, chargeDistance));
-        PlayAnim("Dung(BoNgua)");
-        isAttackActive = false;
-    }
-
-    IEnumerator AttackForward(float speed, float distance)
-    {
         Vector3 dir = (player.position.x > transform.position.x) ? Vector3.right : Vector3.left;
         sr.flipX = dir.x > 0;
-        float traveled = 0f;
-        while (traveled < distance)
+
+        float moved = 0f;
+        while (moved < distance)
         {
             float step = speed * Time.deltaTime;
             transform.position += dir * step;
-            traveled += step;
+            moved += step;
             yield return null;
         }
+
+        isAttackActive = false;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    // ================= DAMAGE & DEATH =================
+    public void TakeDamage(int dmg)
     {
-        if (other.CompareTag("Player") && isAttackActive)
-        {
-            PlayerController pc = other.GetComponent<PlayerController>();
-            if (pc != null)
-                pc.TakeDamageFromEnemy(currentAttackDamage, transform.position);
-        }
+        if (isDead) return;
+
+        currentHP -= dmg;
+        if (currentHP <= 0)
+            Die();
     }
 
-    void PlayAnim(string animName)
+    void Die()
     {
-        if (anim != null) anim.Play(animName);
+        isDead = true;
+        currentState = BossState.Dead;
+
+        StopAllCoroutines();
+
+        // 🔓 MỞ ARENA DUY NHẤT TẠI ĐÂY
+        if (arenaBarrier)
+            arenaBarrier.SetActive(false);
+
+        if (musicSource.isPlaying)
+            musicSource.Stop();
+
+        deadEyes.gameObject.SetActive(false);
+        anim.Play("Chet(BoNgua)");
+
+        Debug.Log("💀 Boss chết – Arena mở");
     }
 
-    void PlayAnimWithSfx(string animName, AudioClip clip, float volume)
+    // ================= UTIL =================
+    void SpawnSmoke()
     {
-        PlayAnim(animName);
-        if (clip != null) sfxSource.PlayOneShot(clip, volume);
+        if (smokePrefab)
+            Instantiate(smokePrefab, transform.position, Quaternion.identity);
     }
 
-    void PlayArenaBgm()
+    void PlayMusic()
     {
-        if (arenaBgm != null && musicSource != null && !musicSource.isPlaying)
+        if (!musicSource.isPlaying && arenaBgm)
         {
             musicSource.clip = arenaBgm;
-            musicSource.pitch = 1f; // đảm bảo nhạc chạy đúng tốc độ
-            musicSource.volume = musicVolume;
             musicSource.Play();
         }
     }
 
-
-    private void OnDrawGizmosSelected()
+    void OnTriggerEnter2D(Collider2D col)
     {
-        if (arenaCollider != null)
+        if (isAttackActive && col.CompareTag("Player"))
+        {
+            col.GetComponent<PlayerController>()
+               ?.TakeDamageFromEnemy(currentDamage, transform.position);
+        }
+    }
+
+    // ================= GIZMOS =================
+    void OnDrawGizmosSelected()
+    {
+        if (arenaCollider)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawWireCube(arenaCollider.bounds.center, arenaCollider.bounds.size);
         }
+
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(transform.position, playerNearDistance);
-        Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(transform.position, chargeDistance);
+        Gizmos.DrawWireSphere(transform.position, warningDistance);
     }
 }
