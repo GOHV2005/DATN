@@ -330,27 +330,27 @@ MonoBehaviour:
   sr: {fileID: 662212404403255821}
   deadEyes: {fileID: 8697008918282617341}
   arenaCollider: {fileID: 8429353105066279678}
+  arenaBarrier: {fileID: 0}
+  maxHP: 10
   shockwavePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
+  smokePrefab: {fileID: 7500932285296859197, guid: 7356cce1b5d851a4c91d2bc32c9fc380,
+    type: 3}
   walkSpeed: 2
-  attackSpeed: 8
-  skill1MinDistanceFromPlayer: 8
-  deadEyesTime: 0.5
-  chargeDistance: 9
-  playerNearDistance: 9
+  dashSpeed: 12
+  dashDistance: 6
+  approachSpeed: 3
+  warningDistance: 3
+  warningTime: 0.8
   skill1Damage: 3
   skill2Damage: 2
   skill3Damage: 1
-  walkClip: {fileID: 0}
   attackClip: {fileID: 8300000, guid: 97625967737862642a93ecb9ec4cbcb7, type: 3}
   strongAttackClip: {fileID: 8300000, guid: 5826e08ae4924374c9167c179c4c45e5, type: 3}
-  walkVolume: 0.5
-  attackVolume: 0.7
-  strongAttackVolume: 0.8
+  teleportClip: {fileID: 8300000, guid: 5826e08ae4924374c9167c179c4c45e5, type: 3}
   arenaBgm: {fileID: 0}
-  musicVolume: 0.8
-  sfxMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
-  musicMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  sfxMixer: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  musicMixer: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
 --- !u!114 &9139292324155191431
 MonoBehaviour:
   m_ObjectHideFlags: 0
