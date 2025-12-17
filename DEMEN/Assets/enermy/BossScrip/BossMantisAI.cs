@@ -14,6 +14,7 @@ public class BossMantisAI : MonoBehaviour
     public SpriteRenderer deadEyes;
     public Collider2D arenaCollider;
     public GameObject arenaBarrier;
+    public ShockWavesManager shockWavesManager;
 
     [Header("BOSS HP")]
     public int maxHP = 1000;
@@ -112,7 +113,11 @@ public class BossMantisAI : MonoBehaviour
 
         StartCoroutine(CombatLoop());
     }
-
+    public void AnimEvent_RamShockwave()
+    {
+        if (shockWavesManager != null)
+            shockWavesManager.CallShockWaves();
+    }
     // ================= COMBAT LOOP =================
     IEnumerator CombatLoop()
     {
@@ -166,26 +171,29 @@ public class BossMantisAI : MonoBehaviour
     // ================= SKILL 3 (STEALTH) =================
     IEnumerator SkillTeleport()
     {
-        // 1️⃣ Bật animation tấn công mạnh trước khi tàn hình
         anim.Play("TanCongManh(Bongua)");
         sfxSource.PlayOneShot(strongAttackClip);
 
-        // 2️⃣ Spawn smoke
         SpawnSmoke();
         sfxSource.PlayOneShot(teleportClip);
 
-        // 3️⃣ Tàn hình
+        yield return new WaitForSeconds(0.3f);
+
+        // 👻 TÀN HÌNH
         sr.enabled = false;
         deadEyes.gameObject.SetActive(false);
 
-        // 4️⃣ Random vị trí trong arena
+        // 🚶‍♂️ CHUYỂN SANG ANIMATION KHÔNG EVENT
+        anim.Play("DiBo(BoNgua)");
+
+        // 📍 Random vị trí
         float x = Random.Range(
             arenaCollider.bounds.min.x + 1f,
             arenaCollider.bounds.max.x - 1f
         );
         transform.position = new Vector3(x, transform.position.y, 0);
 
-        // 5️⃣ Tiến gần player
+        // ➡️ TIẾN GẦN PLAYER (KHÔNG EVENT)
         while (Vector2.Distance(transform.position, player.position) > warningDistance)
         {
             Vector3 dir = (player.position - transform.position).normalized;
@@ -193,16 +201,22 @@ public class BossMantisAI : MonoBehaviour
             yield return null;
         }
 
-        // 6️⃣ Bật DeadEyes cảnh báo
+        // ⚠️ CẢNH BÁO
         deadEyes.gameObject.SetActive(true);
         yield return new WaitForSeconds(warningTime);
         deadEyes.gameObject.SetActive(false);
 
-        // 7️⃣ Hiện nguyên hình + lao về player
+        // 💥 HIỆN HÌNH + ĐÒN THẬT (CÓ EVENT)
         sr.enabled = true;
         anim.Play("TanCongManh(Bongua)");
-        yield return DashForward(dashSpeed * 1.3f, dashDistance * 1.3f, skill3Damage);
+
+        yield return DashForward(
+            dashSpeed * 1.3f,
+            dashDistance * 1.3f,
+            skill3Damage
+        );
     }
+
 
     // ================= DASH CORE =================
     IEnumerator DashForward(float speed, float distance, int dmg)

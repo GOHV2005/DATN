@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,10 +25,14 @@ public class ShockWavesManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current.eKey.wasPressedThisFrame && !_isOnCooldown)
-        {
-            CallShockWaves();
-        }
+        //if (Keyboard.current.eKey.wasPressedThisFrame && !_isOnCooldown)
+        //{
+        //    CallShockWaves();
+        //}
+    }
+    public void TriggerShockwaveFromBoss()
+    {
+        CallShockWaves();
     }
 
     public void CallShockWaves()
@@ -47,7 +51,7 @@ public class ShockWavesManager : MonoBehaviour
         yield return StartCoroutine(ShockwaveVisual(startPos, endPos));
 
         // Phase 2: Slow down the world (5 seconds)
-        yield return StartCoroutine(SlowMotionWorld());
+        //yield return StartCoroutine(SlowMotionWorld());
 
         _isOnCooldown = false;
     }
@@ -70,13 +74,13 @@ public class ShockWavesManager : MonoBehaviour
         }
     }
 
-    private IEnumerator SlowMotionWorld()
-    {
-        float originalScale = Time.timeScale;
-        Time.timeScale = slowMotionFactor;
+    //private IEnumerator SlowMotionWorld()
+    //{
+    //    float originalScale = Time.timeScale;
+    //    Time.timeScale = slowMotionFactor;
 
-        yield return new WaitForSecondsRealtime(slowMotionDuration);
+    //    yield return new WaitForSecondsRealtime(slowMotionDuration);
 
-        Time.timeScale = originalScale;
-    }
+    //    Time.timeScale = originalScale;
+    //}
 }

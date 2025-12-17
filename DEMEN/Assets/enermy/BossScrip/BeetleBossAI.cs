@@ -11,6 +11,9 @@ public class BossBeetleAI : MonoBehaviour
     public Collider2D arenaTrigger;
     public Transform player;
 
+    [Header("SHOCKWAVE")]
+    public ShockWavesManager shockWavesManager;
+
     [Header("CHARGE")]
     public float chargeSpeed = 8f;
     public float obstacleCheckDistance = 1f;
@@ -229,7 +232,12 @@ public class BossBeetleAI : MonoBehaviour
 
         stateTimer -= Time.deltaTime;
     }
-
+    // GỌI TỪ ANIMATION EVENT
+    public void AnimEvent_RamShockwave()
+    {
+        if (shockWavesManager != null)
+            shockWavesManager.CallShockWaves();
+    }
     void RoarBehavior()
     {
         rb.linearVelocity = Vector2.zero;
