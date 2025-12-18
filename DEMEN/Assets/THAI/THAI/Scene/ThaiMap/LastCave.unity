@@ -2436,6 +2436,21 @@ PrefabInstance:
       propertyPath: m_FlipX
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 6427629272420419415, guid: 03e2940f566c3c843b7563379b47d6ac,
+        type: 3}
+      propertyPath: m_SortingLayer
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6427629272420419415, guid: 03e2940f566c3c843b7563379b47d6ac,
+        type: 3}
+      propertyPath: m_SortingOrder
+      value: -178
+      objectReference: {fileID: 0}
+    - target: {fileID: 6427629272420419415, guid: 03e2940f566c3c843b7563379b47d6ac,
+        type: 3}
+      propertyPath: m_SortingLayerID
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 6991480597159776106, guid: 03e2940f566c3c843b7563379b47d6ac,
         type: 3}
       propertyPath: m_Name
@@ -3534,12 +3549,12 @@ PrefabInstance:
     - target: {fileID: 28782215782967266, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 47.81
+      value: 47.56
       objectReference: {fileID: 0}
     - target: {fileID: 28782215782967266, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: -2.24
+      value: -2.05
       objectReference: {fileID: 0}
     - target: {fileID: 2102848016726704238, guid: 9d2d1316115dadb49a4e9eeeda391166,
         type: 3}
@@ -4230,6 +4245,12 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &597453240 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6246611844952965988, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
+    type: 3}
+  m_PrefabInstance: {fileID: 1547448734}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &616056727
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5090,6 +5111,12 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 20.197}
+--- !u!225 &779794324 stripped
+CanvasGroup:
+  m_CorrespondingSourceObject: {fileID: 5738142436577923767, guid: 65e8c3c1473c1b44aa0eea91bcdbb062,
+    type: 3}
+  m_PrefabInstance: {fileID: 1547448734}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &812279184
 GameObject:
   m_ObjectHideFlags: 0
@@ -7346,6 +7373,9 @@ MonoBehaviour:
   doorBlockerPrefab: {fileID: 1001743967026470461, guid: 974a80bb326f1a44dbe9aa708f2dd445,
     type: 3}
   doorSpawnPoint: {fileID: 812279185}
+  PanelDead: {fileID: 597453240}
+  panelDeadCanvas: {fileID: 779794324}
+  fadeDuration: 1.5
 --- !u!1 &1294994124
 GameObject:
   m_ObjectHideFlags: 0

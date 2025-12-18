@@ -11,6 +11,11 @@ public class BossFinalController : MonoBehaviour
     public MonoBehaviour bossAI;
     public GameObject doorBlockerPrefab;
     public Transform doorSpawnPoint;
+    public GameObject PanelDead;
+    public CanvasGroup panelDeadCanvas;
+    public float fadeDuration = 1.5f;
+
+
 
     private bool hasStarted = false;
 
@@ -79,6 +84,7 @@ public class BossFinalController : MonoBehaviour
 
     public void OnBossDefeated()
     {
+        
         StartCoroutine(OutroFlow());
     }
 
@@ -88,13 +94,39 @@ public class BossFinalController : MonoBehaviour
             bossAI.enabled = false;
 
         UIManager.IsTalkingToNPC = true;
-
         DialogueSystem.Instance.StartDialogue(outroDialogue);
 
         yield return new WaitUntil(() => DialogueEnded());
 
         UIManager.IsTalkingToNPC = false;
 
-        UnityEngine.SceneManagement.SceneManager.LoadScene("END");
+        // 🌑 BẬT PANEL TRƯỚC
+        PanelDead.SetActive(true);
+
+        // reset alpha đề phòng chạy lại
+        panelDeadCanvas.alpha = 0f;
+
+        // 🌑 Fade to black
+        yield return StartCoroutine(FadePanel(panelDeadCanvas, 1f));
+
+        // 🎬 Load scene
+        UnityEngine.SceneManagement.SceneManager.LoadScene("CutEnd");
     }
+
+
+    IEnumerator FadePanel(CanvasGroup canvas, float targetAlpha)
+    {
+        float startAlpha = canvas.alpha;
+        float time = 0f;
+
+        while (time < fadeDuration)
+        {
+            time += Time.deltaTime;
+            canvas.alpha = Mathf.Lerp(startAlpha, targetAlpha, time / fadeDuration);
+            yield return null;
+        }
+
+        canvas.alpha = targetAlpha;
+    }
+
 }

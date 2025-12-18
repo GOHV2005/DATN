@@ -438,7 +438,7 @@ MonoBehaviour:
   arenaCollider: {fileID: 8429353105066279678}
   arenaBarrier: {fileID: 0}
   shockWavesManager: {fileID: 3242743777798538696}
-  maxHP: 10
+  maxHP: 20
   shockwavePrefab: {fileID: 7730796758545741388, guid: 0de0e28c3a562a442ad6bd9fe124e55a,
     type: 3}
   smokePrefab: {fileID: 7500932285296859197, guid: 7356cce1b5d851a4c91d2bc32c9fc380,
@@ -470,7 +470,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1d3d8ebd4d2894f8505dc132d35732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxHealth: 10
+  maxHealth: 20
   currentHealth: 0
   knockbackForce: 0
   knockbackDuration: 0
@@ -583,7 +583,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 26.333504, y: -2.1674042}
+  m_Offset: {x: 28.52391, y: -2.1674042}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -593,5 +593,5 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 225.16228, y: 25.818024}
+  m_Size: {x: 71.833466, y: 25.818024}
   m_EdgeRadius: 0

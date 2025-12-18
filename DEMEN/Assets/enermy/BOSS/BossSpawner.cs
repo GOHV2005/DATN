@@ -113,21 +113,35 @@ public class BossSpawner : MonoBehaviour
             animator.SetBool("IsSpamming", true);
 
         int total = wave.enemyCount;
-        int half = total / 2;
-        int extra = total % 2;
 
-        for (int i = 0; i < half + extra; i++)
+        // 🔥 CASE ĐẶC BIỆT: chỉ 1 enemy
+        if (total == 1)
         {
             Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
             activeEnemyCount++;
+
             yield return new WaitForSeconds(wave.spawnInterval);
         }
-
-        for (int i = 0; i < half; i++)
+        else
         {
-            Instantiate(wave.enemyPrefab, spawnPoints[1].position, Quaternion.identity);
-            activeEnemyCount++;
-            yield return new WaitForSeconds(wave.spawnInterval);
+            int half = total / 2;
+            int extra = total % 2;
+
+            // Spawn bên trái (0) – nhiều hơn nếu lẻ
+            for (int i = 0; i < half + extra; i++)
+            {
+                Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
+                activeEnemyCount++;
+                yield return new WaitForSeconds(wave.spawnInterval);
+            }
+
+            // Spawn bên phải (1)
+            for (int i = 0; i < half; i++)
+            {
+                Instantiate(wave.enemyPrefab, spawnPoints[1].position, Quaternion.identity);
+                activeEnemyCount++;
+                yield return new WaitForSeconds(wave.spawnInterval);
+            }
         }
 
         isSpawning = false;
@@ -135,6 +149,7 @@ public class BossSpawner : MonoBehaviour
         if (animator != null)
             animator.SetBool("IsSpamming", false);
     }
+
     void OnEnable()
     {
         EnemyDeathHandler.OnEnemyDied += OnEnemyKilled;
