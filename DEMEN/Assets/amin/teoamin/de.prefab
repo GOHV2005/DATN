@@ -2059,10 +2059,25 @@ MonoBehaviour:
   runMultiplier: 1.6
   jumpForce: 12
   maxJumpCount: 2
+  footstepClips: []
+  footstepInterval: 0.35
+  footstepVolume: 0.6
+  groundCheck: {fileID: 0}
+  groundCheckRadius: 0.2
+  groundLayer:
+    serializedVersion: 2
+    m_Bits: 0
+  groundTag: Ground
+  wallCheck: {fileID: 0}
+  wallCheckRadius: 0.2
+  wallDetachDelay: 0.12
+  wallClingManaDrainPerSecond: 15
   dashForce: 18
   dashTime: 0.18
   dashCooldown: 0.8
   dashManaCost: 25
+  dashSmokePrefab: {fileID: 0}
+  targetObject: {fileID: 0}
   maxHealth: 100
   damageOnTouch: 20
   knockbackForce: 12
@@ -2079,6 +2094,16 @@ MonoBehaviour:
   willpowerThreshold: 0.5
   attackCooldown: 0.25
   attackHitbox: {fileID: 3774434106596212838}
+  longdenObject: {fileID: 0}
+  justUnequippedLongden: 0
+  cuocChimObject: {fileID: 0}
+  cuocChimHitbox: {fileID: 0}
+  cuocChimDamage: 30
+  justUnequippedCuocChim: 0
+  kiemObject: {fileID: 0}
+  kiemHitbox: {fileID: 0}
+  kiemJustUnequipped: 0
+  justUnequippedKiem: 0
   useJumpFloat: 1
   floatGravityScale: 0.3
   heartImages: []
@@ -2086,9 +2111,6 @@ MonoBehaviour:
   emptyHeartSprite: {fileID: 0}
   healthPerHeart: 20
   manaFill: {fileID: 0}
-  manaDelay: {fileID: 0}
-  manaDelayBeforeDrop: 0.5
-  manaDelayDropSpeed: 0.6
   manaBarHealSpeed: 0.9
   gameFadePanel: {fileID: 0}
   fadeDuration: 1
