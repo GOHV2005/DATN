@@ -42,7 +42,7 @@ public class QuestUIManager : MonoBehaviour
         if (text != null)
         {
             text.text = npc.questDescription;
-            text.color = Color.black;
+            text.color = Color.white;
         }
         
         questEntries[npc] = entryObj;

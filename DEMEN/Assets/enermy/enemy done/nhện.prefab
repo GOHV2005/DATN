@@ -317,17 +317,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  currentHealth: 0
   knockbackForce: 30
   knockbackDuration: 0.15
-  flashMaterial: {fileID: 0}
+  flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.15
   dropItemPrefab: {fileID: 0}
   dropItemCount: 1
   dropForce: 5
   randomAngleRange: 30
-  bloodPrefab: {fileID: 0}
+  bloodPrefab: {fileID: 2736140822471033997, guid: cf9f19196405b9044b14f430f1ded487,
+    type: 3}
   bloodCount: 5
   bloodForce: 1
+  deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
+    type: 3}
+  deathSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!1 &1820929468257610888
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,7 +408,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}
@@ -490,7 +496,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: -1
   m_Sprite: {fileID: -2913490174337709882, guid: 7a8e3691a97fc004c975fc7519404240,
     type: 3}
@@ -578,7 +584,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}
@@ -811,7 +817,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 8291366412011733527, guid: e062a9156606eae4086c63a3fbee46bc,
     type: 3}
@@ -899,7 +905,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}

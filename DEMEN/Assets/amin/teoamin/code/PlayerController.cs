@@ -236,7 +236,7 @@ public class PlayerController : MonoBehaviour
     private float manaTargetRatio;
     private bool manaMainHealing = false;
     private int currentAttackId = 0;
-
+    private Dissovle _dissovle;
 
     public float CurrentHealth
     {
@@ -280,7 +280,7 @@ public class PlayerController : MonoBehaviour
         CurrentHealth = maxHealth;
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
         manaTargetRatio = currentMana / maxMana;
-
+        _dissovle = GetComponent<Dissovle>();
         if (manaFill != null) manaFill.fillAmount = manaTargetRatio;
 
         int currentSlot = PlayerPrefs.GetInt("CurrentSlot", 0);
@@ -1344,14 +1344,20 @@ public class PlayerController : MonoBehaviour
         {
             animator.Play("chet");
             AutoSaveRAM.Instance?.Clear();
+
+            // 🔥 Thêm dòng gọi Appear khi chết
+            StartCoroutine(_dissovle.Vanish(true, false));
+
             StartCoroutine(RespawnAfterDeath());
         }
         else
         {
             AutoSaveRAM.Instance?.Clear();
+            StartCoroutine(_dissovle.Vanish(true, false)); // gọi Appear nếu không có animator
             RespawnImmediately();
         }
     }
+
 
     System.Collections.IEnumerator RespawnAfterDeath()
     {
@@ -1385,7 +1391,6 @@ public class PlayerController : MonoBehaviour
         Vector3 spawnPosition = Vector3.zero;
         bool foundSave = false;
 
-        // 👇 CHỈ DÙNG SAVE CỦA CURRENT SLOT — KHÔNG DUYỆT QUA CÁC SLOT KHÁC
         if (saveData != null && saveData.scenes != null && saveData.scenes.Count > 0)
         {
             SceneSaveData latest = saveData.scenes[saveData.scenes.Count - 1];
@@ -1394,14 +1399,13 @@ public class PlayerController : MonoBehaviour
             foundSave = true;
         }
 
-        // Nếu không có save trong current slot → dùng vị trí mặc định trong scene hiện tại
         if (!foundSave)
         {
             GameObject defaultSpawn = GameObject.FindWithTag("Respawn");
             if (defaultSpawn != null)
             {
                 spawnPosition = defaultSpawn.transform.position;
-                targetScene = SceneManager.GetActiveScene().name; // luôn ở scene hiện tại
+                targetScene = SceneManager.GetActiveScene().name;
             }
             else
             {
@@ -1410,17 +1414,18 @@ public class PlayerController : MonoBehaviour
             }
         }
 
-        // Lưu thông tin respawn (dù có save hay không)
         PlayerPrefs.SetString("RespawnScene", targetScene);
         PlayerPrefs.SetFloat("RespawnX", spawnPosition.x);
         PlayerPrefs.SetFloat("RespawnY", spawnPosition.y);
         PlayerPrefs.SetFloat("RespawnZ", spawnPosition.z);
         PlayerPrefs.SetInt("HasRespawnPos", foundSave ? 1 : 0);
-        // 👇 GIỮ NGUYÊN CURRENT SLOT — KHÔNG GÁN LẠI
-        // PlayerPrefs.SetInt("CurrentSlot", currentSlot); // không cần, vì đã là current rồi
+
+        if (_dissovle != null)
+            StartCoroutine(_dissovle.Appear(true, false));
 
         SceneManager.LoadScene(targetScene);
     }
+
 
     System.Collections.IEnumerator FadePanel(float startAlpha, float endAlpha)
     {
