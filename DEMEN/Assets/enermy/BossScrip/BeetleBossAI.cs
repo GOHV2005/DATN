@@ -113,65 +113,39 @@ public class BossBeetleAI : MonoBehaviour
 
         PlayAnim(idleAnim);
     }
+    public void StartCombat()
+    {
+        if (playerEnteredArena) return;
+
+        playerEnteredArena = true;
+
+        if (arenaBarrier != null)
+            arenaBarrier.SetActive(true);
+
+        currentState = BossState.Roar;
+        stateTimer = roarTime;
+        PlayAnim(ramAnim);
+        PlayRoarSound();
+
+        if (cameraShake)
+            cameraShake.Shake(shakeIntensity, roarTime);
+
+        if (!musicAudioSource.isPlaying && bossMusic != null)
+        {
+            musicAudioSource.clip = bossMusic;
+            musicAudioSource.Play();
+        }
+    }
+
 
     void Update()
     {
         if (!player) return;
 
         bool isInArena = arenaTrigger && arenaTrigger.bounds.Contains(player.position);
+        if (!playerEnteredArena) return; // 🔒 CHỐT CHẶN
 
         // XỬ LÝ NHẠC NỀN + KÍCH HOẠT TRẬN ĐẤN
-        if (isInArena)
-        {
-            // BẬT NHẠC NẾU CHƯA BẬT
-            if (!musicAudioSource.isPlaying && bossMusic != null)
-            {
-                musicAudioSource.clip = bossMusic;
-                musicAudioSource.Play();
-            }
-
-            if (!playerEnteredArena)
-            {
-                playerEnteredArena = true;
-
-                // 🔥 KÍCH HOẠT BARRIER NGĂN RA KHỎI ĐẤU TRƯỜNG
-                if (arenaBarrier != null)
-                    arenaBarrier.SetActive(true);
-
-                currentState = BossState.Roar;
-                stateTimer = roarTime;
-                PlayAnim(ramAnim);
-                PlayRoarSound();
-                if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
-            }
-        }
-        else
-        {
-            // TẮT NHẠC KHI RA KHỎI ARENA (về lý thuyết không thể xảy ra nếu barrier hoạt động)
-            if (musicAudioSource.isPlaying)
-            {
-                musicAudioSource.Stop();
-            }
-
-            // ❌ KHÔNG TẮT BARRIER Ở ĐÂY! Vì đã chặn rồi thì không cho ra nữa.
-            // (Nếu bạn muốn reset trận đấu khi thoát, xử lý ở chỗ khác)
-
-            rb.linearVelocity = Vector2.zero;
-            PlayAnim(idleAnim);
-            if (audioSource.isPlaying && audioSource.clip == roarSound)
-                audioSource.Stop();
-            return;
-        }
-
-        if (!playerEnteredArena)
-        {
-            playerEnteredArena = true;
-            currentState = BossState.Roar;
-            stateTimer = roarTime;
-            PlayAnim(ramAnim);
-            PlayRoarSound();
-            if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
-        }
 
         // CẬP NHẬT HƯỚNG SPRITE
         if (currentState == BossState.Charge)

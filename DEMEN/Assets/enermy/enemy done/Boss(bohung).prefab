@@ -1490,6 +1490,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6543499307010944941}
   - component: {fileID: 4931040813140931375}
+  - component: {fileID: 5716663514556728701}
   m_Layer: 0
   m_Name: bossActive
   m_TagString: Untagged
@@ -1558,6 +1559,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 51.684006, y: 21.966637}
   m_EdgeRadius: 0
+--- !u!114 &5716663514556728701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4989129416566048081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8a6e5a5708bc7f4db7b3f36caa751d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mantisBoss: {fileID: 0}
+  beetleBoss: {fileID: 4959124246988396806}
 --- !u!1 &5455243911079296563
 GameObject:
   m_ObjectHideFlags: 0

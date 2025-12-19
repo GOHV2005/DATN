@@ -26,19 +26,21 @@ public class Health : MonoBehaviour
     public GameObject bloodPrefab;
     public int bloodCount = 5; // số hạt máu
     public float bloodForce = 1f; // lực tóe
-
+    private SpriteRenderer spriteRenderer;
+    private Material originalMaterial;
     private SpriteRenderer[] spriteRenderers;
     private Material[] originalMaterials;
     private Rigidbody2D rb;
+    private bool isDead = false;
+    private int lastAttackId = -1;
     void Start()
     {
         currentHealth = maxHealth;
         rb = GetComponent<Rigidbody2D>();
 
-        spriteRenderers = GetComponentsInChildren<SpriteRenderer>(true);
-        originalMaterials = new Material[spriteRenderers.Length];
-        for (int i = 0; i < spriteRenderers.Length; i++)
-            originalMaterials[i] = spriteRenderers[i].sharedMaterial;
+        spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+            originalMaterial = spriteRenderer.material;
     }
     public void TakeDamage(float damage)
     {
@@ -71,7 +73,12 @@ public class Health : MonoBehaviour
         if (currentHealth <= 0)
             Die();
     }
-
+    public bool CanTakeDamage(int attackId)
+    {
+        if (lastAttackId == attackId) return false;
+        lastAttackId = attackId;
+        return true;
+    }
     private void SpawnBlood(Vector2 knockbackDir)
     {
         if (bloodPrefab == null) return;
@@ -99,18 +106,13 @@ public class Health : MonoBehaviour
 
     IEnumerator FlashMaterialEffect()
     {
-        if (flashMaterial == null) yield break;
+        if (flashMaterial == null || spriteRenderer == null) yield break;
 
-        // 🔥 Đổi tất cả SpriteRenderer sang flashMaterial
-        foreach (var sr in spriteRenderers)
-            sr.material = flashMaterial;
-
+        spriteRenderer.material = flashMaterial;
         yield return new WaitForSeconds(flashDuration);
-
-        // 🔄 Trả lại material gốc
-        for (int i = 0; i < spriteRenderers.Length; i++)
-            spriteRenderers[i].material = originalMaterials[i];
+        spriteRenderer.material = originalMaterial;
     }
+
 
     Vector2 GetPlayerPosition()
     {
@@ -121,12 +123,17 @@ public class Health : MonoBehaviour
 
     protected virtual void Die()
     {
+        if (isDead) return;   // ⛔ CHỐT CHẶN
+        isDead = true;
+
         onDeath?.Invoke();
+
         if (dropItemPrefab != null && dropItemCount > 0)
         {
             for (int i = 0; i < dropItemCount; i++)
                 SpawnDroppedItem();
         }
+
         EnemyDeathHandler.OnEnemyDied?.Invoke();
         Destroy(gameObject);
     }

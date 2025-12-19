@@ -65,11 +65,12 @@ public class InventoryData
 [Serializable]
 public class SaveData
 {
+    
     public List<SceneSaveData> scenes = new List<SceneSaveData>();
     public InventoryData inventory = new InventoryData();
     public List<SaveableObjectRef> saveableObjects = new List<SaveableObjectRef>();
     public List<string> existingObjects = new List<string>();
-
+    public bool bossIntroFinished;
     public float playerHealth = 100f;
     // Trong class SaveData, thêm class lồng:
 

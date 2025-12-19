@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7581724302446804264}
   - component: {fileID: 3735352239280299643}
+  - component: {fileID: 1340751058248049877}
   m_Layer: 0
   m_Name: AreanTrigger
   m_TagString: Untagged
@@ -78,6 +79,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 42.898727, y: 25.818024}
   m_EdgeRadius: 0
+--- !u!114 &1340751058248049877
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4069690360132165675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8a6e5a5708bc7f4db7b3f36caa751d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mantisBoss: {fileID: 1440087585078320918}
+  beetleBoss: {fileID: 0}
 --- !u!1 &5326041568310258613
 GameObject:
   m_ObjectHideFlags: 0

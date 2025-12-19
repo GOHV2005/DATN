@@ -79,6 +79,10 @@ public class PlayerController : MonoBehaviour
     public float knockbackForce = 12f;
     public float knockbackAirTime = 0.6f;
 
+    [Header("Attack Invincibility")]
+    public float attackInvincibleTime = 0.15f;
+    private bool isAttackInvincible = false;
+
     [Header("Invincibility")]
     public float invincibleTime = 0.5f;
 
@@ -113,7 +117,8 @@ public class PlayerController : MonoBehaviour
     private bool isTakingDamage = false;
     private bool isAttacking = false;
     private float attackCooldownTimer = 0f;
-    private HashSet<Collider2D> attackedEnemies = new HashSet<Collider2D>();
+    private HashSet<int> attackedEnemies = new HashSet<int>();
+
     private int attackComboStep = 0;       // 0 = chưa đánh, 1 = Attack, 2 = Attack2
     private float lastAttackTime = 0f;
     public float comboResetTime = 1f;      // ⏱ 1 giây reset combo
@@ -230,6 +235,7 @@ public class PlayerController : MonoBehaviour
   
     private float manaTargetRatio;
     private bool manaMainHealing = false;
+    private int currentAttackId = 0;
 
 
     public float CurrentHealth
@@ -268,6 +274,9 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        Health h = GetComponent<Health>();
+        if (h != null)
+            h.onDeath += OnRockDestroyed;
         CurrentHealth = maxHealth;
         currentMana = Mathf.Clamp(currentMana, 0f, maxMana);
         manaTargetRatio = currentMana / maxMana;
@@ -441,6 +450,17 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
+    void TryDamageTarget(Collider2D other, float damage)
+    {
+        Health health = other.GetComponentInParent<Health>();
+        if (health == null) return;
+
+        if (!health.CanTakeDamage(currentAttackId))
+            return;
+
+        health.TakeDamage(damage);
+    }
+
 
     void FixedUpdate()
     {
@@ -819,11 +839,13 @@ public class PlayerController : MonoBehaviour
     void StartAttack()
     {
         if (isDead) return;
-
+        currentAttackId++;
+        attackedEnemies.Clear();
         isAttacking = true;
         CancelEquippingActions();
         ForceDropFromWall();
-
+        isAttackInvincible = true;
+        Invoke(nameof(EndAttackInvincible), attackInvincibleTime);
         string attackAnim = "Attack";
         AudioClip soundToPlay = attackNormalSound;
 
@@ -930,6 +952,10 @@ public class PlayerController : MonoBehaviour
         // 🚀 LAO TỚI
         StartCoroutine(AttackLunge());
     }
+    void EndAttackInvincible()
+    {
+        isAttackInvincible = false;
+    }
     IEnumerator SwordAttackLunge()
     {
         float elapsed = 0f;
@@ -990,70 +1016,72 @@ public class PlayerController : MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        if (other.CompareTag("void"))
+        // ===== ROCK =====
+        if (other.CompareTag("rock"))
         {
-            TakeDamageFromEnemy(maxHealth, other.transform.position);
-            return;
-        }
-
-        // 👇 XỬ LÝ VŨ KHÍ
-        if (other.CompareTag("rock") || other.CompareTag("Enemy")|| other.CompareTag("co"))
-        {
-            // KIẾM
-            if (kiemHitbox != null && kiemHitbox.enabled)
-            {
-                if (!other.CompareTag("rock")) // 👈 KHÔNG ĐÁNH ROCK
-                {
-                    Health health = other.GetComponent<Health>();
-                    if (health != null)
-                    {
-                        health.TakeDamage(damageOnTouch);
-                    }
-                }
-                return;
-            }
-
-            // CUỐC CHIM
             if (cuocChimHitbox != null && cuocChimHitbox.enabled)
             {
-                Health health = other.GetComponent<Health>();
-                if (health != null)
-                {
-                    health.TakeDamage(cuocChimDamage);
-                    if (other.CompareTag("rock"))
-                    {
-                        health.onDeath += OnRockDestroyed;
-                    }
-                }
-                return;
-            }
+                TryDamageTarget(other, cuocChimDamage);
 
-            // TẤN CÔNG THƯỜNG
-            if (attackHitbox != null && attackHitbox.enabled && !attackedEnemies.Contains(other))
-            {
-                if (!other.CompareTag("rock")) // 👈 KHÔNG ĐÁNH ROCK BẰNG TAY THƯỜNG
+                Health h = other.GetComponentInParent<Health>();
+                if (h != null)
                 {
-                    Health health = other.GetComponent<Health>();
-                    if (health != null)
-                    {
-                        attackedEnemies.Add(other);
-                        health.TakeDamage(damageOnTouch);
-                    }
+                    h.onDeath -= OnRockDestroyed; // ⛔ tránh đăng ký trùng
+                    h.onDeath += OnRockDestroyed;
                 }
-                return;
             }
+            return; // ⛔ ROCK KHÔNG CHẠY XUỐNG DƯỚI
         }
 
-        // 👇 DAMAGE TỪ ENEMY
-        if (other.CompareTag("Enemy") && !isDashInvincible && !isKnockbackInvincible /*&& !isAttacking*/)
+        // ===== ENEMY =====
+        if (other.CompareTag("Enemy"))
         {
-            if (other.GetComponent<BossMantisAI> () != null)
+            // 👉 PLAYER ĐANG ĐÁNH → KHÔNG NHẬN DAME
+            if (isAttacking)
+            {
+                // PLAYER GÂY DAMAGE
+                if (kiemHitbox != null && kiemHitbox.enabled)
+                {
+                    TryDamageTarget(other, damageOnTouch);
+                    return;
+                }
+
+                if (attackHitbox != null && attackHitbox.enabled)
+                {
+                    TryDamageTarget(other, damageOnTouch);
+                    return;
+                }
+
+                if (cuocChimHitbox != null && cuocChimHitbox.enabled)
+                {
+                    TryDamageTarget(other, cuocChimDamage);
+                    return;
+                }
+            }
+
+
+            // 👉 PLAYER GÂY DAMAGE
+            if (kiemHitbox != null && kiemHitbox.enabled)
+            {
+                TryDamageTarget(other, damageOnTouch);
                 return;
-            AttackDirection dir = GetAttackDirection(other.transform.position);
-            TakeDamage(damageOnTouch, dir);
-            audioSource.PlayOneShot(HurtSound);
+            }
+
+            if (attackHitbox != null && attackHitbox.enabled)
+            {
+                TryDamageTarget(other, damageOnTouch);
+                return;
+            }
+
+            if (isAttackInvincible || isDashInvincible || isKnockbackInvincible)
+                return;
+
+            TakeDamage(damageOnTouch, GetAttackDirection(other.transform.position));
+            audioSource?.PlayOneShot(HurtSound);
+
         }
     }
+
     private void OnRockDestroyed()
     {
         // 1. Hủy trang bị cuốc chim

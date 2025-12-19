@@ -75,17 +75,17 @@ public class BossMantisAI : MonoBehaviour
         musicSource.loop = true;
         musicSource.spatialBlend = 0f;
     }
+    public void StartCombat()
+    {
+        if (combatStarted || isDead) return;
+
+        combatStarted = true;
+        StartCoroutine(CombatIntro());
+    }
 
     void Update()
     {
         if (isDead) return;
-
-        // ====== KÍCH HOẠT COMBAT ======
-        if (!combatStarted && arenaCollider.bounds.Contains(player.position))
-        {
-            combatStarted = true;
-            StartCoroutine(CombatIntro());
-        }
 
         if (currentState == BossState.Moving)
             MoveToPlayer();
