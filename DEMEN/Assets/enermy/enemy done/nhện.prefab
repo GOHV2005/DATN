@@ -55,7 +55,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -275,8 +275,8 @@ MonoBehaviour:
   muzzlePoint: {fileID: 1146226476482548482}
   shootInterval: 1
   maxShots: 8991
-  combatSpeed: 2.5
-  combatRange: 2
+  combatSpeed: 12.1
+  combatRange: 4
   prepareShootAnim: phinbungbandan(nhen)
   player: {fileID: 0}
   obstacleLayer:
@@ -317,6 +317,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 3
+  currentHealth: 0
   knockbackForce: 30
   knockbackDuration: 0.15
   flashMaterial: {fileID: 0}
@@ -383,7 +384,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -402,7 +403,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}
@@ -471,7 +472,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -490,7 +491,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: -1
   m_Sprite: {fileID: -2913490174337709882, guid: 7a8e3691a97fc004c975fc7519404240,
     type: 3}
@@ -559,7 +560,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -578,7 +579,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 1
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}
@@ -792,7 +793,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -811,7 +812,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 8291366412011733527, guid: e062a9156606eae4086c63a3fbee46bc,
     type: 3}
@@ -880,7 +881,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -899,7 +900,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: -5742963689153413318, guid: 312302fb97e742b4f84b50443d947ff4,
     type: 3}

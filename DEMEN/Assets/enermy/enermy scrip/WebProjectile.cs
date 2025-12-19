@@ -6,11 +6,23 @@ public class WebProjectile : MonoBehaviour
     public float lifetime = 2.5f;
     private bool hasHit = false;
     private Collider2D webCollider;
+    private Vector2 moveDirection;
+    private EnemySpider ownerSpider;
 
-    public void Initialize(Vector2 direction)
+    public void Initialize(Vector2 direction, float customSpeed = -1f)
     {
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        moveDirection = direction.normalized;
+
+        float angle = Mathf.Atan2(moveDirection.y, moveDirection.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0, 0, angle);
+
+        if (customSpeed > 0)
+            speed = customSpeed;
+    }
+
+    public void SetOwner(EnemySpider spider)
+    {
+        ownerSpider = spider;
     }
 
     void Start()
@@ -18,9 +30,8 @@ public class WebProjectile : MonoBehaviour
         webCollider = GetComponent<Collider2D>();
         if (webCollider != null)
         {
-            // 👇 TẮT COLLIDER 1 FRAME ĐỂ TRÁNH VA CHẠM TỨC THÌ
             webCollider.enabled = false;
-            Invoke(nameof(EnableCollider), 0.5f);
+            Invoke(nameof(EnableCollider), 0.05f);
         }
         Destroy(gameObject, lifetime);
     }
@@ -33,7 +44,8 @@ public class WebProjectile : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(Vector2.right * speed * Time.deltaTime);
+        // ✅ Fix lỗi CS0034: Ép moveDirection thành Vector3 hoặc cộng đúng kiểu
+        transform.position += (Vector3)moveDirection * speed * Time.deltaTime;
     }
 
     void OnTriggerEnter2D(Collider2D col)
@@ -45,15 +57,12 @@ public class WebProjectile : MonoBehaviour
 
         if (col.CompareTag("Player"))
         {
-            var spider = Object.FindAnyObjectByType<EnemySpider>();
-            if (spider != null)
+            if (ownerSpider != null)
             {
-                
+                ownerSpider.OnWebHitPlayer();
                 Debug.Log("[Web] ✅ TRÚNG PLAYER!");
             }
             Destroy(gameObject);
         }
-
-       
     }
 }
