@@ -21,6 +21,7 @@ public class BeeAI : MonoBehaviour
     public float maxChaseDistance = 12f; // 👈 GIỚI HẠN TỐI ĐA TỪ NEO
     public float retreatDistance = 3f;
     public Vector2 keepDistanceRange = new Vector2(1.5f, 3f);
+    public GameObject KimChich;
 
     [Header("=== SÁT THƯƠNG ===")]
     public float damage = 15f;
@@ -42,6 +43,12 @@ public class BeeAI : MonoBehaviour
     private bool isAttacking = false;
     private bool isRetreatingLocked = false;
     private float retreatLockDuration = 0.5f;
+
+    private Vector2 attackTargetPosition; // Vị trí player khi bắt đầu tấn công
+    private Vector2 startAttackPosition;  // Vị trí ong khi bắt đầu tấn công (để quay về sau)
+    private int attackPhase = 0;          // 0 = chưa tấn công, 1 = đang lùi, 2 = đang lao, 3 = đang quay về
+    private float retreatDuration = 0.3f; // Thời gian lùi
+    private float launchDuration = 0.5f;  // Thời gian lao (tùy tốc độ)
 
     void Start()
     {
@@ -67,8 +74,18 @@ public class BeeAI : MonoBehaviour
 
         SetNewRandomTarget();
         PlayAnim(flyAnim);
+        KimChich.SetActive(false);
+
     }
 
+    public void KimChiDoAo()
+    {
+        KimChich.SetActive(true);
+    }
+    public void KimChiDoAo1()
+    {
+        KimChich.SetActive(false);
+    }
     void Update()
     {
         if (isDead || player == null) return;
@@ -77,7 +94,7 @@ public class BeeAI : MonoBehaviour
         float distFromAnchor = Vector2.Distance(transform.position, anchorPoint.position);
         if (distFromAnchor > maxChaseDistance)
         {
-            if (currentState != BeeState.ReturningToAnchor)
+            if (currentState != BeeState.Chasing && distFromAnchor > maxChaseDistance)
             {
                 Debug.Log("🐝 [Ong] Quá xa tổ → Quay về!");
                 currentState = BeeState.ReturningToAnchor;
@@ -85,11 +102,9 @@ public class BeeAI : MonoBehaviour
                 isAttacking = false;
             }
         }
-        // 👇 KHI ĐANG QUAY VỀ: chỉ đuổi lại nếu player đủ gần neo
         else if (currentState == BeeState.ReturningToAnchor && PlayerInSight())
         {
-            // 👇 CHỈ ĐUỔI LẠI NẾU PLAYER CÁCH NEO <= 80% giới hạn
-            if (Vector2.Distance(player.position, anchorPoint.position) <= maxChaseDistance * 0.8f)
+            if (Vector2.Distance(transform.position, attackTargetPosition) < 0.5f)
             {
                 Debug.Log("🐝 [Ong] Player vào tầm và đủ gần → Tiếp tục đuổi!");
                 currentState = BeeState.Chasing;
@@ -137,21 +152,87 @@ public class BeeAI : MonoBehaviour
 
         if (PlayerInSight())
         {
-            Debug.Log("🐝 [Ong] Phát hiện player → ĐUỔI THEO!");
+            Debug.Log("🐝 [Ong] Phát hiện player → BẮT ĐẦU TẤN CÔNG KIỂU LAO!");
+
+            // 👇 Lưu lại vị trí ong và player hiện tại
+            startAttackPosition = transform.position;
+            attackTargetPosition = player.position;
+            attackPhase = 1; // Bắt đầu lùi
+
             currentState = BeeState.Chasing;
             PlayAnim(attackAnim);
+            isAttacking = true;
         }
     }
 
     void ChasingBehavior()
     {
-        if (!player) return;
+        if (player == null) return;
 
-        isAttacking = true;
-        Vector2 dir = (player.position - transform.position).normalized;
-        rb.linearVelocity = dir * chaseSpeed;
-        FlipSprite(dir.x);
-        // ❌ KHÔNG CÓ ĐIỀU KIỆN DỪNG ĐUỔI Ở ĐÂY
+        switch (attackPhase)
+        {
+            case 1: // ➤ GIAI ĐOẠN 1: LÙI LẠI
+                {
+                    Vector2 toPlayer = (player.position - transform.position).normalized;
+                    Vector2 retreatDir = -toPlayer;
+                    rb.linearVelocity = retreatDir * (chaseSpeed * 0.8f);
+                    FlipSprite(retreatDir.x);
+
+                    // Bắt đầu đếm thời gian lùi → sau đó chuyển sang lao
+                    StartCoroutine(DelayedLaunch());
+                    // ❌ ĐỪNG đặt attackPhase = 0 ở đây!
+                    // ✅ Thay vào đó, đánh dấu đã bắt đầu lùi để tránh gọi lại
+                    attackPhase = 99; // hoặc dùng bool isRetreatingForAttack
+                }
+                break;
+
+            case 2: // ➤ GIAI ĐOẠN 2: LAO TỚI VỊ TRÍ CỐ ĐỊNH
+                {
+                    Vector2 dir = (attackTargetPosition - (Vector2)transform.position).normalized;
+                    rb.linearVelocity = dir * (chaseSpeed * 1.5f); // Có thể lao nhanh hơn
+                    FlipSprite(dir.x);
+
+                    // Khi đến gần điểm tấn công → chuyển sang quay về
+                    if (Vector2.Distance(transform.position, attackTargetPosition) < 0.3f)
+                    {
+                        attackPhase = 3;
+                    }
+                }
+                break;
+
+            case 3: // ➤ GIAI ĐOẠN 3: QUAY VỀ VỊ TRÍ BAN ĐẦU (hoặc neo)
+                {
+                    Vector2 dir = (startAttackPosition - (Vector2)transform.position).normalized;
+                    rb.linearVelocity = dir * hoverSpeed;
+                    FlipSprite(dir.x, facePlayer: false);
+
+                    if (Vector2.Distance(transform.position, startAttackPosition) < 0.5f)
+                    {
+                        // Hoàn thành → quay về hover
+                        EndAttackSequence();
+                    }
+                }
+                break;
+        }
+    }
+
+    IEnumerator DelayedLaunch()
+    {
+        yield return new WaitForSeconds(retreatDuration);
+        if (currentState == BeeState.Chasing)
+        {
+            attackPhase = 2; // Bắt đầu LAO
+        }
+    }
+
+    void EndAttackSequence()
+    {
+        Debug.Log("🐝 [Ong] Hoàn thành đòn lao → Quay về hover");
+        currentState = BeeState.Hovering;
+        isAttacking = false;
+        attackPhase = 0;
+        SetNewRandomTarget();
+        PlayAnim(flyAnim);
     }
 
     void RetreatingBehavior()

@@ -162,16 +162,33 @@ public class EnemySpider : MonoBehaviour
 
     void ShootWebInternal()
     {
-        if (webPrefab == null || player == null) return;
+        if (webPrefab == null || player == null || muzzlePoint == null) return;
 
-        // 👇 LẤY VỊ TRÍ PLAYER NGAY LÚC NÀY
-        Vector2 playerPosition = player.position;
-        Vector2 direction = (playerPosition - (Vector2)transform.position).normalized;
+        Vector2 baseDirection = ((Vector2)player.position - (Vector2)transform.position).normalized;
 
-        Vector3 spawnPos = muzzlePoint.position + (Vector3)direction * 0.5f;
-        GameObject web = Instantiate(webPrefab, spawnPos, Quaternion.identity);
-        web.GetComponent<WebProjectile>().Initialize(direction);
-        Debug.Log($"[Spider] 🔫 Bắn vào vị trí player: {playerPosition}");
+        // Cấu hình tam giác
+        float sideAngle = 12f;          // Góc lệch hai bên
+        float mainSpeed = 7f;           // Viên chính: nhanh → đi trước
+        float sideSpeed = 4.5f;         // Viên bên: chậm → "đứng sau"
+
+        // Viên chính (giữa)
+        Vector3 centerPos = muzzlePoint.position + (Vector3)baseDirection * 0.3f;
+        GameObject centerWeb = Instantiate(webPrefab, centerPos, Quaternion.identity);
+        centerWeb.GetComponent<WebProjectile>().Initialize(baseDirection, mainSpeed);
+
+        // Viên trái
+        Vector2 leftDir = RotateVector(baseDirection, -sideAngle);
+        Vector3 leftPos = muzzlePoint.position + (Vector3)leftDir * 0.3f;
+        GameObject leftWeb = Instantiate(webPrefab, leftPos, Quaternion.identity);
+        leftWeb.GetComponent<WebProjectile>().Initialize(leftDir, sideSpeed);
+
+        // Viên phải
+        Vector2 rightDir = RotateVector(baseDirection, sideAngle);
+        Vector3 rightPos = muzzlePoint.position + (Vector3)rightDir * 0.3f;
+        GameObject rightWeb = Instantiate(webPrefab, rightPos, Quaternion.identity);
+        rightWeb.GetComponent<WebProjectile>().Initialize(rightDir, sideSpeed);
+
+        Debug.Log("[Spider] 🔺 Bắn đạn tam giác: 1 trước, 2 sau");
     }
 
     public void OnWebHitPlayer()
@@ -262,5 +279,16 @@ public class EnemySpider : MonoBehaviour
             Gizmos.color = Color.red;
             Gizmos.DrawSphere(muzzlePoint.position, 0.1f);
         }
+    }
+
+    Vector2 RotateVector(Vector2 vector, float angleDegrees)
+    {
+        float rad = angleDegrees * Mathf.Deg2Rad;
+        float cos = Mathf.Cos(rad);
+        float sin = Mathf.Sin(rad);
+        return new Vector2(
+            vector.x * cos - vector.y * sin,
+            vector.x * sin + vector.y * cos
+        );
     }
 }
