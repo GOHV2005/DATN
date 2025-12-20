@@ -1034,7 +1034,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // ===== ENEMY =====
-        if (other.CompareTag("Enemy"))
+        if (other.CompareTag("Enemy") || other.CompareTag("co"))
         {
             // 👉 PLAYER ĐANG ĐÁNH → KHÔNG NHẬN DAME
             if (isAttacking)
@@ -1059,9 +1059,12 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
+        }
+        if (other.CompareTag("Enemy") || other.CompareTag("co"))
+            {
 
-            // 👉 PLAYER GÂY DAMAGE
-            if (kiemHitbox != null && kiemHitbox.enabled)
+                // 👉 PLAYER GÂY DAMAGE
+                if (kiemHitbox != null && kiemHitbox.enabled)
             {
                 TryDamageTarget(other, damageOnTouch);
                 return;
