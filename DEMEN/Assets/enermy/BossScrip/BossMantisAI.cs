@@ -6,6 +6,10 @@ public class BossMantisAI : MonoBehaviour
 {
     public enum BossState { Idle, Moving, UsingSkill, Dead }
     BossState currentState = BossState.Idle;
+    [Header("UI")]
+    public UnityEngine.UI.Slider bossHealthSlider; // kéo slider từ Inspector
+    private Health bossHealth;                     // tham chiếu Health component
+
 
     [Header("REFERENCES")]
     public Transform player;
@@ -59,7 +63,18 @@ public class BossMantisAI : MonoBehaviour
     // ================= START =================
     void Start()
     {
-        currentHP = maxHP;
+        // Lấy Health
+        bossHealth = GetComponent<Health>();
+
+        if (bossHealthSlider != null && bossHealth != null)
+        {
+            bossHealthSlider.gameObject.SetActive(false); // ẩn lúc đầu
+            bossHealthSlider.maxValue = bossHealth.maxHealth;
+            bossHealthSlider.value = bossHealth.currentHealth;
+
+            // gán sự kiện khi boss chết
+            bossHealth.onDeath += Die;
+        }
 
         if (!player)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -76,20 +91,34 @@ public class BossMantisAI : MonoBehaviour
         musicSource.spatialBlend = 0f;
     }
 
+
+    public void StartCombat()
+    {
+        if (combatStarted || bossHealth == null || bossHealth.currentHealth <= 0) return;
+
+        combatStarted = true;
+
+        // hiện thanh máu boss
+        if (bossHealthSlider != null)
+            bossHealthSlider.gameObject.SetActive(true);
+
+        StartCoroutine(CombatIntro());
+    }
+
+
+
     void Update()
     {
-        if (isDead) return;
+        if (bossHealth == null || bossHealth.currentHealth <= 0) return;
 
-        // ====== KÍCH HOẠT COMBAT ======
-        if (!combatStarted && arenaCollider.bounds.Contains(player.position))
-        {
-            combatStarted = true;
-            StartCoroutine(CombatIntro());
-        }
+        // cập nhật slider
+        if (bossHealthSlider != null)
+            bossHealthSlider.value = bossHealth.currentHealth;
 
         if (currentState == BossState.Moving)
             MoveToPlayer();
     }
+
 
     // ================= INTRO =================
     IEnumerator CombatIntro()
@@ -245,18 +274,27 @@ public class BossMantisAI : MonoBehaviour
         if (isDead) return;
 
         currentHP -= dmg;
+        currentHP = Mathf.Max(currentHP, 0);
+
+        // cập nhật slider
+        if (bossHealthSlider != null)
+            bossHealthSlider.value = currentHP;
+
         if (currentHP <= 0)
             Die();
     }
 
+
     void Die()
     {
+        if (bossHealthSlider != null)
+            bossHealthSlider.gameObject.SetActive(false);
+
         isDead = true;
         currentState = BossState.Dead;
 
         StopAllCoroutines();
 
-        // 🔓 MỞ ARENA DUY NHẤT TẠI ĐÂY
         if (arenaBarrier)
             arenaBarrier.SetActive(false);
 
@@ -268,6 +306,7 @@ public class BossMantisAI : MonoBehaviour
 
         Debug.Log("💀 Boss chết – Arena mở");
     }
+
 
     // ================= UTIL =================
     void SpawnSmoke()

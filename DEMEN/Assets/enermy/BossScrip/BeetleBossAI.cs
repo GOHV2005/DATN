@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
+using UnityEngine.UI;
 
 public class BossBeetleAI : MonoBehaviour
 {
@@ -70,6 +71,11 @@ public class BossBeetleAI : MonoBehaviour
 
     [Header("ARENA BARRIER")]
     public GameObject arenaBarrier; // Kéo GameObject này từ Inspector
+    [Header("UI")]
+    public Slider bossHealthSlider;   // kéo slider từ Inspector
+    private Health bossHealth;        // tham chiếu Health component
+
+    private bool sliderActive = false;
     private Rigidbody2D rb;
     private Animator anim;
     private SpriteRenderer sr;
@@ -85,6 +91,7 @@ public class BossBeetleAI : MonoBehaviour
 
     void Start()
     {
+
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
@@ -98,7 +105,6 @@ public class BossBeetleAI : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f;
-        // 👇 GÁN MIXER GROUP
         if (sfxMixerGroup != null)
             audioSource.outputAudioMixerGroup = sfxMixerGroup;
 
@@ -107,71 +113,64 @@ public class BossBeetleAI : MonoBehaviour
         musicAudioSource.playOnAwake = false;
         musicAudioSource.loop = true;
         musicAudioSource.spatialBlend = 0f;
-        // 👇 GÁN MIXER GROUP
         if (musicMixerGroup != null)
             musicAudioSource.outputAudioMixerGroup = musicMixerGroup;
 
+        // ====== UI Health Slider ======
+        bossHealth = GetComponent<Health>();
+        if (bossHealth != null)
+        {
+            bossHealthSlider.maxValue = bossHealth.maxHealth;
+            bossHealthSlider.value = bossHealth.currentHealth;
+            bossHealthSlider.gameObject.SetActive(false);
+
+            // Đăng ký sự kiện boss chết
+            bossHealth.onDeath += OnBossDeath;
+        }
+
         PlayAnim(idleAnim);
     }
+
+    // Khi boss chết
+    void OnBossDeath()
+    {
+        if (bossHealthSlider != null)
+            bossHealthSlider.gameObject.SetActive(false);
+    }
+
+    public void StartCombat()
+    {
+        if (playerEnteredArena) return;
+
+        playerEnteredArena = true;
+
+        if (arenaBarrier != null)
+            arenaBarrier.SetActive(true);
+
+        currentState = BossState.Roar;
+        stateTimer = roarTime;
+        PlayAnim(ramAnim);
+        PlayRoarSound();
+
+        if (cameraShake)
+            cameraShake.Shake(shakeIntensity, roarTime);
+
+        if (!musicAudioSource.isPlaying && bossMusic != null)
+        {
+            musicAudioSource.clip = bossMusic;
+            musicAudioSource.Play();
+        }
+    }
+
 
     void Update()
     {
         if (!player) return;
 
         bool isInArena = arenaTrigger && arenaTrigger.bounds.Contains(player.position);
+        if (!playerEnteredArena) return; // 🔒 CHỐT CHẶN
 
         // XỬ LÝ NHẠC NỀN + KÍCH HOẠT TRẬN ĐẤN
-        if (isInArena)
-        {
-            // BẬT NHẠC NẾU CHƯA BẬT
-            if (!musicAudioSource.isPlaying && bossMusic != null)
-            {
-                musicAudioSource.clip = bossMusic;
-                musicAudioSource.Play();
-            }
-
-            if (!playerEnteredArena)
-            {
-                playerEnteredArena = true;
-
-                // 🔥 KÍCH HOẠT BARRIER NGĂN RA KHỎI ĐẤU TRƯỜNG
-                if (arenaBarrier != null)
-                    arenaBarrier.SetActive(true);
-
-                currentState = BossState.Roar;
-                stateTimer = roarTime;
-                PlayAnim(ramAnim);
-                PlayRoarSound();
-                if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
-            }
-        }
-        else
-        {
-            // TẮT NHẠC KHI RA KHỎI ARENA (về lý thuyết không thể xảy ra nếu barrier hoạt động)
-            if (musicAudioSource.isPlaying)
-            {
-                musicAudioSource.Stop();
-            }
-
-            // ❌ KHÔNG TẮT BARRIER Ở ĐÂY! Vì đã chặn rồi thì không cho ra nữa.
-            // (Nếu bạn muốn reset trận đấu khi thoát, xử lý ở chỗ khác)
-
-            rb.linearVelocity = Vector2.zero;
-            PlayAnim(idleAnim);
-            if (audioSource.isPlaying && audioSource.clip == roarSound)
-                audioSource.Stop();
-            return;
-        }
-
-        if (!playerEnteredArena)
-        {
-            playerEnteredArena = true;
-            currentState = BossState.Roar;
-            stateTimer = roarTime;
-            PlayAnim(ramAnim);
-            PlayRoarSound();
-            if (cameraShake) cameraShake.Shake(shakeIntensity, roarTime);
-        }
 
         // CẬP NHẬT HƯỚNG SPRITE
         if (currentState == BossState.Charge)
@@ -186,7 +185,18 @@ public class BossBeetleAI : MonoBehaviour
         {
             sr.flipX = (player.position.x > transform.position.x);
         }
+        if (!sliderActive && arenaTrigger != null && arenaTrigger.bounds.Contains(player.position))
+        {
+            sliderActive = true;
+            if (bossHealthSlider != null)
+                bossHealthSlider.gameObject.SetActive(true);
+        }
 
+        // cập nhật thanh máu
+        if (bossHealthSlider != null && bossHealth != null)
+        {
+            bossHealthSlider.value = bossHealth.currentHealth;
+        }
         // HÀNH VI THEO TRẠNG THÁI
         switch (currentState)
         {
@@ -231,6 +241,11 @@ public class BossBeetleAI : MonoBehaviour
         }
 
         stateTimer -= Time.deltaTime;
+    }
+    void OnDeath()
+    {
+        if (bossHealthSlider != null)
+            bossHealthSlider.gameObject.SetActive(false);
     }
     // GỌI TỪ ANIMATION EVENT
     public void AnimEvent_RamShockwave()

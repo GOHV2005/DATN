@@ -2206,7 +2206,8 @@ GameObject:
   - component: {fileID: 269338734}
   - component: {fileID: 269338733}
   - component: {fileID: 269338735}
-  m_Layer: 0
+  - component: {fileID: 269338736}
+  m_Layer: 10
   m_Name: Belltown_0070_bell_01_0 (1)
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -2318,7 +2319,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 9.809232}
+  m_Offset: {x: 0, y: 10.2114315}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -2328,8 +2329,68 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 27.9375, y: 43.257202}
+  m_Size: {x: 27.9375, y: 42.452755}
   m_EdgeRadius: 0
+--- !u!68 &269338736
+EdgeCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 269338732}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_EdgeRadius: 0
+  m_Points:
+  - {x: 3.7367268, y: -42.882988}
+  - {x: 3.8568401, y: -40.344444}
+  - {x: 1.9149091, y: -38.45927}
+  - {x: -0.367105, y: -37.31678}
+  - {x: -3.4444337, y: -35.74561}
+  - {x: -6.467495, y: -31.359058}
+  - {x: -2.84893, y: -29.214151}
+  - {x: -0.51303244, y: -24.91149}
+  - {x: 1.178559, y: -23.251251}
+  - {x: 1.2401131, y: -21.73996}
+  - {x: 2.59958, y: -20.44219}
+  - {x: 5.05801, y: -20.222866}
+  - {x: 7.1893983, y: -18.489616}
+  - {x: 10.022813, y: -18.488464}
+  - {x: 10.157139, y: -16.566479}
+  - {x: 11.642015, y: -14.9053755}
+  - {x: 13.3170185, y: -14.993154}
+  - {x: 14.086448, y: -13.254341}
+  - {x: 13.768556, y: -11.208051}
+  m_AdjacentStartPoint: {x: 0, y: 0}
+  m_AdjacentEndPoint: {x: 0, y: 0}
+  m_UseAdjacentStartPoint: 0
+  m_UseAdjacentEndPoint: 0
 --- !u!1 &283863072
 GameObject:
   m_ObjectHideFlags: 0

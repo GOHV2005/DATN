@@ -25,55 +25,75 @@ public class BossFinalController : MonoBehaviour
             bossAI.enabled = false;
     }
 
+
+
     void OnTriggerEnter2D(Collider2D other)
     {
-        if (hasStarted) return;
         if (!other.CompareTag("Player")) return;
+        if (hasStarted) return;
 
         hasStarted = true;
+
+        // 🔁 ĐÃ TỪNG ĐÁNH → BỎ QUA HỘI THOẠI
+        if (BossFightState.introFinished)
+        {
+            Debug.Log("⚔️ Boss retry → vào combat ngay");
+
+            if (doorBlockerPrefab && doorSpawnPoint)
+                Instantiate(doorBlockerPrefab, doorSpawnPoint.position, Quaternion.identity);
+
+            if (bossAI != null)
+                bossAI.enabled = true;
+
+            if (bossSpawner != null)
+            {
+                bossSpawner.allowCombat = true;
+                bossSpawner.StartCombat();
+            }
+
+            return;
+        }
+
+        // 🆕 CHƠI MỚI → CÓ HỘI THOẠI
         StartCoroutine(IntroFlow());
     }
 
+
+
     IEnumerator IntroFlow()
     {
-        Debug.Log("🗣️ [INTRO] Start");
-
         UIManager.IsTalkingToNPC = true;
-        Debug.Log("🗣️ IsTalkingToNPC = TRUE");
-
         DialogueSystem.Instance.StartDialogue(introDialogue);
-        Debug.Log("🗣️ Dialogue started");
 
         yield return new WaitUntil(() => !UIManager.IsTalkingToNPC);
 
-        Debug.Log("🗣️ Dialogue REALLY finished");
+        // 🔑 ĐÁNH DẤU: ĐÃ XONG INTRO
+        BossFightState.introFinished = true;
 
-        // 🚪 Door
+        int slot = PlayerPrefs.GetInt("CurrentSlot", -1);
+        if (slot != -1)
+        {
+            SaveData data = SaveSystem.LoadGame(slot);
+            if (data != null)
+            {
+                data.bossIntroFinished = true;
+                SaveSystem.SaveGame(slot, data);
+            }
+        }
+
+
         if (doorBlockerPrefab && doorSpawnPoint)
-        {
             Instantiate(doorBlockerPrefab, doorSpawnPoint.position, Quaternion.identity);
-            Debug.Log("🚪 Door blocked");
-        }
 
-        // ⚔️ Boss AI
         if (bossAI != null)
-        {
             bossAI.enabled = true;
-            Debug.Log("🤖 Boss AI enabled");
-        }
 
-        // ⚔️ Combat
         if (bossSpawner != null)
         {
-            Debug.Log("🔥 Calling StartCombat()");
+            bossSpawner.allowCombat = true;
             bossSpawner.StartCombat();
         }
-        else
-        {
-            Debug.LogError("❌ bossSpawner NULL");
-        }
     }
-
 
 
     bool DialogueEnded()

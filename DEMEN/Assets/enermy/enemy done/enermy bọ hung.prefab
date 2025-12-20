@@ -267,6 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 10
+  currentHealth: 0
   knockbackForce: 30
   knockbackDuration: 0.15
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
@@ -279,6 +280,10 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+  deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
+    type: 3}
+  deathSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!1 &1345249955966375186
 GameObject:
   m_ObjectHideFlags: 0

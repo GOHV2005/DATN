@@ -391,7 +391,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 5
+  orthographic size: 15.23
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -1722,42 +1722,11 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 1727199360668235089, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: m_Controller
-      value: 
-      objectReference: {fileID: 9100000, guid: 209e895aa7539b94ba763802323056a2, type: 2}
     - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: player
       value: 
       objectReference: {fileID: 247043997}
-    - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: attackRange
-      value: 13.9
-      objectReference: {fileID: 0}
-    - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: cameraShake
-      value: 
-      objectReference: {fileID: 1190309522}
-    - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: smokePrefab
-      value: 
-      objectReference: {fileID: 7500932285296859197, guid: 7356cce1b5d851a4c91d2bc32c9fc380,
-        type: 3}
-    - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: visionRange
-      value: 42.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4079697748019049104, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: arenaTrigger
-      value: 
-      objectReference: {fileID: 1325489583}
     - target: {fileID: 5802665204702974707, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_Name
@@ -1766,12 +1735,12 @@ PrefabInstance:
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 20.3
+      value: 19.93
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.79
+      value: -0.76
       objectReference: {fileID: 0}
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
@@ -1811,16 +1780,6 @@ PrefabInstance:
     - target: {fileID: 6805404006014305957, guid: 2953c04b0ee0003488178033cfc086f8,
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7452141058802109982, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: knockbackForce
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 7452141058802109982, guid: 2953c04b0ee0003488178033cfc086f8,
-        type: 3}
-      propertyPath: knockbackDuration
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []

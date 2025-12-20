@@ -20,6 +20,7 @@ GameObject:
   - component: {fileID: 853386364697610256}
   - component: {fileID: 663552461462988907}
   - component: {fileID: 434540978126611055}
+  - component: {fileID: 6461925008961611681}
   m_Layer: 6
   m_Name: Boss
   m_TagString: Enemy
@@ -66,7 +67,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 9a0e9646a5588c84dbe7cc59f5e27ca1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -273,7 +274,6 @@ MonoBehaviour:
   maxHealth: 30
   currentHealth: 0
   knockbackForce: 0
-  knockbackDuration: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.1
   dropItemPrefab: {fileID: 0}
@@ -284,6 +284,11 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+  useDissolve: 1
+  _dissolve: {fileID: 6461925008961611681}
+  deathParticle: {fileID: 0}
+  deathSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!95 &5352969943045019260
 Animator:
   serializedVersion: 7
@@ -392,6 +397,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetObject: {fileID: 9040923065487215108}
+--- !u!114 &6461925008961611681
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 144453309172795790}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfd1230e404fe5b4b8e5d182d87d89be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _dissolveTime: 1
 --- !u!1 &237267831872279780
 GameObject:
   m_ObjectHideFlags: 0
@@ -671,6 +689,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2606932479862735122}
   - component: {fileID: 6981332040589727983}
+  - component: {fileID: 4077613265637078780}
   m_Layer: 0
   m_Name: bossActive
   m_TagString: Untagged
@@ -739,6 +758,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 232.75465, y: 21.966637}
   m_EdgeRadius: 0
+--- !u!114 &4077613265637078780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3390668271484960620}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8a6e5a5708bc7f4db7b3f36caa751d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mantisBoss: {fileID: 0}
+  beetleBoss: {fileID: 6694928514582856611}
 --- !u!1 &4037318078939467963
 GameObject:
   m_ObjectHideFlags: 0

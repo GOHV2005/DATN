@@ -1,10 +1,9 @@
 ﻿using System.Collections;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class MantisAI : MonoBehaviour
 {
-    public enum MantisState { Idle, Detect, Attack, Reveal, ReturnToIdle, StrongAttack }
+    public enum MantisState { Idle, Detect, Attack, Reveal, ReturnToIdle }
 
     [Header("Thiết lập cơ bản")]
     public float visionRange = 6f;
@@ -20,13 +19,6 @@ public class MantisAI : MonoBehaviour
 
     [Header("Skill 2: Lao Đánh Trực Diện")]
     public int directAttackDamage = 60;
-
-    [Header("Skill 3: Tấn Công Mạnh (Sóng bay)")]
-    public int strongAttackDamage = 80;
-    public float strongAttackRange = 3f;
-    public float strongAttackCooldown = 5f;
-    private float lastStrongAttackTime = -999f;
-    public GameObject shockwaveProjectilePrefab;
 
     [Header("Combat Cooldown")]
     public float attackCooldown = 2f;
@@ -55,13 +47,11 @@ public class MantisAI : MonoBehaviour
     private MantisState currentState = MantisState.Idle;
     private SpriteRenderer sr;
     private Animator anim;
-    private MantisState lastAttackState = MantisState.Idle;
     private float currentAttackDamage = 0f;
     private bool isAttackActive = false;
 
     // 👇 BIẾN MỚI: GHI NHỚ ĐÃ DÙNG SKILL 1
     private bool usedStealthAttack = false;
-    private bool canUseStrongAttack = false; // 👈 CHỈ MỞ KHÓA SAU KHI DÙNG SKILL 1
 
     void Start()
     {
@@ -84,16 +74,6 @@ public class MantisAI : MonoBehaviour
 
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
 
-        // 👇 KIỂM TRA LIÊN TỤC ĐIỀU KIỆN DÙNG SKILL 3 (CHỈ SAU KHI DÙNG SKILL 1)
-        if (canUseStrongAttack && !isAttacking && !isAttackActive && currentState != MantisState.StrongAttack)
-        {
-            if (distanceToPlayer > strongAttackRange && distanceToPlayer < visionRange && Time.time - lastStrongAttackTime >= strongAttackCooldown)
-            {
-                Debug.Log("🎯 [Bọ ngựa] Dùng Skill 3 (Tấn công mạnh)!");
-                StartCoroutine(PerformStrongAttack());
-            }
-        }
-
         switch (currentState)
         {
             case MantisState.Idle:
@@ -110,9 +90,6 @@ public class MantisAI : MonoBehaviour
                 break;
             case MantisState.ReturnToIdle:
                 ReturnToIdleState();
-                break;
-            case MantisState.StrongAttack:
-                // Không làm gì, animation sẽ xử lý
                 break;
         }
     }
@@ -138,11 +115,9 @@ public class MantisAI : MonoBehaviour
         }
     }
 
-    // ================== STATE HANDLERS ==================
     void SetBodyVisibility(bool isVisible)
     {
         if (bodyRenderer == null) return;
-
         Color color = bodyRenderer.color;
         color.a = isVisible ? visibleAlpha : hiddenAlpha;
         bodyRenderer.color = color;
@@ -157,7 +132,6 @@ public class MantisAI : MonoBehaviour
         {
             currentState = MantisState.Detect;
             usedStealthAttack = false;
-            canUseStrongAttack = false; // 👈 RESET KHI BẮT ĐẦU PHÁT HIỆN
             Debug.Log("👀 [Bọ ngựa] Phát hiện con mồi!");
         }
     }
@@ -169,7 +143,6 @@ public class MantisAI : MonoBehaviour
 
         if (distance <= attackRange && Time.time - lastAttackTime >= attackCooldown)
         {
-            // 👇 ƯU TIÊN DÙNG SKILL 1 KHI BẮT ĐẦU PHÁT HIỆN
             if (!usedStealthAttack)
             {
                 Debug.Log("🎯 [Bọ ngựa] Dùng Skill 1 (Tàng hình vồ bất ngờ)");
@@ -177,16 +150,7 @@ public class MantisAI : MonoBehaviour
             }
             else
             {
-                // 👇 SAU KHI DÙNG SKILL 1 → MỞ KHÓA SKILL 3
-                if (canUseStrongAttack && distance > strongAttackRange && distance < visionRange && Time.time - lastStrongAttackTime >= strongAttackCooldown)
-                {
-                    Debug.Log("🎯 [Bọ ngựa] Dùng Skill 3 (Tấn công mạnh)!");
-                    StartCoroutine(PerformStrongAttack());
-                }
-                else
-                {
-                    PerformRevealAttack();
-                }
+                PerformRevealAttack();
             }
         }
         else if (distance > visionRange)
@@ -219,7 +183,6 @@ public class MantisAI : MonoBehaviour
         isAttacking = false;
         isAttackActive = false;
         usedStealthAttack = true;
-        canUseStrongAttack = true; // 👈 MỞ KHÓA SKILL 3 SAU KHI DÙNG SKILL 1
         currentState = MantisState.Reveal;
         Debug.Log("😠 [Bọ ngựa] Bị né! Hiện thân và chuẩn bị chiến đấu!");
     }
@@ -230,9 +193,7 @@ public class MantisAI : MonoBehaviour
         FacePlayer();
 
         if (!isAttacking)
-        {
             anim.Play("DiBo(BoNgua)");
-        }
 
         SetBodyVisibility(true);
 
@@ -245,16 +206,7 @@ public class MantisAI : MonoBehaviour
 
         if (distance <= revealAttackRange && !isAttacking && Time.time - lastAttackTime >= attackCooldown)
         {
-            // 👇 CHỈ DÙNG SKILL 2 & 3 SAU KHI DÙNG SKILL 1
-            if (canUseStrongAttack && distance > strongAttackRange && distance < visionRange && Time.time - lastStrongAttackTime >= strongAttackCooldown)
-            {
-                Debug.Log("🎯 [Bọ ngựa] Dùng Skill 3 (Tấn công mạnh)!");
-                StartCoroutine(PerformStrongAttack());
-            }
-            else
-            {
-                PerformRevealAttack();
-            }
+            PerformRevealAttack();
         }
     }
 
@@ -269,8 +221,8 @@ public class MantisAI : MonoBehaviour
         FacePlayer();
 
         anim.Play("TanCong(BoNgua)", 0, 0f);
-
         rb.linearVelocity = (player.position - transform.position).normalized * (attackSpeed * 1.2f);
+
         Invoke(nameof(EndRevealAttack), 0.4f);
         Debug.Log("🩸 [Bọ ngựa] Vồ tấn công trực diện! (Skill 2)");
     }
@@ -283,53 +235,23 @@ public class MantisAI : MonoBehaviour
         Debug.Log("🔁 [Bọ ngựa] Kết thúc combo, chờ cơ hội tấn công tiếp.");
     }
 
-    // 👇 HÀM MỚI: THỰC HIỆN SKILL MẠNH (BẮN SÓNG VỀ PHÍA PLAYER)
-    IEnumerator PerformStrongAttack()
-    {
-        if (player == null) yield break;
-
-        currentState = MantisState.StrongAttack;
-        isAttacking = true;
-        FacePlayer();
-        anim.Play("TanCongManh(Bongua)");
-
-        yield return new WaitForSeconds(0.8f);
-
-        SpawnShockwaveProjectile();
-        lastStrongAttackTime = Time.time;
-
-        isAttacking = false;
-        currentState = MantisState.Reveal;
-        Debug.Log("💥 [Bọ ngựa] BẮN SÓNG NĂNG LƯỢNG VỀ PHÍA PLAYER!");
-    }
-
-    // 👇 BẮN 1 VIÊN SÓNG VỀ PHÍA PLAYER
-    // 👇 BẮN 1 VIÊN SÓNG THEO HƯỚNG MANTIS NHÌN
-    void SpawnShockwaveProjectile()
-    {
-        if (shockwaveProjectilePrefab == null)
-        {
-            Debug.LogWarning("Chưa có prefab sóng năng lượng!");
-            return;
-        }
-
-        GameObject wave = Instantiate(shockwaveProjectilePrefab, transform.position, Quaternion.identity);
-        ShockwaveProjectile shockwave = wave.GetComponent<ShockwaveProjectile>();
-        if (shockwave != null)
-        {
-            // 👇 GỬI HƯỚNG THEO TRỤC X: 1 nếu nhìn phải, -1 nếu nhìn trái
-            float dirX = sr.flipX ? 1f : -1f; // sr là SpriteRenderer của Mantis
-            shockwave.Initialize(dirX, strongAttackDamage);
-        }
-    }
-
     void ReturnToIdleState()
     {
         FaceStartPosition();
         anim.Play("DiBo(BoNgua)");
         SetBodyVisibility(true);
-        if (Vector2.Distance(transform.position, startPos) < 0.1f)
+
+        // Chỉ di chuyển theo trục X
+        float dirX = startPos.x - transform.position.x;
+        if (Mathf.Abs(dirX) > 0.05f) // khoảng nhỏ để tránh rung lắc
         {
+            float moveStep = Mathf.Sign(dirX) * returnSpeed * Time.deltaTime;
+            if (Mathf.Abs(moveStep) > Mathf.Abs(dirX)) moveStep = dirX; // không vượt quá điểm đích
+            transform.position += new Vector3(moveStep, 0, 0);
+        }
+        else
+        {
+            // Về đúng X, dừng hẳn
             rb.linearVelocity = Vector2.zero;
             anim.Play("Dung(BoNgua)");
             SetBodyVisibility(false);
@@ -338,7 +260,7 @@ public class MantisAI : MonoBehaviour
         }
     }
 
-    // ================== FLIP SPRITE ==================
+
     void FacePlayer()
     {
         if (player == null) return;
@@ -350,14 +272,6 @@ public class MantisAI : MonoBehaviour
         sr.flipX = !(startPos.x < transform.position.x);
     }
 
-    // ================== DAMAGE & FLASH ==================
-    public void TakeDamage(float amount)
-    {
-        Debug.Log($"[Enemy] Nhận {amount} sát thương!");
-        // 👇 BỎ DÒNG NÀY: StartCoroutine(FlashWhite());
-    }
-
-    // ================== TRIGGER DAMAGE ==================
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player") && isAttackActive)
@@ -369,33 +283,6 @@ public class MantisAI : MonoBehaviour
                 Debug.Log($"[Enemy] Gây {currentAttackDamage} sát thương!");
             }
         }
-    }
-
-    // ================== DEBUG VIZ ==================
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.yellow;
-        DrawSquare(transform.position, visionRange);
-        Gizmos.color = Color.red;
-        DrawSquare(transform.position, attackRange);
-        Gizmos.color = Color.magenta;
-        DrawSquare(transform.position, revealAttackRange);
-        Gizmos.color = Color.blue;
-        DrawSquare(transform.position, strongAttackRange);
-    }
-
-    void DrawSquare(Vector2 center, float size)
-    {
-        float half = size / 2f;
-        Vector3 tl = center + new Vector2(-half, half);
-        Vector3 tr = center + new Vector2(half, half);
-        Vector3 br = center + new Vector2(half, -half);
-        Vector3 bl = center + new Vector2(-half, -half);
-
-        Gizmos.DrawLine(tl, tr);
-        Gizmos.DrawLine(tr, br);
-        Gizmos.DrawLine(br, bl);
-        Gizmos.DrawLine(bl, tl);
     }
 
     IEnumerator ShowWarningThenAttack()

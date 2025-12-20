@@ -17,6 +17,7 @@ public class BossSpawner : MonoBehaviour
     public Animator animator;
 
     private AudioSource arenaSource;
+    [HideInInspector] public bool allowCombat = false;
 
     private int currentWaveIndex = 0;
     private int activeEnemyCount = 0;
@@ -31,6 +32,8 @@ public class BossSpawner : MonoBehaviour
 
         if (animator == null)
             animator = GetComponent<Animator>();
+        allowCombat = false;        // 🔒 NEW GAME: KHÓA COMBAT
+        hasCombatStarted = false;
     }
 
     void CreateArenaAudioSource()
@@ -55,9 +58,16 @@ public class BossSpawner : MonoBehaviour
 
     public void StartCombat()
     {
-        Debug.Log("🔥 StartCombat()");
+        if (!allowCombat)
+        {
+            Debug.Log("⛔ Combat bị khóa (chưa xong dialogue)");
+            return;
+        }
+
+        if (hasCombatStarted) return;
 
         hasCombatStarted = true;
+
         currentWaveIndex = 0;
         activeEnemyCount = 0;
 
@@ -67,6 +77,7 @@ public class BossSpawner : MonoBehaviour
         PlayBossMusic();
         StartNextWave();
     }
+
 
     void PlayBossMusic()
     {

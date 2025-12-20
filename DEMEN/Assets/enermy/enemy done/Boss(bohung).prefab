@@ -154,6 +154,7 @@ GameObject:
   - component: {fileID: 1827989691136583331}
   - component: {fileID: 4950297752228528374}
   - component: {fileID: 494558591968200877}
+  - component: {fileID: 3153965402628833611}
   m_Layer: 6
   m_Name: Boss
   m_TagString: Enemy
@@ -200,7 +201,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 9a0e9646a5588c84dbe7cc59f5e27ca1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -392,6 +393,7 @@ MonoBehaviour:
   sfxMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
   musicMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
   arenaBarrier: {fileID: 1868142853625065852}
+  bossHealthSlider: {fileID: 0}
 --- !u!114 &184950589366666946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -407,7 +409,6 @@ MonoBehaviour:
   maxHealth: 30
   currentHealth: 0
   knockbackForce: 0
-  knockbackDuration: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.1
   dropItemPrefab: {fileID: 0}
@@ -418,6 +419,11 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+  useDissolve: 1
+  _dissolve: {fileID: 3153965402628833611}
+  deathParticle: {fileID: 0}
+  deathSound: {fileID: 0}
+  audioSource: {fileID: 0}
 --- !u!95 &1368686330740583047
 Animator:
   serializedVersion: 7
@@ -526,6 +532,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   targetObject: {fileID: 1868142853625065852}
+--- !u!114 &3153965402628833611
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1279489339522765611}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfd1230e404fe5b4b8e5d182d87d89be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _dissolveTime: 1
 --- !u!1 &1313232738244538213
 GameObject:
   m_ObjectHideFlags: 0
@@ -687,7 +706,7 @@ Transform:
   m_GameObject: {fileID: 1365013935488075184}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.26, y: -0.32, z: 0}
+  m_LocalPosition: {x: 0.26, y: -0, z: 0}
   m_LocalScale: {x: 63.06, y: 63.06, z: 63.06}
   m_ConstrainProportionsScale: 1
   m_Children: []
@@ -1490,6 +1509,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6543499307010944941}
   - component: {fileID: 4931040813140931375}
+  - component: {fileID: 5716663514556728701}
   m_Layer: 0
   m_Name: bossActive
   m_TagString: Untagged
@@ -1558,6 +1578,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 51.684006, y: 21.966637}
   m_EdgeRadius: 0
+--- !u!114 &5716663514556728701
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4989129416566048081}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d8a6e5a5708bc7f4db7b3f36caa751d3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mantisBoss: {fileID: 0}
+  beetleBoss: {fileID: 4959124246988396806}
 --- !u!1 &5455243911079296563
 GameObject:
   m_ObjectHideFlags: 0

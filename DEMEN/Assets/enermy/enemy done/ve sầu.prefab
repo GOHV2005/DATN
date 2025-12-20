@@ -143,7 +143,7 @@ SpriteRenderer:
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: -1422246899
-  m_SortingLayer: -4
+  m_SortingLayer: 1
   m_SortingOrder: 0
   m_Sprite: {fileID: 4726436553962287433, guid: edb34c9d3f5a7fd47aba1275bcbb5ddd,
     type: 3}
@@ -285,6 +285,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   maxHealth: 1
+  currentHealth: 0
   knockbackForce: 0
   knockbackDuration: 0.15
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
@@ -297,3 +298,7 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+  deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
+    type: 3}
+  deathSound: {fileID: 0}
+  audioSource: {fileID: 0}
