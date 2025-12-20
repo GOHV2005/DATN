@@ -178,11 +178,11 @@ public class PlayerController : MonoBehaviour
     private float wallJumpLockTimer = 0f;
 
 
-    [Header("UI - Health (Heart System)")]
+    [Header("❤️ Heart UI")]
     public Image[] heartImages;
-    public Sprite fullHeartSprite;
-    public Sprite emptyHeartSprite;
-    public float healthPerHeart = 20f;
+    public Sprite fullHeart;
+    public Sprite halfHeart;
+    public Sprite emptyHeart;
     public System.Action onTakeDamage; // 👈 THÊM DÒNG NÀY
 
     [Header("Audio Clips")]
@@ -656,10 +656,8 @@ public class PlayerController : MonoBehaviour
 
     void UpdateHeartUI()
     {
-        if (heartImages == null || heartImages.Length == 0) return;
-
-        int maxHearts = Mathf.CeilToInt(maxHealth / healthPerHeart);
-        float currentHealth = CurrentHealth;
+        float health = currentHealth;   // int
+        int maxHearts = Mathf.CeilToInt(maxHealth / 2f);
 
         for (int i = 0; i < heartImages.Length; i++)
         {
@@ -670,10 +668,25 @@ public class PlayerController : MonoBehaviour
             }
 
             heartImages[i].gameObject.SetActive(true);
-            float healthEnd = (i + 1) * healthPerHeart;
-            heartImages[i].sprite = (currentHealth >= healthEnd) ? fullHeartSprite : emptyHeartSprite;
+
+            float heartHealth = health - (i * 2);
+
+            if (heartHealth >= 2)
+            {
+                heartImages[i].sprite = fullHeart;   // ❤️❤️
+            }
+            else if (heartHealth == 1)
+            {
+                heartImages[i].sprite = halfHeart;   // ❤️🤍
+            }
+            else
+            {
+                heartImages[i].sprite = emptyHeart;  // 🤍🤍
+            }
         }
     }
+
+
 
     void HandleInvincibilityFlash()
     {

@@ -227,8 +227,8 @@ Transform:
   m_GameObject: {fileID: 7056222861646307685}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 4.5636, y: -0.4356, z: 0}
-  m_LocalScale: {x: 0.8522135, y: 0.8522135, z: 0.8522135}
+  m_LocalPosition: {x: -6.78, y: -1.19, z: 0}
+  m_LocalScale: {x: 0.48422772, y: 0.48422772, z: 0.48422772}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7170957928410834742}
@@ -424,7 +424,7 @@ MonoBehaviour:
   player: {fileID: 0}
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 1800
+    m_Bits: 776
 --- !u!95 &8353044158265397854
 Animator:
   serializedVersion: 7
@@ -462,7 +462,6 @@ MonoBehaviour:
   maxHealth: 3
   currentHealth: 0
   knockbackForce: 30
-  knockbackDuration: 0.15
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.15
   dropItemPrefab: {fileID: 671203211820296829, guid: 0b6c2c37a0265734eaa848e1aa1ad4ed,
@@ -474,6 +473,8 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 1
+  useDissolve: 1
+  _dissolve: {fileID: 0}
   deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
     type: 3}
   deathSound: {fileID: 0}

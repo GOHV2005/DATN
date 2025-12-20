@@ -76,7 +76,7 @@ public class BossBeetleAI : MonoBehaviour
     [Header("ARENA BARRIER")]
     public GameObject arenaBarrier; // Kéo GameObject này từ Inspector
     [Header("UI")]
-    public Slider bossHealthSlider;   // kéo slider từ Inspector
+    private Slider bossHealthSlider;   // kéo slider từ Inspector
     private Health bossHealth;        // tham chiếu Health component
 
     private bool sliderActive = false;
@@ -95,7 +95,6 @@ public class BossBeetleAI : MonoBehaviour
 
     void Start()
     {
-
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponent<Animator>();
         sr = GetComponent<SpriteRenderer>();
@@ -103,36 +102,58 @@ public class BossBeetleAI : MonoBehaviour
         if (!player)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
-        // ====== SFX AudioSource ======
-        if (GetComponent<AudioSource>() == null)
-            gameObject.AddComponent<AudioSource>();
+        // ====== AUDIO SOURCE (SFX) ======
         audioSource = GetComponent<AudioSource>();
+        if (audioSource == null)
+            audioSource = gameObject.AddComponent<AudioSource>();
+
         audioSource.playOnAwake = false;
         audioSource.spatialBlend = 0f;
+
         if (sfxMixerGroup != null)
             audioSource.outputAudioMixerGroup = sfxMixerGroup;
 
-        // ====== MUSIC AudioSource ======
+        // ====== MUSIC SOURCE ======
         musicAudioSource = gameObject.AddComponent<AudioSource>();
         musicAudioSource.playOnAwake = false;
         musicAudioSource.loop = true;
         musicAudioSource.spatialBlend = 0f;
+
         if (musicMixerGroup != null)
             musicAudioSource.outputAudioMixerGroup = musicMixerGroup;
 
-        // ====== UI Health Slider ======
+        // ====== HEALTH + SLIDER ======
+        FindBossSlider();
+
         bossHealth = GetComponent<Health>();
-        if (bossHealth != null)
+        if (bossHealth != null && bossHealthSlider != null)
         {
             bossHealthSlider.maxValue = bossHealth.maxHealth;
             bossHealthSlider.value = bossHealth.currentHealth;
-            bossHealthSlider.gameObject.SetActive(false);
-
-            // Đăng ký sự kiện boss chết
             bossHealth.onDeath += OnBossDeath;
         }
 
         PlayAnim(idleAnim);
+    }
+
+    void FindBossSlider()
+    {
+        // 👉 CÁCH 1: tìm theo TAG (khuyên dùng)
+        GameObject sliderObj = GameObject.FindGameObjectWithTag("BossSlider");
+
+        // 👉 CÁCH 2: tìm theo NAME (dự phòng)
+        if (sliderObj == null)
+            sliderObj = GameObject.Find("BossHealthSlider");
+
+        if (sliderObj != null)
+        {
+            bossHealthSlider = sliderObj.GetComponent<Slider>();
+            bossHealthSlider.gameObject.SetActive(false);
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ Không tìm thấy BossHealthSlider trong scene");
+        }
     }
 
     // Khi boss chết
@@ -168,44 +189,33 @@ public class BossBeetleAI : MonoBehaviour
             musicAudioSource.Play();
         }
     }
-
-
-
     void Update()
     {
-        if (!player) return;
+        if (!player || !arenaTrigger) return;
 
-        bool isInArena = arenaTrigger && arenaTrigger.bounds.Contains(player.position);
-        if (!playerEnteredArena) return; // 🔒 CHỐT CHẶN
+        bool isInArena = arenaTrigger.bounds.Contains(player.position);
 
-        // XỬ LÝ NHẠC NỀN + KÍCH HOẠT TRẬN ĐẤN
+        // 🚨 PLAYER VÀO ARENA → START COMBAT
+        if (isInArena && !playerEnteredArena)
+        {
+            StartCombat();
+        }
 
-        // CẬP NHẬT HƯỚNG SPRITE
-        if (currentState == BossState.Charge)
-        {
-            sr.flipX = (rb.linearVelocity.x > 0);
-        }
-        else if (isStunned)
-        {
-            sr.flipX = stunnedFlipX;
-        }
-        else
-        {
-            sr.flipX = (player.position.x > transform.position.x);
-        }
-        if (!sliderActive && arenaTrigger != null && arenaTrigger.bounds.Contains(player.position))
+        // ⛔ chỉ chặn logic boss, KHÔNG chặn slider
+        if (!playerEnteredArena) return;
+
+        // ================= SLIDER =================
+        if (!sliderActive && isInArena)
         {
             sliderActive = true;
             if (bossHealthSlider != null)
                 bossHealthSlider.gameObject.SetActive(true);
         }
 
-        // cập nhật thanh máu
         if (bossHealthSlider != null && bossHealth != null)
-        {
             bossHealthSlider.value = bossHealth.currentHealth;
-        }
-        // HÀNH VI THEO TRẠNG THÁI
+
+        // ================= AI =================
         switch (currentState)
         {
             case BossState.Roar:
@@ -220,41 +230,14 @@ public class BossBeetleAI : MonoBehaviour
             case BossState.Stunned:
                 StunnedBehavior();
                 break;
-            case BossState.Stomp:
-                break;
             case BossState.Cooldown:
                 CooldownBehavior();
                 break;
         }
 
-        // =============== FOOTSTEP SOUNDS ===============
-        if (Mathf.Abs(rb.linearVelocity.x) > 0.1f && !isStunned)
-        {
-            bool canPlayFootstep =
-                currentState == BossState.Turn ||
-                currentState == BossState.Cooldown ||
-                currentState == BossState.Charge;
-           
-
-            if (canPlayFootstep && Time.time - lastFootstepTime >= footstepInterval)
-            {
-                if (footstepClips != null && footstepClips.Length > 0)
-                {
-                    AudioClip clip = footstepClips[nextFootstepIndex];
-                    audioSource.PlayOneShot(clip, footstepVolume);
-                    nextFootstepIndex = (nextFootstepIndex + 1) % footstepClips.Length;
-                    lastFootstepTime = Time.time;
-                }
-            }
-        }
-
         stateTimer -= Time.deltaTime;
     }
-    void OnDeath()
-    {
-        if (bossHealthSlider != null)
-            bossHealthSlider.gameObject.SetActive(false);
-    }
+
     // GỌI TỪ ANIMATION EVENT
     public void AnimEvent_RamShockwave()
     {

@@ -7,7 +7,7 @@ public class BossMantisAI : MonoBehaviour
     public enum BossState { Idle, Moving, UsingSkill, Dead }
     BossState currentState = BossState.Idle;
     [Header("UI")]
-    public UnityEngine.UI.Slider bossHealthSlider; // kéo slider từ Inspector
+    private UnityEngine.UI.Slider bossHealthSlider; // kéo slider từ Inspector
     private Health bossHealth;                     // tham chiếu Health component
 
 
@@ -65,7 +65,7 @@ public class BossMantisAI : MonoBehaviour
     {
         // Lấy Health
         bossHealth = GetComponent<Health>();
-
+        FindBossSlider();
         if (bossHealthSlider != null && bossHealth != null)
         {
             bossHealthSlider.gameObject.SetActive(false); // ẩn lúc đầu
@@ -91,6 +91,25 @@ public class BossMantisAI : MonoBehaviour
         musicSource.spatialBlend = 0f;
     }
 
+    void FindBossSlider()
+    {
+        // Ưu tiên tìm theo TAG
+        GameObject sliderObj = GameObject.FindGameObjectWithTag("BossSlider");
+
+        // Dự phòng: tìm theo tên
+        if (sliderObj == null)
+            sliderObj = GameObject.Find("BossHealthSlider");
+
+        if (sliderObj != null)
+        {
+            bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
+            bossHealthSlider.gameObject.SetActive(false); // ẩn lúc đầu
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ BossMantis: Không tìm thấy BossSlider");
+        }
+    }
 
     public void StartCombat()
     {
