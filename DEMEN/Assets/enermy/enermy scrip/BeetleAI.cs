@@ -4,30 +4,30 @@ public class BeetleAI : MonoBehaviour
 {
     public enum BeetleState
     {
-        Patrol,        // Tuần tra giữa A-B
-        Chase,         // Đuổi theo khi phát hiện
-        PrepareCharge, // Lấy đà
-        Charge,        // Lao tấn công
-        Stunned,       // Choáng sau khi hụt
-        Return         // Quay lại tuần tra
+        Patrol,
+        Chase,
+        PrepareCharge,
+        Charge,
+        Stunned,
+        Return
     }
 
     [Header("=== TẦM NHÌN & KÍCH HOẠT ===")]
-    public float visionRange = 6f;              // Tầm phát hiện player
-    public float chargeTriggerDistance = 2f;    // Khoảng cách kích hoạt LẤY ĐÀ
+    public float visionRange = 6f;
+    public float chargeTriggerDistance = 2f;
 
     [Header("=== DI CHUYỂN ===")]
     public float moveSpeed = 2f;
 
     [Header("=== TẤN CÔNG LAO ===")]
     public float chargeSpeed = 8f;
-    public float chargeTravelDistance = 4f;     // QUÃNG ĐƯỜNG LAO (độc lập)
+    public float chargeTravelDistance = 4f;
     public float chargePrepareTime = 1f;
     public float stunTime = 2f;
 
     [Header("=== SKILL DAMAGE ===")]
-    public int contactDamage = 1;  // 👈 SKILL 1: Va chạm gây 1 damage
-    public int chargeDamage = 2;   // 👈 SKILL 2: Lao đầu gây 2 damage
+    public int contactDamage = 1;
+    public int chargeDamage = 2;
 
     [Header("=== TUẦN TRA ===")]
     public Transform pointA;
@@ -40,6 +40,11 @@ public class BeetleAI : MonoBehaviour
     public string chargeAnim = "chaynhanh(bohung)";
     public string stunAnim = "phanh(bohung)";
 
+    [Header("=== WALL SENSOR ===")]
+    public Transform groundSensor; // 👈 vẫn giữ tên nhưng giờ dùng để check WALL
+    public float sensorOffset = 2f; // Khoảng cách từ tâm đến sensor (bạn muốn -2f, nhưng thực tế là +2f phía trước)
+    public LayerMask wallLayer;     // ⚠️ CHỈ CHỌN LAYER "Wall" (KHÔNG bao gồm Ground)
+
     private BeetleState currentState = BeetleState.Patrol;
     private Transform player;
     private Rigidbody2D rb;
@@ -49,7 +54,7 @@ public class BeetleAI : MonoBehaviour
     private float stateTimer = 0f;
     private Vector2 chargeStartPos;
     private bool isCharging = false;
-    private float chargeDirection = -1f; // Mặc định nhìn TRÁI → hướng lao = -1
+    private float chargeDirection = -1f; // Mặc định nhìn TRÁI
 
     void Start()
     {
@@ -66,7 +71,7 @@ public class BeetleAI : MonoBehaviour
 
         player = GameObject.FindGameObjectWithTag("Player")?.transform;
         currentTarget = pointA ? pointA : transform;
-        sr.flipX = false; // Sprite gốc nhìn TRÁI → flipX = false
+        sr.flipX = false; // Sprite gốc nhìn TRÁI
     }
 
     void Update()
@@ -94,11 +99,20 @@ public class BeetleAI : MonoBehaviour
         }
 
         stateTimer -= Time.deltaTime;
+
+        // 🔁 Cập nhật vị trí GroundSensor (dù tên là groundSensor, nhưng giờ dùng để check WALL phía trước)
+        UpdateWallSensorPosition();
     }
 
-    // =========================
-    // CÁC TRẠNG THÁI HÀNH VI
-    // =========================
+    void UpdateWallSensorPosition()
+    {
+        if (groundSensor == null) return;
+
+        // Xác định hướng trước mặt: sprite gốc nhìn TRÁI → flipX=false → hướng trước là (-1, 0)
+        float lookDir = sr.flipX ? 1f : -1f; // phải = +1, trái = -1
+        Vector3 sensorLocalPos = new Vector3(lookDir * sensorOffset, 0f, 0f);
+        groundSensor.localPosition = sensorLocalPos;
+    }
 
     void PatrolBehavior()
     {
@@ -113,7 +127,6 @@ public class BeetleAI : MonoBehaviour
 
         if (PlayerInSight())
         {
-            Debug.Log("🐞 [Beetle] Phát hiện Player → CHASE");
             currentState = BeetleState.Chase;
         }
     }
@@ -128,13 +141,11 @@ public class BeetleAI : MonoBehaviour
         float distanceToPlayer = Vector2.Distance(transform.position, player.position);
         if (distanceToPlayer <= chargeTriggerDistance)
         {
-            Debug.Log("🐞 [Beetle] Đủ gần → LẤY ĐÀ!");
             currentState = BeetleState.PrepareCharge;
             stateTimer = chargePrepareTime;
         }
         else if (distanceToPlayer > visionRange * 1.5f)
         {
-            Debug.Log("🐞 [Beetle] Mất dấu → TRỞ LẠI tuần tra");
             currentState = BeetleState.Return;
         }
     }
@@ -146,13 +157,9 @@ public class BeetleAI : MonoBehaviour
 
         if (stateTimer <= 0)
         {
-            Debug.Log("🐞 [Beetle] Lấy đà xong → LAO TỚI!");
             currentState = BeetleState.Charge;
             chargeStartPos = transform.position;
-
-            // Lưu hướng lao dựa trên hướng hiện tại (sprite gốc nhìn TRÁI)
-            chargeDirection = sr.flipX ? 1f : -1f; // flipX=true → phải → +1
-
+            chargeDirection = sr.flipX ? 1f : -1f;
             isCharging = true;
         }
     }
@@ -164,11 +171,23 @@ public class BeetleAI : MonoBehaviour
         PlayAnim(chargeAnim);
         rb.linearVelocity = new Vector2(chargeDirection * chargeSpeed, rb.linearVelocity.y);
 
+        // 🔍 KIỂM TRA CHỈ WALL (KHÔNG ph
+        if (IsHittingWallAhead())
+        {
+            Debug.Log("🐞 [Beetle] ĐÂM TRÚNG TƯỜNG → STUN!");
+            EndCharge();
+            return;
+        }
+
         float traveled = Vector2.Distance(transform.position, chargeStartPos);
         if (traveled >= chargeTravelDistance)
         {
-            Debug.Log("💥 [Beetle] Hết quãng đường lao → CHOÁNG!");
-            EndCharge();
+            // 🟢 Hết quãng đường → không stun, chỉ dừng (hoặc bạn có thể chọn stun nếu muốn)
+            // Nhưng theo yêu cầu: CHỈ stun khi đụng tường → không stun ở đây
+            isCharging = false;
+            rb.linearVelocity = Vector2.zero;
+            // Có thể chuyển sang Idle hoặc Return, nhưng bạn không yêu cầu → tạm dừng
+            currentState = BeetleState.Patrol;
         }
     }
 
@@ -179,7 +198,6 @@ public class BeetleAI : MonoBehaviour
 
         if (stateTimer <= 0)
         {
-            Debug.Log("😵 [Beetle] Hết choáng → QUAY LẠI tuần tra");
             currentState = BeetleState.Return;
         }
     }
@@ -191,55 +209,46 @@ public class BeetleAI : MonoBehaviour
 
         if (Vector2.Distance(transform.position, currentTarget.position) < 0.3f)
         {
-            Debug.Log("🐞 [Beetle] Trở lại tuần tra");
             PlayAnim(idleAnim);
             currentState = BeetleState.Patrol;
         }
     }
 
-    // =========================
-    // VA CHẠM & GÂY SÁT THƯƠNG
-    // =========================
+    // 🔒 CHỈ KIỂM TRA WALL (KHÔNG PHẢI GROUND)
+    bool IsHittingWallAhead()
+    {
+        if (groundSensor == null) return false;
+
+        // Dùng vị trí của sensor (đã được cập nhật theo hướng)
+        Vector2 checkPos = groundSensor.position;
+        // Bạn có thể dùng OverlapCircle hoặc OverlapPoint — ở đây dùng OverlapCircle nhỏ
+        Collider2D hit = Physics2D.OverlapCircle(checkPos, 0.1f, wallLayer);
+        return hit != null;
+    }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Player"))
         {
             PlayerController playerScript = other.GetComponent<PlayerController>();
-
             if (playerScript != null)
             {
-                if (currentState == BeetleState.Charge)
-                {
-                    playerScript.TakeDamageFromEnemy(chargeDamage, transform.position);
-                    Debug.Log($"🐞 [Beetle] Gây {chargeDamage} damage (Skill 2: Lao đầu)!");
-                }
-                else
-                {
-                    playerScript.TakeDamageFromEnemy(contactDamage, transform.position);
-                    Debug.Log($"🐞 [Beetle] Gây {contactDamage} damage (Skill 1: Va chạm)!");
-                }
+                int damage = currentState == BeetleState.Charge ? chargeDamage : contactDamage;
+                playerScript.TakeDamageFromEnemy(damage, transform.position);
             }
         }
     }
 
-    // =========================
-    // HÀM HỖ TRỢ
-    // =========================
-
     bool PlayerInSight()
     {
-        if (!player) return false;
-        return Vector2.Distance(transform.position, player.position) <= visionRange;
+        return player != null && Vector2.Distance(transform.position, player.position) <= visionRange;
     }
 
     void MoveTowards(Vector2 target, float speed)
     {
         Vector2 dir = (target - (Vector2)transform.position).normalized;
         rb.linearVelocity = new Vector2(dir.x * speed, rb.linearVelocity.y);
-
-        // Lật sprite: sprite gốc nhìn TRÁI
-        sr.flipX = (dir.x > 0); // dir.x > 0 (sang phải) → flipX = true
+        sr.flipX = (dir.x > 0); // dir.x > 0 → nhìn phải → flipX = true
     }
 
     void PlayAnim(string animName)
@@ -256,31 +265,38 @@ public class BeetleAI : MonoBehaviour
         stateTimer = stunTime;
     }
 
-    // =========================
-    // DEBUG VIZ TRONG SCENE
-    // =========================
-
     private void OnDrawGizmos()
     {
-        // 🔴 Tầm nhìn phát hiện
         Gizmos.color = Color.red;
         Gizmos.DrawWireSphere(transform.position, visionRange);
 
-        // 🟣 Khoảng cách KÍCH HOẠT LẤY ĐÀ
         Gizmos.color = Color.magenta;
         Gizmos.DrawWireSphere(transform.position, chargeTriggerDistance);
 
-        // 🔵 Quãng đường LAO (từ vị trí bắt đầu)
         Gizmos.color = Color.blue;
         Gizmos.DrawWireSphere(transform.position, chargeTravelDistance);
 
-        // 🟢 Đường tuần tra A-B
         if (pointA != null && pointB != null)
         {
             Gizmos.color = Color.green;
             Gizmos.DrawLine(pointA.position, pointB.position);
             Gizmos.DrawSphere(pointA.position, 0.1f);
             Gizmos.DrawSphere(pointB.position, 0.1f);
+        }
+
+        // Hiển thị sensor ở vị trí 2f phía trước
+        if (Application.isPlaying && groundSensor != null)
+        {
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(groundSensor.position, 0.1f);
+        }
+        else if (!Application.isPlaying && sr != null)
+        {
+            // Dự đoán vị trí sensor trongEditMode
+            float dir = (sr != null && sr.flipX) ? 1f : -1f;
+            Vector3 pos = transform.position + Vector3.right * dir * sensorOffset;
+            Gizmos.color = Color.yellow;
+            Gizmos.DrawWireSphere(pos, 0.1f);
         }
     }
 }

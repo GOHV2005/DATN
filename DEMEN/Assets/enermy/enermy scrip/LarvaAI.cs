@@ -25,6 +25,8 @@ public class LarvaAI : MonoBehaviour
 
     public string idleAnim = "nam(autrung)";
     public string crawlAnim = "let(autrung)";
+    private bool isKnockback = false;
+    private Rigidbody2D rb;
 
     private bool isGrounded = false;
     private float lastDamageTime = 0f;
@@ -35,6 +37,8 @@ public class LarvaAI : MonoBehaviour
 
     void Start()
     {
+        rb = GetComponent<Rigidbody2D>();
+
         sr = GetComponent<SpriteRenderer>(); 
         anim = GetComponent<Animator>();
         if (anim == null)
@@ -81,45 +85,71 @@ public class LarvaAI : MonoBehaviour
     {
         while (true)
         {
+            if (isKnockback)
+            {
+                yield return null;
+                continue;
+            }
+
             if (currentState == LarvaState.Idle)
             {
                 PlayAnim(idleAnim);
                 yield return new WaitForSeconds(idleTime);
 
-                if (currentState == LarvaState.Idle)
-                {
-                    if (facingRight && pointB != null && transform.position.x >= pointB.position.x)
-                        facingRight = false;
-                    else if (!facingRight && pointA != null && transform.position.x <= pointA.position.x)
-                        facingRight = true;
+                if (isKnockback) continue;
 
-                    FlipSprite(facingRight); // 👈 GỌI HÀM MỚI
-                    Vector3 target = transform.position + (facingRight ? Vector3.right : Vector3.left) * crawlDistance;
-                    SetState(LarvaState.Crawl);
-                    StartCoroutine(CrawlTo(target));
-                }
+                if (facingRight && pointB != null && transform.position.x >= pointB.position.x)
+                    facingRight = false;
+                else if (!facingRight && pointA != null && transform.position.x <= pointA.position.x)
+                    facingRight = true;
+
+                FlipSprite(facingRight);
+                Vector3 target = transform.position + (facingRight ? Vector3.right : Vector3.left) * crawlDistance;
+                SetState(LarvaState.Crawl);
+                currentCoroutine = StartCoroutine(CrawlTo(target));
             }
             yield return null;
         }
     }
-
     IEnumerator CrawlTo(Vector3 target)
     {
         PlayAnim(crawlAnim);
-        float startTime = Time.time;
         Vector3 startPos = transform.position;
         float distance = Vector3.Distance(startPos, target);
         float duration = distance / crawlSpeed;
+        float t = 0f;
 
-        while (Time.time - startTime < duration)
+        while (t < duration)
         {
-            if (currentState != LarvaState.Crawl) yield break;
-            transform.position = Vector3.Lerp(startPos, target, (Time.time - startTime) / duration);
+            if (isKnockback) yield break;
+
+            t += Time.deltaTime;
+            transform.position = Vector3.Lerp(startPos, target, t / duration);
             yield return null;
         }
 
         transform.position = target;
         SetState(LarvaState.Idle);
+    }
+
+    void OnTakeDamage()
+    {
+        if (isKnockback) return;
+
+        isKnockback = true;
+
+        if (currentCoroutine != null)
+            StopCoroutine(currentCoroutine);
+
+        SetState(LarvaState.Idle);
+
+        StartCoroutine(KnockbackRecovery());
+    }
+
+    IEnumerator KnockbackRecovery()
+    {
+        yield return new WaitForSeconds(0.2f); // = knockbackDuration bên Health
+        isKnockback = false;
     }
 
     // ✅ SỬA HÀM NÀY
