@@ -17,6 +17,7 @@ public class ShowHideEUI : MonoBehaviour
         {
             if (pressEUIObject != null)
                 pressEUIObject.SetActive(true); // Hiện nút E khi player lại gần
+            Debug.Log("Player đã vào vùng trigger");
         }
     }
 

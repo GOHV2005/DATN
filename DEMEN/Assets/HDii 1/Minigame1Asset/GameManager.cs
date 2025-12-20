@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
@@ -10,8 +9,8 @@ public class GameManager : MonoBehaviour
     [Header("Card Setup")]
     public GameObject cardPrefab;
     public Transform cardParent;
-    public Sprite[] frontSprites; // Mảng 8 sprite mặt trước
-    public Sprite backSprite;     // 1 sprite mặt sau
+    public Sprite[] frontSprites; // sprite mặt trước
+    public Sprite backSprite;     // sprite mặt sau
     public int moves = 20;        // số lượt
 
     [Header("UI")]
@@ -24,6 +23,9 @@ public class GameManager : MonoBehaviour
     public AudioClip matchSound;
     public AudioClip loseSound;
     private AudioSource audioSource;
+
+    [Header("Minigame Controller")]
+    public MinigameController minigameController;
 
     private List<Card> cards = new List<Card>();
     private Card firstRevealed;
@@ -38,7 +40,6 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        Debug.Log("Minigame GameManager Start() called");
         SetupGame();
     }
 
@@ -47,16 +48,25 @@ public class GameManager : MonoBehaviour
         // Reset UI
         winPanel.SetActive(false);
         losePanel.SetActive(false);
-        movesText.text = "Moves: " + moves;
+
         pairsFound = 0;
         pairsText.text = "Số cặp: " + pairsFound;
 
-        // Tạo danh sách ID cho cặp thẻ
+        movesText.text = "Moves: " + moves;
+
+        // Xóa thẻ cũ nếu có
+        foreach (Card c in cards)
+        {
+            Destroy(c.gameObject);
+        }
+        cards.Clear();
+
+        // Tạo danh sách cặp ID
         List<int> ids = new List<int>();
         for (int i = 0; i < frontSprites.Length; i++)
         {
             ids.Add(i);
-            ids.Add(i); // mỗi sprite có 2 thẻ
+            ids.Add(i);
         }
 
         Shuffle(ids);
@@ -107,15 +117,35 @@ public class GameManager : MonoBehaviour
         firstRevealed = null;
         secondRevealed = null;
 
+        // ===== KIỂM TRA THẮNG / THUA =====
         if (pairsFound >= frontSprites.Length)
         {
-            winPanel.SetActive(true);
+            winPanel.SetActive(true); // 🔥 CHỈ HIỆN PANEL – KHÔNG THOÁT
         }
         else if (moves <= 0)
         {
             losePanel.SetActive(true);
             audioSource.PlayOneShot(loseSound);
         }
+    }
+
+    // ===============================
+    // NÚT "THOÁT" TRONG WIN PANEL
+    // ===============================
+    public void OnExitAfterWin()
+    {
+        winPanel.SetActive(false);
+
+        if (minigameController != null)
+        {
+            minigameController.EndMinigame(); // 🔥 ẨN CANVAS MINIGAME + HIỆN SWITCH
+        }
+    }
+
+    public void PlayAgain()
+    {
+        moves = 20;
+        SetupGame();
     }
 
     void Shuffle<T>(List<T> list)
@@ -127,28 +157,5 @@ public class GameManager : MonoBehaviour
             list[i] = list[randomIndex];
             list[randomIndex] = temp;
         }
-    }
-
-    public void PlayAgain()
-    {
-        foreach (Card c in cards)
-        {
-            Destroy(c.gameObject);
-        }
-        cards.Clear();
-        firstRevealed = null;
-        secondRevealed = null;
-        moves = 20;
-        SetupGame();
-    }
-
-    public void ExitGame()
-    {
-        SceneManagerHelper.Instance.ReturnToPreviousScene();
-    }
-    public void WinMinigame()
-    {
-        // Player thắng minigame → quay lại scene chính và thông báo thắng
-        SceneManagerHelper.Instance.ReturnToPreviousScene(true); // true = thắng
     }
 }
