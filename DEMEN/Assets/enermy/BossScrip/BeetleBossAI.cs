@@ -8,6 +8,10 @@ public class BossBeetleAI : MonoBehaviour
     public enum BossState { Idle, Roar, Turn, Charge, Stunned, Stomp, Cooldown }
     private BossState currentState = BossState.Idle;
 
+    [Header("ARENA DOOR")]
+    public Animator doorAnimator;
+    public Collider2D doorCollider;
+
     [Header("ARENA")]
     public Collider2D arenaTrigger;
     public Transform player;
@@ -141,11 +145,14 @@ public class BossBeetleAI : MonoBehaviour
     public void StartCombat()
     {
         if (playerEnteredArena) return;
-
         playerEnteredArena = true;
 
-        if (arenaBarrier != null)
-            arenaBarrier.SetActive(true);
+        if (doorAnimator != null)
+            doorAnimator.SetTrigger("Close");
+
+        // Option A: enable immediately
+        if (doorCollider != null)
+            doorCollider.enabled = true;
 
         currentState = BossState.Roar;
         stateTimer = roarTime;
@@ -161,6 +168,7 @@ public class BossBeetleAI : MonoBehaviour
             musicAudioSource.Play();
         }
     }
+
 
 
     void Update()
