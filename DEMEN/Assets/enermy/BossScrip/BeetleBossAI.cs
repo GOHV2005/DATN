@@ -24,6 +24,10 @@ public class BossBeetleAI : MonoBehaviour
     public Animator doorAnimator;
     public Collider2D doorCollider;
 
+    [Header("DOOR EFFECTS")]
+    public GameObject dustEffectPrefab;
+    public Transform dustSpawnPoint;
+
     [Header("ARENA")]
     public Collider2D arenaTrigger;
     public Transform player;
