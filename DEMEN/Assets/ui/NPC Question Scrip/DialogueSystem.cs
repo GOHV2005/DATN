@@ -63,9 +63,11 @@ public class DialogueSystem : MonoBehaviour
     }
 
     // Bắt đầu hội thoại bình thường
-    public void StartDialogue(Dialogue dialogue)
+    public void StartDialogue(Dialogue dialogue, Transform focusTarget = null)
     {
         UIManager.IsTalkingToNPC = true;
+        if (focusTarget != null)
+            CameraFocusManager.Instance?.FocusOn(focusTarget);
         isDialogueFinished = false;
         currentDialogue = dialogue;
         currentLineIndex = 0;
@@ -79,8 +81,16 @@ public class DialogueSystem : MonoBehaviour
     public void StartQuestDialogue(Dialogue dialogue, QuestNPC npc)
     {
         currentNPC = npc;
+
+        // 🎥 CAMERA LIA TỚI MỤC TIÊU
+        if (npc.cameraFocusTarget != null)
+        {
+            CameraFocusManager.Instance?.FocusOn(npc.cameraFocusTarget);
+        }
+
         StartDialogue(dialogue);
     }
+
 
     void DisplayNextLine()
     {
@@ -91,9 +101,23 @@ public class DialogueSystem : MonoBehaviour
         }
 
         var line = currentDialogue.lines[currentLineIndex];
+
         UpdatePortraits(line.isPlayer);
+
+        // 🎥 CAMERA LOGIC
+        if (line.enableCameraFocus && line.cameraFocusTarget != null)
+        {
+            CameraFocusManager.Instance?.FocusOn(line.cameraFocusTarget);
+        }
+        else
+        {
+            // Không cho lia → giữ player
+            CameraFocusManager.Instance?.ResetToPlayer();
+        }
+
         StartCoroutine(TypeText(line.text));
     }
+
 
     IEnumerator TypeText(string text)
     {
@@ -150,15 +174,21 @@ public class DialogueSystem : MonoBehaviour
     {
         UIManager.IsTalkingToNPC = false;
         dialoguePanel.SetActive(false);
+
+        CameraFocusManager.Instance?.ResetToPlayer();
+
         if (!isDialogueFinished)
             OnDialogueComplete?.Invoke();
+
         currentDialogue = null;
         currentLineIndex = 0;
         isTyping = false;
         isDialogueFinished = false;
         currentNPC = null;
+
         StopAllCoroutines();
     }
+
 
     // Hỗ trợ gọi 1 dòng nhanh
     public void StartSingleLine(DialogueLine line, Sprite playerSprite, Sprite npcSprite)
