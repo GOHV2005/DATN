@@ -101,8 +101,13 @@ public class BossFinalController : MonoBehaviour
             // Nếu không → giả sử nó đã sẵn sàng combat
         }
 
-        // ❌ XÓA DÒNG NÀY: bossSpawner.StartCombat() không cần thiết nếu boss tự quản lý
-        // if (bossSpawner != null) { ... }
+        // 🔓 MỞ COMBAT
+        if (bossSpawner != null)
+        {
+            bossSpawner.allowCombat = true;
+            bossSpawner.StartCombat();
+        }
+
     }
     bool DialogueEnded()
     {

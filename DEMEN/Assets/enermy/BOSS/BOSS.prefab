@@ -26,11 +26,43 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 32.3155, y: 89.6033, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.31829298, y: 0.31829298, z: 0.31829298}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 4707562730002508737}
   - {fileID: 8723000000920674103}
   m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4489798158969616241
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 410944956503064413}
+  m_Layer: 0
+  m_Name: SpawmPoint (1)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &410944956503064413
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4489798158969616241}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 28.1, y: -13.690004, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8723000000920674103}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4713310835939277560
 GameObject:
@@ -58,7 +90,7 @@ Transform:
   m_GameObject: {fileID: 4713310835939277560}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -19.7, y: -31.34, z: 0}
+  m_LocalPosition: {x: 4.3, y: -11.93, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -94,11 +126,11 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: 3.097582}
+  m_Offset: {x: 3.0698776, y: 9.420468}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0, y: 0}
@@ -108,7 +140,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 1, y: 7.195164}
+  m_Size: {x: 5.454487, y: 25.788073}
   m_EdgeRadius: 0
 --- !u!1 &5393454926569549560
 GameObject:
@@ -122,12 +154,14 @@ GameObject:
   - component: {fileID: 5725830345509633700}
   - component: {fileID: 5140693456655836364}
   - component: {fileID: 3012669182533781739}
+  - component: {fileID: 2678305495915170704}
   - component: {fileID: 2184686802394060048}
   - component: {fileID: 3640040563611985200}
   - component: {fileID: 5211006033526373487}
+  - component: {fileID: 7046948365583499560}
   m_Layer: 0
   m_Name: Boss
-  m_TagString: Untagged
+  m_TagString: co
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -141,11 +175,13 @@ Transform:
   m_GameObject: {fileID: 5393454926569549560}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 54.7, y: -6.9, z: 0}
-  m_LocalScale: {x: 2.705886, y: 2.705886, z: 2.705886}
+  m_LocalPosition: {x: 54.7, y: -7.5, z: 0}
+  m_LocalScale: {x: 2.6551201, y: 2.6551201, z: 2.6551201}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 28782215782967266}
+  - {fileID: 410944956503064413}
+  - {fileID: 7092446288983393749}
   - {fileID: 2195199506041071306}
   m_Father: {fileID: 2102848016726704238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -196,7 +232,7 @@ SpriteRenderer:
   m_Sprite: {fileID: 9182157284707403512, guid: dc1997e32a4ddef459c5c4c9508caea3,
     type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_FlipX: 0
+  m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
   m_Size: {x: 6.02, y: 4.30042}
@@ -235,7 +271,7 @@ BoxCollider2D:
   m_CallbackLayers:
     serializedVersion: 2
     m_Bits: 4294967295
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
@@ -259,7 +295,7 @@ Rigidbody2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5393454926569549560}
-  m_BodyType: 0
+  m_BodyType: 1
   m_Simulated: 1
   m_UseFullKinematicContacts: 0
   m_UseAutoMass: 0
@@ -278,6 +314,203 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 0
+--- !u!114 &2678305495915170704
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5393454926569549560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 12d931bccceac0d45a700ece59e32fe7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  talkTrigger: {fileID: 8721532065983353303}
+  introDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
+      type: 3}
+    npcSprite: {fileID: 3486365374980857469, guid: 723062f81455a4243aeaf0a042f53827,
+      type: 3}
+    lines:
+    - isPlayer: 1
+      text: "N\xE0y b\xE0 gi\xE0! Mau th\u1EA3 D\u1EBF Cho\u1EAFt ra!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "B\xC0 GI\xC0!? Ng\u01B0\u01A1i v\u1EEBa g\u1ECDi ai l\xE0 b\xE0 gi\xE0
+        h\u1EA3!?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ta m\u1EDBi 20 n\u1ED3i b\xE1nh ch\u01B0ng th\xF4i nh\xE9!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "\u1ED2\u2026 xin l\u1ED7i qu\xFD c\xF4."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "V\u1EADy th\xEC\u2026 qu\xFD c\xF4 c\xF3 th\u1EC3 th\u1EA3 ng\u01B0\u1EDDi
+        b\u1EA1n b\xE9 nh\u1ECF c\u1EE7a t\xF4i ra \u0111\u01B0\u1EE3c kh\xF4ng?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "H\u1EEBm\u2026 nghe c\u0169ng \u0111\u01B0\u1EE3c \u0111\u1EA5y."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Nh\u01B0ng ng\u01B0\u01A1i l\xE0 ai m\xE0 d\xE1m v\xE0o l\xE3nh \u0111\u1ECBa
+        c\u1EE7a ta?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "Ta l\xE0 D\u1EBF M\xE8n."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "D\u1EBF\u2026 M\xE8n?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ta ch\u01B0a t\u1EEBng nghe t\xEAn."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "\u0110\u01B0\u01A1ng nhi\xEAn r\u1ED3i."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "Ta \u0111\u1EBFn t\u1EEB khu r\u1EEBng ph\xEDa T\xE2y, n\u01A1i m\xE0
+        ki\u1EBFn ch\u01B0a d\xE1m b\xE9n m\u1EA3ng"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\u1ED2~ gh\xEA g\u1EDBm nh\u1EC9."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Th\u1EBF D\u1EBF M\xE8n r\u1EEBng T\xE2y \u0111\u1EBFn \u0111\xE2y l\xE0m
+        c\xE1i ch\xF3 g\xEC?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ta \u0111\u1EBFn \u0111\u1EC3 gi\u1EA3i c\u1EE9u ng\u01B0\u1EDDi b\u1EA1n
+        c\u1EE7a ta. D\u1EBF Cho\u1EAFt."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\xC0~ c\xE1i con d\u1EBF n\xE2u n\xE2u, nh\u1ECF nh\u1ECF, tr\xF4ng
+        nh\u01B0 \u0111\u1ED1ng\u2026"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\xC0 th\xF4i, n\xF3i v\u1EADy h\u01A1i th\xF4."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "N\xF3 \u0111ang n\u1EB1m tr\xEAn d\u0129a kia k\xECa."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i\u2026 mang b\u1EA1n ta l\xEAn d\u0129a \u0111\u1EC3
+        l\xE0m g\xEC!?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\u0102n ch\u1EE9 l\xE0m g\xEC."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Th\u1ECBt d\u1EBF gi\xF2n, dai, b\u1ED5 d\u01B0\u1EE1ng, t\u1ED1t cho
+        nhan s\u1EAFc n\u1EEF ho\xE0ng l\u1EAFm."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ngon c\xE1i qu\u1EA7n qu\xE8!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "B\xE0 gi\xE0 mau th\u1EA3 b\u1EA1n ta ra ngay!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "TA \u0110\xC3 B\u1EA2O TA KH\xD4NG PH\u1EA2I B\xC0 GI\xC0!!!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i \u0111\xFAng l\xE0 th\u1EB1ng \u0111\u1EA7u khu\u1EA5t,
+        m\u1ED3m m\xE9p v\xF4 gi\xE1o d\u1EE5c!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\u2026"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "Th\u1EBF gi\u1EDD b\xE0\u2026 \xE0 nh\u1EA7m\u2026 n\u1EEF ho\xE0ng
+        \u0111\u1ECBnh sao?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "R\u1EA5t \u0111\u01A1n gi\u1EA3n."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Qu\u1EF3 xu\u1ED1ng xin l\u1ED7i, ho\u1EB7c rap cho ta nghe r\u1ED3i
+        ta s\u1EBD c\xE2n nh\u1EAFc\u2026"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "C\xF2n kh\xF4ng th\xEC \u0111\u1EC3 ta d\u1EA1y ng\u01B0\u01A1i bi\u1EBFt."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "AI M\u1EDAI L\xC0 K\u1EBA CAI TR\u1ECA \u1EDE \u0110\xC2Y!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+  outroDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
+      type: 3}
+    npcSprite: {fileID: 3486365374980857469, guid: 723062f81455a4243aeaf0a042f53827,
+      type: 3}
+    lines:
+    - isPlayer: 0
+      text: "Khoan\u2026 khoan \u0111\xE3!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "\u0110\u1EE7 r\u1ED3i! \u0110\u1EE7 r\u1ED3i!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: Sao?
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: "N\xE3y c\xF2n \u0111\xF2i \u0103n b\u1EA1n ta c\u01A1 m\xE0?"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ta\u2026 ta th\u1EEBa nh\u1EADn."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Ng\u01B0\u01A1i m\u1EA1nh h\u01A1n ta t\u01B0\u1EDFng."
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 0
+      text: "Th\u1EA3 con d\u1EBF kia ra!"
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+  bossSpawner: {fileID: 2184686802394060048}
+  bossAI: {fileID: 2184686802394060048}
+  doorBlockerPrefab: {fileID: 1001743967026470461, guid: 974a80bb326f1a44dbe9aa708f2dd445,
+    type: 3}
+  doorSpawnPoint: {fileID: 4707562730002508737}
+  PanelDead: {fileID: 0}
+  panelDeadCanvas: {fileID: 0}
+  fadeDuration: 1.5
 --- !u!114 &2184686802394060048
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -290,14 +523,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17e0b8d88e669d749aadc57d7505d867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bossTriggerZone: {fileID: 8721532065983353303}
-  playerTag: Player
   waves:
   - {fileID: 11400000, guid: abef5b04f667b024d9612347d0783e20, type: 2}
   - {fileID: 11400000, guid: d28c2d6daf584634489d0b8419036912, type: 2}
   - {fileID: 11400000, guid: 8fa340c2adf3ea247acf4d800c68116c, type: 2}
   - {fileID: 11400000, guid: 2870fe791008db148a160d42aebaa0dc, type: 2}
-  spawnPoint: {fileID: 28782215782967266}
+  spawnPoints:
+  - {fileID: 28782215782967266}
+  - {fileID: 410944956503064413}
+  bossSpawnPoint: {fileID: 7092446288983393749}
+  bossMusic: {fileID: 8300000, guid: 47e80026d690e8846babc6c55ccb47ee, type: 3}
+  bossMixerGroup: {fileID: 24300002, guid: fe69674f4c3e9614cbc17c22ba56237d, type: 2}
+  animator: {fileID: 7046948365583499560}
+  enemyPortalPrefab: {fileID: 5607819269926399345, guid: 45e0f06c750176947862c10346226439,
+    type: 3}
+  bossPortalPrefab: {fileID: 4617036660772024948, guid: 52c7d057cba585641bb68312c10d7791,
+    type: 3}
+  enemyPortalSpawnPoints:
+  - {fileID: 28782215782967266}
+  - {fileID: 410944956503064413}
+  bossPortalSpawnPoint: {fileID: 7092446288983393749}
+  portalLifeTime: 1.5
+  allowCombat: 0
 --- !u!114 &3640040563611985200
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -322,6 +569,28 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 094edbd21c18b894c95da8f928e0d21d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!95 &7046948365583499560
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5393454926569549560}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: eb974967bed7d6148a8b43e2bcd2078e, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5511230502650354987
 GameObject:
   m_ObjectHideFlags: 0
@@ -347,9 +616,71 @@ Transform:
   m_GameObject: {fileID: 5511230502650354987}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.6, y: -29.9, z: 0}
+  m_LocalPosition: {x: 48.77, y: -13.85, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 8723000000920674103}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8331787141613283576
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7092446288983393749}
+  m_Layer: 0
+  m_Name: SpawmPoint(boss)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7092446288983393749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8331787141613283576}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 53.48, y: -10.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8723000000920674103}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &8350842398227563864
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4707562730002508737}
+  m_Layer: 0
+  m_Name: SpawmPoint (2)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4707562730002508737
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8350842398227563864}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 297.64346, y: -3.7828538, z: 0}
+  m_LocalScale: {x: 2.6551201, y: 2.6551201, z: 2.6551201}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2102848016726704238}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

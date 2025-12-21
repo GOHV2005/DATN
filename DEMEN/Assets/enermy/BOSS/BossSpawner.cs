@@ -8,13 +8,25 @@ public class BossSpawner : MonoBehaviour
     [Header("Wave Settings")]
     public List<WaveData> waves;
     public Transform[] spawnPoints;
-
+    [Header("Boss Spawn Point")]
+    public Transform bossSpawnPoint;
     [Header("Boss Music (Code Controlled)")]
     public AudioClip bossMusic;
     public AudioMixerGroup bossMixerGroup;
 
     [Header("Animation")]
     public Animator animator;
+
+    [Header("Portal Spawn")]
+    public GameObject enemyPortalPrefab;     // 🔵 Cổng quái thường
+    public GameObject bossPortalPrefab;      // 🔴 Cổng boss
+
+    [Header("Portal Spawn Points")]
+    public Transform[] enemyPortalSpawnPoints; // 3 điểm spawn quái
+    public Transform bossPortalSpawnPoint;     // 1 điểm spawn boss
+
+    public float portalLifeTime = 3f;
+
 
     private AudioSource arenaSource;
     [HideInInspector] public bool allowCombat = false;
@@ -55,7 +67,6 @@ public class BossSpawner : MonoBehaviour
     }
 
     // ===================== COMBAT =====================
-
     public void StartCombat()
     {
         if (!allowCombat)
@@ -117,49 +128,101 @@ public class BossSpawner : MonoBehaviour
 
         StartCoroutine(SpawnWave(waves[currentWaveIndex]));
     }
+    IEnumerator SpawnEnemyThroughPortal(GameObject enemyPrefab, Vector3 position)
+    {
+        GameObject portal = Instantiate(enemyPortalPrefab, position, Quaternion.identity);
+
+        ParticleSystem ps = portal.GetComponentInChildren<ParticleSystem>();
+        if (ps != null)
+        {
+            ps.Play();
+        }
+
+        yield return new WaitForSeconds(0.4f);
+
+        Instantiate(enemyPrefab, position, Quaternion.identity);
+        activeEnemyCount++;
+
+        yield return new WaitForSeconds(portalLifeTime);
+        Destroy(portal);
+    }
+    IEnumerator SpawnBossThroughPortal(GameObject bossPrefab, Vector3 position)
+    {
+        GameObject portal = Instantiate(bossPortalPrefab, position, Quaternion.identity);
+
+        ParticleSystem ps = portal.GetComponentInChildren<ParticleSystem>();
+        if (ps != null)
+        {
+            ps.Play();
+        }
+
+        yield return new WaitForSeconds(0.6f); // boss hoành tráng hơn 😈
+
+        GameObject boss = Instantiate(bossPrefab, position, Quaternion.identity);
+
+        // Skip intro nếu có
+        if (boss.TryGetComponent(out BossBeetleAI beetle))
+            beetle.skipIntro = true;
+
+        if (boss.TryGetComponent(out BossMantisAI mantis))
+            mantis.skipIntro = true;
+
+        activeEnemyCount = 1;
+
+        yield return new WaitForSeconds(portalLifeTime);
+        Destroy(portal);
+    }
 
     IEnumerator SpawnWave(WaveData wave)
     {
         if (animator != null)
             animator.SetBool("IsSpamming", true);
 
-        int total = wave.enemyCount;
-
-        // 🔥 CASE ĐẶC BIỆT: chỉ 1 enemy
-        if (total == 1)
+        // ================= BOSS WAVE =================
+        if (wave.isBossWave)
         {
-            // Thay vì chỉ: Instantiate(wave.enemyPrefab, ...);
-            GameObject enemy = Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
-
-            // ✅ SET SKIP INTRO
-            var beetle = enemy.GetComponent<BossBeetleAI>();
-            if (beetle != null) beetle.skipIntro = true;
-
-            var mantis = enemy.GetComponent<BossMantisAI>();
-            if (mantis != null) mantis.skipIntro = true;
-
-            activeEnemyCount++;
+            if (wave.usePortalSpawn && bossPortalPrefab != null && bossPortalSpawnPoint != null)
+            {
+                yield return StartCoroutine(
+                    SpawnBossThroughPortal(
+                        wave.enemyPrefab,
+                        bossPortalSpawnPoint.position
+                    )
+                );
+            }
+            else
+            {
+                Instantiate(wave.enemyPrefab, bossSpawnPoint.position, Quaternion.identity);
+                activeEnemyCount = 1;
+            }
 
             yield return new WaitForSeconds(wave.spawnInterval);
         }
+        // ================= NORMAL WAVE =================
         else
         {
-            int half = total / 2;
-            int extra = total % 2;
-
-            // Spawn bên trái (0) – nhiều hơn nếu lẻ
-            for (int i = 0; i < half + extra; i++)
+            for (int i = 0; i < wave.enemyCount; i++)
             {
-                Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
-                activeEnemyCount++;
-                yield return new WaitForSeconds(wave.spawnInterval);
-            }
+                if (wave.usePortalSpawn && enemyPortalSpawnPoints.Length > 0)
+                {
+                    Transform p = enemyPortalSpawnPoints[
+                        Random.Range(0, enemyPortalSpawnPoints.Length)
+                    ];
 
-            // Spawn bên phải (1)
-            for (int i = 0; i < half; i++)
-            {
-                Instantiate(wave.enemyPrefab, spawnPoints[1].position, Quaternion.identity);
-                activeEnemyCount++;
+                    StartCoroutine(
+                        SpawnEnemyThroughPortal(
+                            wave.enemyPrefab,
+                            p.position
+                        )
+                    );
+                }
+                else
+                {
+                    Transform spawnPoint = spawnPoints[i % spawnPoints.Length];
+                    Instantiate(wave.enemyPrefab, spawnPoint.position, Quaternion.identity);
+                    activeEnemyCount++;
+                }
+
                 yield return new WaitForSeconds(wave.spawnInterval);
             }
         }
@@ -169,6 +232,7 @@ public class BossSpawner : MonoBehaviour
         if (animator != null)
             animator.SetBool("IsSpamming", false);
     }
+
 
     void OnEnable()
     {
