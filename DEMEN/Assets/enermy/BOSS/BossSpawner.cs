@@ -128,7 +128,16 @@ public class BossSpawner : MonoBehaviour
         // 🔥 CASE ĐẶC BIỆT: chỉ 1 enemy
         if (total == 1)
         {
-            Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
+            // Thay vì chỉ: Instantiate(wave.enemyPrefab, ...);
+            GameObject enemy = Instantiate(wave.enemyPrefab, spawnPoints[0].position, Quaternion.identity);
+
+            // ✅ SET SKIP INTRO
+            var beetle = enemy.GetComponent<BossBeetleAI>();
+            if (beetle != null) beetle.skipIntro = true;
+
+            var mantis = enemy.GetComponent<BossMantisAI>();
+            if (mantis != null) mantis.skipIntro = true;
+
             activeEnemyCount++;
 
             yield return new WaitForSeconds(wave.spawnInterval);
