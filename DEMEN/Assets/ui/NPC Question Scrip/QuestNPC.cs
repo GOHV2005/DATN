@@ -3,6 +3,7 @@ using System.Collections.Generic;
 
 public class QuestNPC : MonoBehaviour
 {
+
     [Header("=== Quest Data ===")]
     public string questDescription = "";
     public string[] requiredItems;         // tên item cần nộp
@@ -93,7 +94,7 @@ public class QuestNPC : MonoBehaviour
         hasAcceptedQuest = true;
         // show in quest UI
         QuestUIManager.Instance?.ShowQuest(this);
-
+        QuestlineManager.Instance?.OnAcceptNPCQuest(gameObject.name);
         // Optionally show a short accept line if defined
         var acceptLine = fullDialogue.lines.Find(l => l.isAcceptLine);
         if (acceptLine != null)
@@ -106,7 +107,8 @@ public class QuestNPC : MonoBehaviour
     public void OnShowQuestComplete()
     {
         if (!hasAcceptedQuest || isQuestCompleted) return;
-
+        QuestlineManager.Instance?.OnCompleteNPCQuest(gameObject.name);
+        UIManager.IsTalkingToNPC = false;
         InventoryManager inv = InventoryManager.Instance;
         if (inv == null)
         {

@@ -39,6 +39,11 @@ public class DialogueSystem : MonoBehaviour
             CloseDialogue();
             return;
         }
+        // Nếu dialog đang hiển thị, đã xong và không phải quest
+        if (dialoguePanel.activeSelf && isDialogueFinished && currentNPC == null)
+        {
+            CloseDialogue();
+        }
 
         // Nếu đang hiển thị dialog và đã hoàn tất text (nhưng chưa xử lý accept)
         if (dialoguePanel.activeSelf && isDialogueFinished && currentNPC != null)

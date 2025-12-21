@@ -36,7 +36,8 @@ public class Item : MonoBehaviour
             Debug.LogWarning($"Cannot pick up {itemName}: InventoryManager.Instance is null!");
             return;
         }
-        
+        QuestlineManager.Instance?.OnItemPicked(itemName);
+
         int leftover = invMgr.AddItem(itemName, quantity, sprite, itemDescription);
         PickupEffectManager.Instance?.PlayPickupEffect(sprite, transform.position);
         if (leftover <= 0)
