@@ -463,6 +463,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e8a79cf00c621ae4599a97c305f9f453, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  skipIntro: 0
   doorAnimator: {fileID: 0}
   doorCollider: {fileID: 0}
   arenaTrigger: {fileID: 4931040813140931375}
@@ -514,28 +515,16 @@ MonoBehaviour:
     lines:
     - isPlayer: 0
       text: "thg ch\xF3a n\xE0o \u0111\xE2y"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
     - isPlayer: 1
       text: "m\u1EB9 m\xE0y b\xE9o"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
     - isPlayer: 0
       text: cak
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
 --- !u!114 &184950589366666946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -548,6 +537,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1d3d8ebd4d2894f8505dc132d35732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyId: hung
   maxHealth: 30
   currentHealth: 0
   knockbackForce: 0
