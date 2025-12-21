@@ -1,15 +1,16 @@
 ﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
+using Unity.Cinemachine;
 
 public class BossMantisAI : MonoBehaviour
 {
     public enum BossState { Idle, Moving, UsingSkill, Dead }
     BossState currentState = BossState.Idle;
+    public bool skipIntro = false; // nếu true → bỏ qua dialogue + cinematic
     [Header("UI")]
-    private UnityEngine.UI.Slider bossHealthSlider; // kéo slider từ Inspector
-    private Health bossHealth;                     // tham chiếu Health component
-
+    private UnityEngine.UI.Slider bossHealthSlider;
+    private Health bossHealth;
 
     [Header("REFERENCES")]
     public Transform player;
@@ -20,9 +21,15 @@ public class BossMantisAI : MonoBehaviour
     public GameObject arenaBarrier;
     public ShockWavesManager shockWavesManager;
 
+    [Header("CINEMATIC")]
+    public CinemachineCamera introCam;      // Camera quay intro
+    public CinemachineCamera gameplayCam;   // Camera gameplay
+
+    [Header("DIALOGUE")]
+    public Dialogue bossIntroDialogue;
+
     [Header("BOSS HP")]
     public int maxHP = 1000;
-    private int currentHP;
     private bool isDead = false;
 
     [Header("PREFABS")]
@@ -56,24 +63,38 @@ public class BossMantisAI : MonoBehaviour
     AudioSource sfxSource;
     AudioSource musicSource;
 
+    // Runtime
     bool combatStarted;
     bool isAttackActive;
     int currentDamage;
 
-    // ================= START =================
+    private string introPrefKey;
+    private bool introPlayed = false;
+    private bool introEnded = false;
+
+    void Awake()
+    {
+        introPrefKey = $"BossMantisIntroPlayed_{gameObject.name}_{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}";
+    }
+
     void Start()
     {
-        // Lấy Health
         bossHealth = GetComponent<Health>();
         FindBossSlider();
-        if (bossHealthSlider != null && bossHealth != null)
+
+        bossHealth = GetComponent<Health>();
+        if (bossHealth != null && bossHealthSlider != null)
         {
-            bossHealthSlider.gameObject.SetActive(false); // ẩn lúc đầu
             bossHealthSlider.maxValue = bossHealth.maxHealth;
             bossHealthSlider.value = bossHealth.currentHealth;
-
-            // gán sự kiện khi boss chết
             bossHealth.onDeath += Die;
+
+            // ✅ Chỉ ẩn nếu là boss CHÍNH (không phải spawn)
+            if (!skipIntro)
+            {
+                bossHealthSlider.gameObject.SetActive(false);
+            }
+            // Nếu là spawn (skipIntro = true), giữ nguyên trạng thái active trong scene
         }
 
         if (!player)
@@ -81,75 +102,110 @@ public class BossMantisAI : MonoBehaviour
 
         deadEyes.gameObject.SetActive(false);
 
-        sfxSource = gameObject.AddComponent<AudioSource>();
+        sfxSource = gameObject.GetOrAddComponent<AudioSource>();
         sfxSource.outputAudioMixerGroup = sfxMixer;
         sfxSource.spatialBlend = 0f;
 
-        musicSource = gameObject.AddComponent<AudioSource>();
+        musicSource = gameObject.GetOrAddComponent<AudioSource>();
         musicSource.outputAudioMixerGroup = musicMixer;
         musicSource.loop = true;
         musicSource.spatialBlend = 0f;
     }
 
-    void FindBossSlider()
+    void OnDestroy()
     {
-        // Ưu tiên tìm theo TAG
-        GameObject sliderObj = GameObject.FindGameObjectWithTag("BossSlider");
+        if (DialogueSystem.Instance != null)
+            DialogueSystem.Instance.OnDialogueComplete -= OnIntroDialogueComplete;
+    }
 
-        // Dự phòng: tìm theo tên
-        if (sliderObj == null)
-            sliderObj = GameObject.Find("BossHealthSlider");
-
-        if (sliderObj != null)
+#if UNITY_EDITOR
+    void OnApplicationQuit()
+    {
+        if (UnityEditor.EditorApplication.isPlaying)
         {
-            bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
-            bossHealthSlider.gameObject.SetActive(false); // ẩn lúc đầu
+            PlayerPrefs.DeleteKey(introPrefKey);
+        }
+    }
+#endif
+
+    [ContextMenu("Reset Intro for Testing")]
+    public void ResetIntroForTesting()
+    {
+        PlayerPrefs.DeleteKey(introPrefKey);
+        Debug.Log($"✅ Đã reset intro cho Boss Mantis '{gameObject.name}'");
+    }
+
+    // =============== PUBLIC ENTRY POINT ===============
+    public void StartIntroSequence()
+    {
+        if (combatStarted || isDead || bossHealth?.currentHealth <= 0 || introPlayed) return;
+        introPlayed = true;
+
+        // ✅ NẾU LÀ SPAWNED → BỎ QUA CINEMATIC, VÀO COMBAT NGAY
+        if (skipIntro)
+        {
+            StartCoroutine(StartCombatImmediately());
+            return;
+        }
+
+        // BẬT CAMERA INTRO NGAY LÚC VÀO
+        ActivateIntroCam(true);
+
+        // HIỂN THỊ DIALOGUE NẾU CHƯA XEM
+        if (bossIntroDialogue != null && !PlayerPrefs.HasKey(introPrefKey))
+        {
+            UIManager.IsTalkingToNPC = true;
+            player?.GetComponent<PlayerController>()?.SetDialogueState(true);
+
+            DialogueSystem.Instance.OnDialogueComplete += OnIntroDialogueComplete;
+            DialogueSystem.Instance.StartDialogue(bossIntroDialogue);
         }
         else
         {
-            Debug.LogWarning("⚠️ BossMantis: Không tìm thấy BossSlider");
+            StartCoroutine(RunBossIntro());
         }
     }
 
-    public void StartCombat()
+    IEnumerator StartCombatImmediately()
     {
-        if (combatStarted || bossHealth == null || bossHealth.currentHealth <= 0) return;
+        // Bật barrier, nhạc, UI — nhưng KHÔNG có cinematic
+        if (arenaBarrier) arenaBarrier.SetActive(true);
+        PlayMusic();
 
         combatStarted = true;
-
-        // hiện thanh máu boss
         if (bossHealthSlider != null)
             bossHealthSlider.gameObject.SetActive(true);
 
-        StartCoroutine(CombatIntro());
+        currentState = BossState.Moving;
+        StartCoroutine(CombatLoop());
+        yield break;
+    }
+    void OnIntroDialogueComplete()
+    {
+        DialogueSystem.Instance.OnDialogueComplete -= OnIntroDialogueComplete;
+        PlayerPrefs.SetInt(introPrefKey, 1);
+        PlayerPrefs.Save();
+
+        UIManager.IsTalkingToNPC = false;
+        player?.GetComponent<PlayerController>()?.SetDialogueState(false);
+
+        StartCoroutine(RunBossIntro());
     }
 
-
-
-    void Update()
+    // =============== CHẠY INTRO BOSS (3 LẦN ĐÁNH) ===============
+    IEnumerator RunBossIntro()
     {
-        if (bossHealth == null || bossHealth.currentHealth <= 0) return;
-
-        // cập nhật slider
-        if (bossHealthSlider != null)
-            bossHealthSlider.value = bossHealth.currentHealth;
-
-        if (currentState == BossState.Moving)
-            MoveToPlayer();
-    }
-
-
-    // ================= INTRO =================
-    IEnumerator CombatIntro()
-    {
-        // 🔒 KHÓA ARENA
-        if (arenaBarrier)
-            arenaBarrier.SetActive(true);
-
+        // CHẠY NHẠC ĐẤU TRƯỜNG
         PlayMusic();
 
-        currentState = BossState.Idle;
+        // MỞ BARRIER
+        if (arenaBarrier) arenaBarrier.SetActive(true);
 
+        // BOSS IDLE
+        currentState = BossState.Idle;
+        anim.Play("Dung(BoNgua)"); // hoặc idleAnim nếu có
+
+        // 💥 PLAY 3 LẦN ĐÁNH
         for (int i = 0; i < 3; i++)
         {
             anim.Play("TanCongManh(Bongua)");
@@ -157,16 +213,25 @@ public class BossMantisAI : MonoBehaviour
             yield return new WaitForSeconds(0.8f);
         }
 
-        currentState = BossState.Moving;
+        // ✅ HẾT INTRO → CHUYỂN CAMERA VỀ PLAYER, BẮT ĐẦU COMBAT
+        yield return new WaitForSeconds(0.2f);
+        ActivateIntroCam(false); // chuyển về gameplayCam
 
+        combatStarted = true;
+        if (bossHealthSlider != null)
+            bossHealthSlider.gameObject.SetActive(true);
+
+        currentState = BossState.Moving;
         StartCoroutine(CombatLoop());
     }
-    public void AnimEvent_RamShockwave()
+
+    void ActivateIntroCam(bool active)
     {
-        if (shockWavesManager != null)
-            shockWavesManager.CallShockWaves();
+        if (introCam != null) introCam.Priority = active ? 50 : 0;
+        if (gameplayCam != null) gameplayCam.Priority = active ? 0 : 50;
     }
-    // ================= COMBAT LOOP =================
+
+    // =============== COMBAT ===============
     IEnumerator CombatLoop()
     {
         while (!isDead)
@@ -186,7 +251,16 @@ public class BossMantisAI : MonoBehaviour
         }
     }
 
-    // ================= MOVE =================
+    void Update()
+    {
+        if (bossHealth == null || bossHealth.currentHealth <= 0) return;
+        if (bossHealthSlider != null)
+            bossHealthSlider.value = bossHealth.currentHealth;
+
+        if (currentState == BossState.Moving)
+            MoveToPlayer();
+    }
+
     void MoveToPlayer()
     {
         Vector3 dir = (player.position - transform.position).normalized;
@@ -195,7 +269,12 @@ public class BossMantisAI : MonoBehaviour
         anim.Play("DiBo(BoNgua)");
     }
 
-    // ================= SKILL 1 =================
+    public void AnimEvent_RamShockwave()
+    {
+        if (shockWavesManager != null)
+            shockWavesManager.CallShockWaves();
+    }
+
     IEnumerator SkillDash()
     {
         anim.Play("TanCong(BoNgua)");
@@ -203,7 +282,6 @@ public class BossMantisAI : MonoBehaviour
         yield return DashForward(dashSpeed, dashDistance, skill1Damage);
     }
 
-    // ================= SKILL 2 =================
     IEnumerator SkillShockwave()
     {
         anim.Play("TanCongManh(Bongua)");
@@ -216,32 +294,21 @@ public class BossMantisAI : MonoBehaviour
             ?.Initialize(dir, skill2Damage);
     }
 
-    // ================= SKILL 3 (STEALTH) =================
     IEnumerator SkillTeleport()
     {
         anim.Play("TanCongManh(Bongua)");
         sfxSource.PlayOneShot(strongAttackClip);
-
         SpawnSmoke();
         sfxSource.PlayOneShot(teleportClip);
-
         yield return new WaitForSeconds(0.3f);
 
-        // 👻 TÀN HÌNH
         sr.enabled = false;
         deadEyes.gameObject.SetActive(false);
-
-        // 🚶‍♂️ CHUYỂN SANG ANIMATION KHÔNG EVENT
         anim.Play("DiBo(BoNgua)");
 
-        // 📍 Random vị trí
-        float x = Random.Range(
-            arenaCollider.bounds.min.x + 1f,
-            arenaCollider.bounds.max.x - 1f
-        );
+        float x = Random.Range(arenaCollider.bounds.min.x + 1f, arenaCollider.bounds.max.x - 1f);
         transform.position = new Vector3(x, transform.position.y, 0);
 
-        // ➡️ TIẾN GẦN PLAYER (KHÔNG EVENT)
         while (Vector2.Distance(transform.position, player.position) > warningDistance)
         {
             Vector3 dir = (player.position - transform.position).normalized;
@@ -249,29 +316,19 @@ public class BossMantisAI : MonoBehaviour
             yield return null;
         }
 
-        // ⚠️ CẢNH BÁO
         deadEyes.gameObject.SetActive(true);
         yield return new WaitForSeconds(warningTime);
         deadEyes.gameObject.SetActive(false);
 
-        // 💥 HIỆN HÌNH + ĐÒN THẬT (CÓ EVENT)
         sr.enabled = true;
         anim.Play("TanCongManh(Bongua)");
-
-        yield return DashForward(
-            dashSpeed * 1.3f,
-            dashDistance * 1.3f,
-            skill3Damage
-        );
+        yield return DashForward(dashSpeed * 1.3f, dashDistance * 1.3f, skill3Damage);
     }
 
-
-    // ================= DASH CORE =================
     IEnumerator DashForward(float speed, float distance, int dmg)
     {
         isAttackActive = true;
         currentDamage = dmg;
-
         Vector3 dir = (player.position.x > transform.position.x) ? Vector3.right : Vector3.left;
         sr.flipX = dir.x > 0;
 
@@ -283,26 +340,8 @@ public class BossMantisAI : MonoBehaviour
             moved += step;
             yield return null;
         }
-
         isAttackActive = false;
     }
-
-    // ================= DAMAGE & DEATH =================
-    public void TakeDamage(int dmg)
-    {
-        if (isDead) return;
-
-        currentHP -= dmg;
-        currentHP = Mathf.Max(currentHP, 0);
-
-        // cập nhật slider
-        if (bossHealthSlider != null)
-            bossHealthSlider.value = currentHP;
-
-        if (currentHP <= 0)
-            Die();
-    }
-
 
     void Die()
     {
@@ -311,23 +350,16 @@ public class BossMantisAI : MonoBehaviour
 
         isDead = true;
         currentState = BossState.Dead;
-
         StopAllCoroutines();
 
-        if (arenaBarrier)
-            arenaBarrier.SetActive(false);
-
-        if (musicSource.isPlaying)
-            musicSource.Stop();
+        if (arenaBarrier) arenaBarrier.SetActive(false);
+        if (musicSource.isPlaying) musicSource.Stop();
 
         deadEyes.gameObject.SetActive(false);
         anim.Play("Chet(BoNgua)");
-
-        Debug.Log("💀 Boss chết – Arena mở");
+        Debug.Log("💀 Boss Mantis chết – Arena mở");
     }
 
-
-    // ================= UTIL =================
     void SpawnSmoke()
     {
         if (smokePrefab)
@@ -336,7 +368,7 @@ public class BossMantisAI : MonoBehaviour
 
     void PlayMusic()
     {
-        if (!musicSource.isPlaying && arenaBgm)
+        if (arenaBgm != null && !musicSource.isPlaying)
         {
             musicSource.clip = arenaBgm;
             musicSource.Play();
@@ -347,12 +379,27 @@ public class BossMantisAI : MonoBehaviour
     {
         if (isAttackActive && col.CompareTag("Player"))
         {
-            col.GetComponent<PlayerController>()
-               ?.TakeDamageFromEnemy(currentDamage, transform.position);
+            col.GetComponent<PlayerController>()?.TakeDamageFromEnemy(currentDamage, transform.position);
         }
     }
 
-    // ================= GIZMOS =================
+    void FindBossSlider()
+    {
+        GameObject sliderObj = GameObject.FindGameObjectWithTag("BossSlider");
+        if (sliderObj == null)
+            sliderObj = GameObject.Find("BossHealthSlider");
+
+        if (sliderObj != null)
+        {
+            bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
+            // ✅ KHÔNG ẨN Ở ĐÂY NỮA
+        }
+        else
+        {
+            Debug.LogWarning($"⚠️ {GetType().Name}: Không tìm thấy BossHealthSlider (tag 'BossSlider' hoặc tên 'BossHealthSlider')");
+        }
+    }
+
     void OnDrawGizmosSelected()
     {
         if (arenaCollider)
@@ -363,5 +410,17 @@ public class BossMantisAI : MonoBehaviour
 
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, warningDistance);
+    }
+}
+
+// Helper extension
+public static class ComponentExtensions
+{
+    public static T GetOrAddComponent<T>(this GameObject go) where T : Component
+    {
+        T component = go.GetComponent<T>();
+        if (component == null)
+            component = go.AddComponent<T>();
+        return component;
     }
 }

@@ -30,7 +30,7 @@ public class BossArenaTrigger : MonoBehaviour
 
         Debug.Log("✅ PLAYER ENTER ARENA – START COMBAT");
 
-        mantisBoss?.StartCombat();
-        beetleBoss?.StartCombat();
+        if (mantisBoss != null) mantisBoss.StartIntroSequence();
+        if (beetleBoss != null) beetleBoss.StartIntroSequence();
     }
 }

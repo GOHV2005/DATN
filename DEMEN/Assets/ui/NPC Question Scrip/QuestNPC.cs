@@ -1,35 +1,42 @@
-﻿// QuestNPC.cs
-using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
+﻿using UnityEngine;
 
 public class QuestNPC : MonoBehaviour
 {
-    public string[] requiredItems;
-    private List<string> collectedItems = new();
-    private bool isQuestCompleted = false;
-    private bool hasAcceptedQuest = false;
-    [Header("=== Look at Player ===")]
-    public bool enableLookAtPlayer = true; // 👈 MỚI: bật/tắt nhìn theo player
-    public Dialogue fullDialogue;
+    [Header("=== Camera Focus ===")]
+    public bool enableCameraFocus = false;
+    public Transform cameraFocusTarget;
 
+    [Header("=== Quest Data ===")]
+    public string questDescription = "";
+
+    public string[] requiredItems;
+    public int[] requiredAmounts;
+
+    [Header("=== Dialogue ===")]
+    public Dialogue questDialogue;          // giao quest
+    public Dialogue missingItemDialogue;    // thiếu item
+    public Dialogue completeDialogue;       // hoàn thành
+    public Dialogue comebackDialogue;       // nói chuyện sau khi xong
+
+    [Header("=== NPC Settings ===")]
+    public bool enableLookAtPlayer = true;
     public Transform playerTransform;
     public float interactionRange = 2f;
-    [Header("=== Thông tin nhiệm vụ ===")]
-    public string questDescription = "";//Mô tả nhiệm vụ...
+    public GameObject interactionPrompt;
 
-    [Header("=== Ném phần thưởng ===")]
+    [Header("=== Reward ===")]
     public GameObject rewardItemPrefab;
     public float dropForce = 8f;
     public float dropAngle = 50f;
-    private bool canReceiveItems = false; // 👈 MỚI: chỉ nhận item khi true
 
-    public GameObject interactionPrompt;
-    private SpriteRenderer sr; // 👈 THÊM
-    
+    // STATE
+    private bool hasAcceptedQuest;
+    private bool isQuestCompleted;
+    private SpriteRenderer sr;
+
     void Start()
     {
-        sr = GetComponent<SpriteRenderer>(); // 👈 LẤY SPRITE RENDERER
+        sr = GetComponent<SpriteRenderer>();
         HideInteractionPrompt();
     }
 
@@ -40,9 +47,10 @@ public class QuestNPC : MonoBehaviour
         LookAtPlayer();
 
         float dist = Vector2.Distance(transform.position, playerTransform.position);
-        if (dist <= interactionRange && UIManager.IsGameplayInputAllowed)
+        if (dist <= interactionRange && !UIManager.IsTalkingToNPC)
         {
             ShowInteractionPrompt();
+
             if (Input.GetKeyDown(KeyCode.E))
             {
                 HideInteractionPrompt();
@@ -57,148 +65,127 @@ public class QuestNPC : MonoBehaviour
 
     void HandleInteraction()
     {
-        if (isQuestCompleted)
+        // 1️⃣ Chưa nhận quest
+        if (!hasAcceptedQuest && !isQuestCompleted)
         {
-            var comebackLine = fullDialogue.lines.Find(l => l.isDoneIfPlayerComeBack);
-            if (comebackLine != null)
+            if (questDialogue != null)
             {
-                DialogueSystem.Instance.StartSingleLine(comebackLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
+                DialogueSystem.Instance.StartQuestDialogue(questDialogue, this);
             }
+            return;
         }
-        else if (hasAcceptedQuest)
+
+        // 2️⃣ Đã nhận – chưa xong → kiểm tra item
+        if (hasAcceptedQuest && !isQuestCompleted)
         {
-            OnShowQuestComplete();
+            TryCompleteQuest();
+            return;
         }
-        else
+
+        // 3️⃣ Đã hoàn thành → dialogue quay lại
+        if (isQuestCompleted && comebackDialogue != null)
         {
-            DialogueSystem.Instance.StartQuestDialogue(fullDialogue, this);
+            DialogueSystem.Instance.StartDialogue(comebackDialogue);
         }
     }
+
     void LookAtPlayer()
     {
-        if (!enableLookAtPlayer || playerTransform == null || sr == null) return;
+        if (!enableLookAtPlayer || sr == null) return;
 
-        // Lật sprite theo hướng player
-        if (playerTransform.position.x > transform.position.x)
-        {
-            sr.flipX = false; // Nhìn phải
-        }
-        else
-        {
-            sr.flipX = true; // Nhìn trái
-        }
+        sr.flipX = playerTransform.position.x < transform.position.x;
     }
+
+    // === ĐƯỢC GỌI TỪ DialogueSystem SAU KHI HỘI THOẠI GIAO QUEST KẾT THÚC ===
     public void OnAcceptQuest()
     {
+        if (hasAcceptedQuest || isQuestCompleted) return;
+
         hasAcceptedQuest = true;
-        canReceiveItems = true;
-        enableLookAtPlayer = false;
-        // 👇 HIỆN PANEL NHIỆM VỤ
-        QuestUIManager.Instance.ShowQuest(this);
 
-        var acceptLine = fullDialogue.lines.Find(l => l.isAcceptLine);
-        if (acceptLine != null)
-        {
-            DialogueSystem.Instance.StartSingleLine(acceptLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
-        }
+        QuestUIManager.Instance?.ShowQuest(this);
+        QuestlineManager.Instance?.OnAcceptNPCQuest(gameObject.name);
     }
 
-    public void OnRefuseQuest()
+    void TryCompleteQuest()
     {
-        var refuseLine = fullDialogue.lines.Find(l => l.isRefuseLine);
-        if (refuseLine != null)
+        InventoryManager inv = InventoryManager.Instance;
+        if (inv == null) return;
+
+        int count = requiredItems.Length;
+
+        for (int i = 0; i < count; i++)
         {
-            DialogueSystem.Instance.StartSingleLine(refuseLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
+            int need = (requiredAmounts != null && i < requiredAmounts.Length)
+                ? Mathf.Max(1, requiredAmounts[i])
+                : 1;
+
+            if (inv.GetItemCount(requiredItems[i]) < need)
+            {
+                // ❌ Thiếu item
+                if (missingItemDialogue != null)
+                    DialogueSystem.Instance.StartDialogue(missingItemDialogue);
+                return;
+            }
         }
+
+        // ✅ ĐỦ ITEM → TRỪ
+        for (int i = 0; i < count; i++)
+        {
+            int need = (requiredAmounts != null && i < requiredAmounts.Length)
+                ? Mathf.Max(1, requiredAmounts[i])
+                : 1;
+
+            inv.RemoveItem(requiredItems[i], need);
+        }
+
+        CompleteQuest();
+    }
+
+    void CompleteQuest()
+    {
         hasAcceptedQuest = false;
-        canReceiveItems = false;
-         // Ẩn nhiệm vụ nếu từ chối
-    }
+        isQuestCompleted = true;
 
-    void OnShowQuestComplete()
-    {
-        bool hasAll = collectedItems.Count == requiredItems.Length;
-        if (hasAll)
-        {
-            var completeLine = fullDialogue.lines.Find(l => l.isQuestComplete);
-            if (completeLine != null)
-            {
-                DialogueSystem.Instance.StartSingleLine(completeLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
-                isQuestCompleted = true;
-                canReceiveItems = false;
-                QuestUIManager.Instance.CompleteQuest(this); // Đánh dấu hoàn thành
+        QuestUIManager.Instance?.CompleteQuest(this);
+        QuestlineManager.Instance?.OnCompleteNPCQuest(gameObject.name);
 
-                if (rewardItemPrefab != null && playerTransform != null)
-                {
-                    Invoke(nameof(DropRewardItem), 1f);
-                }
-            }
-        }
-        else
-        {
-            var missingLine = fullDialogue.lines.Find(l => l.isMissingItem);
-            if (missingLine != null)
-            {
-                DialogueSystem.Instance.StartSingleLine(missingLine, fullDialogue.playerSprite, fullDialogue.npcSprite);
-            }
-        }
+        if (completeDialogue != null)
+            DialogueSystem.Instance.StartDialogue(completeDialogue);
+
+        DropRewardItem();
     }
 
     void DropRewardItem()
     {
         if (rewardItemPrefab == null || playerTransform == null) return;
 
-        GameObject itemObj = Instantiate(rewardItemPrefab, transform.position, Quaternion.identity);
-        Rigidbody2D rb = itemObj.GetComponent<Rigidbody2D>();
+        GameObject item = Instantiate(rewardItemPrefab, transform.position, Quaternion.identity);
+        Rigidbody2D rb = item.GetComponent<Rigidbody2D>();
+
         if (rb != null)
         {
-            rb.bodyType = RigidbodyType2D.Dynamic;
-            rb.gravityScale = 3f;
-
-            Vector2 direction = (playerTransform.position - transform.position).normalized;
+            Vector2 dir = (playerTransform.position - transform.position).normalized;
             float rad = Mathf.Deg2Rad * dropAngle;
-            float vx = Mathf.Cos(rad) * direction.x;
-            float vy = Mathf.Sin(rad); // Luôn hướng lên
 
-            Vector2 force = new Vector2(vx, vy) * dropForce;
+            Vector2 force = new Vector2(
+                Mathf.Cos(rad) * dir.x,
+                Mathf.Sin(rad)
+            ) * dropForce;
+
             rb.AddForce(force, ForceMode2D.Impulse);
-        }
-    }
-
-    void OnCollisionEnter2D(Collision2D col)
-    {
-        if (!canReceiveItems || isQuestCompleted) return;
-        if (col.collider.TryGetComponent(out Item item))
-        {
-            if (requiredItems.Contains(item.itemName) && !collectedItems.Contains(item.itemName))
-            {
-                collectedItems.Add(item.itemName);
-                Destroy(col.gameObject);
-                QuestUIManager.Instance.UpdateQuest(this);
-            }
-        }
-    }
-    void OnTriggerEnter2D(Collider2D col)
-    {
-        if (!canReceiveItems || isQuestCompleted) return;
-        if (col.TryGetComponent(out Item item))
-        {
-            if (requiredItems.Contains(item.itemName) && !collectedItems.Contains(item.itemName))
-            {
-                collectedItems.Add(item.itemName);
-                Destroy(col.gameObject);
-                QuestUIManager.Instance.UpdateQuest(this);
-            }
         }
     }
 
     void ShowInteractionPrompt()
     {
-        if (interactionPrompt != null) interactionPrompt.SetActive(true);
+        if (interactionPrompt != null)
+            interactionPrompt.SetActive(true);
     }
 
     void HideInteractionPrompt()
     {
-        if (interactionPrompt != null) interactionPrompt.SetActive(false);
+        if (interactionPrompt != null)
+            interactionPrompt.SetActive(false);
     }
 }
