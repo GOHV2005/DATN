@@ -186,8 +186,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.06888878, y: 0.047130633}
-  m_Size: {x: 1.0151114, y: 1.1601281}
+  m_Offset: {x: -0.06888878, y: 0.095667705}
+  m_Size: {x: 1.0151114, y: 1.0630538}
   m_Direction: 0
 --- !u!61 &7077270701045992589
 BoxCollider2D:
@@ -297,7 +297,6 @@ MonoBehaviour:
   maxHealth: 3
   currentHealth: 0
   knockbackForce: 4
-  knockbackDuration: 5
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}
   flashDuration: 0.15
   dropItemPrefab: {fileID: 671203211820296829, guid: 0b6c2c37a0265734eaa848e1aa1ad4ed,
@@ -309,6 +308,8 @@ MonoBehaviour:
     type: 3}
   bloodCount: 5
   bloodForce: 2.8
+  useDissolve: 1
+  _dissolve: {fileID: 0}
   deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
     type: 3}
   deathSound: {fileID: 0}
