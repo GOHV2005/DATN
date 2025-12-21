@@ -12,6 +12,10 @@ public class BossBeetleAI : MonoBehaviour
     public Animator doorAnimator;
     public Collider2D doorCollider;
 
+    [Header("DOOR EFFECTS")]
+    public GameObject dustEffectPrefab;
+    public Transform dustSpawnPoint;
+
     [Header("ARENA")]
     public Collider2D arenaTrigger;
     public Transform player;
@@ -171,9 +175,15 @@ public class BossBeetleAI : MonoBehaviour
         if (doorAnimator != null)
             doorAnimator.SetTrigger("Close");
 
-        // Option A: enable immediately
         if (doorCollider != null)
             doorCollider.enabled = true;
+
+        // 👉 Spawn dust effect
+        if (dustEffectPrefab != null)
+        {
+            Vector3 spawnPos = dustSpawnPoint != null ? dustSpawnPoint.position : transform.position;
+            Instantiate(dustEffectPrefab, spawnPos, Quaternion.identity);
+        }
 
         currentState = BossState.Roar;
         stateTimer = roarTime;
@@ -189,6 +199,7 @@ public class BossBeetleAI : MonoBehaviour
             musicAudioSource.Play();
         }
     }
+
     void Update()
     {
         if (!player || !arenaTrigger) return;
