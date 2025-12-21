@@ -58,18 +58,17 @@ public class BossFinalController : MonoBehaviour
         StartCoroutine(IntroFlow());
     }
 
-
+    // Trong BossFinalController.cs
 
     IEnumerator IntroFlow()
     {
         UIManager.IsTalkingToNPC = true;
         DialogueSystem.Instance.StartDialogue(introDialogue);
-
         yield return new WaitUntil(() => !UIManager.IsTalkingToNPC);
 
-        // 🔑 ĐÁNH DẤU: ĐÃ XONG INTRO
         BossFightState.introFinished = true;
 
+        // 💾 Lưu vào save
         int slot = PlayerPrefs.GetInt("CurrentSlot", -1);
         if (slot != -1)
         {
@@ -81,21 +80,30 @@ public class BossFinalController : MonoBehaviour
             }
         }
 
-
+        // 🔒 ĐÓNG CỬA
         if (doorBlockerPrefab && doorSpawnPoint)
             Instantiate(doorBlockerPrefab, doorSpawnPoint.position, Quaternion.identity);
 
+        // 👇 MỚI: HỖ TRỢ BOSS CÓ INTRO
         if (bossAI != null)
+        {
             bossAI.enabled = true;
 
-        if (bossSpawner != null)
-        {
-            bossSpawner.allowCombat = true;
-            bossSpawner.StartCombat();
+            // Nếu boss có phương thức StartIntroSequence → gọi nó
+            if (bossAI is BossMantisAI mantis)
+            {
+                mantis.StartIntroSequence();
+            }
+            else if (bossAI is BossBeetleAI beetle)
+            {
+                beetle.StartIntroSequence();
+            }
+            // Nếu không → giả sử nó đã sẵn sàng combat
         }
+
+        // ❌ XÓA DÒNG NÀY: bossSpawner.StartCombat() không cần thiết nếu boss tự quản lý
+        // if (bossSpawner != null) { ... }
     }
-
-
     bool DialogueEnded()
     {
         // dựa trên cờ bạn đã có
