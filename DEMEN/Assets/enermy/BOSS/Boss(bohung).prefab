@@ -230,6 +230,8 @@ MonoBehaviour:
   arenaTrigger: {fileID: 6981332040589727983}
   player: {fileID: 0}
   shockWavesManager: {fileID: 1192778621164202353}
+  damage: 1
+  damageCooldown: 1
   chargeSpeed: 12.6
   obstacleCheckDistance: 4.15
   obstacleLayer:
@@ -285,7 +287,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   enemyId: 
-  maxHealth: 30
+  maxHealth: 15
   currentHealth: 0
   knockbackForce: 0
   flashMaterial: {fileID: 2100000, guid: 15ed95ce1f695ca4597036ef4a90648d, type: 2}

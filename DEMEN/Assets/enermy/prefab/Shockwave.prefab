@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 1200478383441196846}
   - component: {fileID: 1002660222097095809}
   - component: {fileID: 5045598958360405601}
+  - component: {fileID: 7288670440813755820}
   m_Layer: 6
   m_Name: Shockwave
   m_TagString: Enemy
@@ -181,6 +182,20 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.5732942, y: 6.9806814}
   m_EdgeRadius: 0
+--- !u!114 &7288670440813755820
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7730796758545741388}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 094b18d3e57e75445a65d0d77fe23afc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  damage: 2
+  damageCooldown: 0
 --- !u!1001 &1896566684503889560
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -254,8 +254,8 @@ MonoBehaviour:
   crawlSpeed: 1.96
   crawlDistance: 1.12
   idleTime: 1
-  damage: 10.18
-  damageCooldown: 1.31
+  damage: 1
+  damageCooldown: 1
   pointA: {fileID: 7909362947782456616}
   pointB: {fileID: 5323390418412119588}
   idleAnim: nam(autrung)
@@ -294,6 +294,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1d3d8ebd4d2894f8505dc132d35732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyId: 
   maxHealth: 3
   currentHealth: 0
   knockbackForce: 4

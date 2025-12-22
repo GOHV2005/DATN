@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
+using TMPro;
 
 public class QuestlineManager : MonoBehaviour
 {
@@ -8,13 +9,25 @@ public class QuestlineManager : MonoBehaviour
 
     [Header("Questline UI")]
     public GameObject questlinePanel;
-    public Text questlineText;
+    public TextMeshProUGUI questlineText;
 
     [Header("Quest Steps")]
     public List<QuestStep> steps = new();
 
     private int currentStepIndex = 0;
-    private QuestStep Current => steps[currentStepIndex];
+    private QuestStep Current
+    {
+        get
+        {
+            if (steps == null || steps.Count == 0)
+                return null;
+
+            if (currentStepIndex < 0 || currentStepIndex >= steps.Count)
+                return null;
+
+            return steps[currentStepIndex];
+        }
+    }
 
     void Awake()
     {
@@ -30,6 +43,8 @@ public class QuestlineManager : MonoBehaviour
 
     void Update()
     {
+        if (Current == null) return;
+
         if (Current.stepType == QuestStepType.GoToPosition)
         {
             float dist = Vector2.Distance(
@@ -43,7 +58,7 @@ public class QuestlineManager : MonoBehaviour
 
     void UpdateUI()
     {
-        questlineText.text = $"▶ {Current.description}";
+        questlineText.text = $" {Current.description}";
     }
 
     void CompleteStep()
@@ -52,7 +67,7 @@ public class QuestlineManager : MonoBehaviour
 
         if (currentStepIndex >= steps.Count)
         {
-            questlineText.text = "🎉 Hoàn thành hành trình!";
+            questlineText.text = " Hoàn thành hành trình!";
             return;
         }
 

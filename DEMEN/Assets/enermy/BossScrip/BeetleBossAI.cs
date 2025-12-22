@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.UI;
+using System;
 
 public class BossBeetleAI : MonoBehaviour
 {
@@ -35,6 +36,10 @@ public class BossBeetleAI : MonoBehaviour
     [Header("SHOCKWAVE")]
     public ShockWavesManager shockWavesManager;
 
+    [Header("=== SÁT THƯƠNG ===")]
+    public float damage = 1f;
+    public float damageCooldown = 0f;
+    private float lastDamageTime = 0f;
     [Header("CHARGE")]
     public float chargeSpeed = 8f;
     public float obstacleCheckDistance = 1f;
@@ -462,7 +467,7 @@ public class BossBeetleAI : MonoBehaviour
 
         if (stateTimer <= 0)
         {
-            if (Random.value < chargeChance)
+            if (UnityEngine.Random.value < chargeChance)
             {
                 currentState = BossState.Turn;
                 stateTimer = 0.1f;
@@ -506,6 +511,19 @@ public class BossBeetleAI : MonoBehaviour
         else
         {
             Debug.LogWarning($"⚠️ {GetType().Name}: Không tìm thấy BossHealthSlider (tag 'BossSlider' hoặc tên 'BossHealthSlider')");
+        }
+    }
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.collider.CompareTag("Player") && Time.time - lastDamageTime > damageCooldown)
+        {
+            PlayerController player = collision.collider.GetComponent<PlayerController>();
+            if (player != null)
+            {
+                AttackDirection dir = player.GetAttackDirection(transform.position);
+                player.TakeDamage(damage, dir);
+                lastDamageTime = Time.time;
+            }
         }
     }
 
