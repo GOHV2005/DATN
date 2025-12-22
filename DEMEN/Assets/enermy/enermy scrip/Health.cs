@@ -3,6 +3,7 @@ using UnityEngine;
 
 public class Health : MonoBehaviour
 {
+    public System.Action<float> onHealthChanged;
     public System.Action onDeath;
     [SerializeField] public string enemyId;
     [Header("🩸 Health Settings")]
@@ -70,7 +71,7 @@ public class Health : MonoBehaviour
 
         currentHealth -= damage;
         currentHealth = Mathf.Max(currentHealth, 0);
-
+        onHealthChanged?.Invoke(currentHealth);
         if (rb != null)
             rb.AddForce(knockbackDirection.normalized * knockbackForce, ForceMode2D.Impulse);
 

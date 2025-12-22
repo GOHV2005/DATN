@@ -30104,7 +30104,7 @@ PrefabInstance:
     - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
       propertyPath: itemPrefabs.Array.size
-      value: 5
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
@@ -30233,6 +30233,18 @@ PrefabInstance:
         type: 3}
     - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
+      propertyPath: itemPrefabs.Array.data[5].prefab
+      value: 
+      objectReference: {fileID: 671203211820296829, guid: e909807e537eb1542a3dbf834b2db74f,
+        type: 3}
+    - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
+      propertyPath: itemPrefabs.Array.data[6].prefab
+      value: 
+      objectReference: {fileID: 671203211820296829, guid: 0a3e59d97d3be8c4b855906af24097cf,
+        type: 3}
+    - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
       propertyPath: itemPrefabs.Array.data[0].itemName
       value: "Th\u1ECBt"
       objectReference: {fileID: 0}
@@ -30255,6 +30267,16 @@ PrefabInstance:
         type: 3}
       propertyPath: itemPrefabs.Array.data[4].itemName
       value: "Ki\u1EBFm"
+      objectReference: {fileID: 0}
+    - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
+      propertyPath: itemPrefabs.Array.data[5].itemName
+      value: "di v\u1EADt"
+      objectReference: {fileID: 0}
+    - target: {fileID: 2887194158337302722, guid: 75767f6292956684495319ca6de0e7fd,
+        type: 3}
+      propertyPath: itemPrefabs.Array.data[6].itemName
+      value: "gi\u1EA5y khen"
       objectReference: {fileID: 0}
     - target: {fileID: 2898127616792655562, guid: 75767f6292956684495319ca6de0e7fd,
         type: 3}
@@ -33278,6 +33300,10 @@ PrefabInstance:
         type: 3}
       insertIndex: -1
       addedObject: {fileID: 5936841631073211710}
+    - targetCorrespondingSourceObject: {fileID: 2167599275025564127, guid: e0a1b98106a500744aa2ca4853775a21,
+        type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2570271307865488659}
   m_SourcePrefab: {fileID: 100100000, guid: e0a1b98106a500744aa2ca4853775a21, type: 3}
 --- !u!224 &1828521846346525928 stripped
 RectTransform:
@@ -33337,6 +33363,19 @@ MonoBehaviour:
   inventoryIcon: {fileID: 3154967022102239447}
   iconEffect: {fileID: 8724744234088876689}
   flyLayer: {fileID: 6566315139239344407}
+--- !u!114 &2570271307865488659
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4676712270460191711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44c3c799d3c4f9249a9b60f43a98e25b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  bossHealthSlider: {fileID: 4692856617348048192}
 --- !u!1001 &8793038279702142317
 PrefabInstance:
   m_ObjectHideFlags: 0

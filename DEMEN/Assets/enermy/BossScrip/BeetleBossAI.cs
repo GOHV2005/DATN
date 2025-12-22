@@ -95,10 +95,6 @@ public class BossBeetleAI : MonoBehaviour
     [Header("ARENA BARRIER")]
     public GameObject arenaBarrier;
 
-    [Header("UI")]
-    private Slider bossHealthSlider;
-    private Health bossHealth;
-
     [Header("CINEMATIC")]
     public CinemachineCamera introCam;
     public CinemachineCamera gameplayCam;
@@ -113,7 +109,7 @@ public class BossBeetleAI : MonoBehaviour
     // runtime
     private bool introPlayed = false;
     private string introPrefKey;
-
+    private Health bossHealth;
     private bool sliderActive = false;
     private Rigidbody2D rb;
     private Animator anim;
@@ -162,19 +158,7 @@ public class BossBeetleAI : MonoBehaviour
         FindBossSlider();
 
         bossHealth = GetComponent<Health>();
-        if (bossHealth != null && bossHealthSlider != null)
-        {
-            bossHealthSlider.maxValue = bossHealth.maxHealth;
-            bossHealthSlider.value = bossHealth.currentHealth;
-            bossHealth.onDeath += OnBossDeath;
 
-            // ✅ Chỉ ẩn nếu là boss CHÍNH (không phải spawn)
-            if (!skipIntro)
-            {
-                bossHealthSlider.gameObject.SetActive(false);
-            }
-            // Nếu là spawn (skipIntro = true), giữ nguyên trạng thái active trong scene
-        }
 
         PlayAnim(idleAnim);
     }
@@ -221,8 +205,7 @@ public class BossBeetleAI : MonoBehaviour
     {
         if (introPlayed) return;
         introPlayed = true;
-
-        // ✅ NẾU LÀ SPAWNED → BỎ QUA DIALOGUE + CINEMATIC
+        BossUIManager.Instance?.Show(bossHealth);        // ✅ NẾU LÀ SPAWNED → BỎ QUA DIALOGUE + CINEMATIC
         if (skipIntro)
         {
             StartCombat();
@@ -313,8 +296,6 @@ public class BossBeetleAI : MonoBehaviour
             doorAnimator.SetTrigger("Close");
         if (doorCollider != null)
             doorCollider.enabled = true;
-        if (bossHealthSlider != null)
-            bossHealthSlider.gameObject.SetActive(true);
         if (bossMusic != null && !musicAudioSource.isPlaying)
         {
             musicAudioSource.clip = bossMusic;
@@ -337,13 +318,6 @@ public class BossBeetleAI : MonoBehaviour
         if (!playerEnteredArena && currentState != BossState.Intro)
             return;
 
-        if (!sliderActive && isInArena)
-        {
-            sliderActive = true;
-            bossHealthSlider?.gameObject.SetActive(true);
-        }
-
-        bossHealthSlider?.SetValueWithoutNotify(bossHealth?.currentHealth ?? 0);
 
         switch (currentState)
         {
@@ -505,7 +479,6 @@ public class BossBeetleAI : MonoBehaviour
 
         if (sliderObj != null)
         {
-            bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
             // ✅ KHÔNG ẨN Ở ĐÂY NỮA
         }
         else
@@ -529,7 +502,7 @@ public class BossBeetleAI : MonoBehaviour
 
     void OnBossDeath()
     {
-        bossHealthSlider?.gameObject.SetActive(false);
+        BossUIManager.Instance?.Hide();
         musicAudioSource?.Stop();
     }
 

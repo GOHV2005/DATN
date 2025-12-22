@@ -8,9 +8,6 @@ public class BossMantisAI : MonoBehaviour
     public enum BossState { Idle, Moving, UsingSkill, Dead }
     BossState currentState = BossState.Idle;
     public bool skipIntro = false; // nếu true → bỏ qua dialogue + cinematic
-    [Header("UI")]
-    private UnityEngine.UI.Slider bossHealthSlider;
-    private Health bossHealth;
 
     [Header("REFERENCES")]
     public Transform player;
@@ -71,7 +68,7 @@ public class BossMantisAI : MonoBehaviour
     private string introPrefKey;
     private bool introPlayed = false;
     private bool introEnded = false;
-
+    private Health bossHealth;
     void Awake()
     {
         introPrefKey = $"BossMantisIntroPlayed_{gameObject.name}_{UnityEngine.SceneManagement.SceneManager.GetActiveScene().name}";
@@ -80,22 +77,7 @@ public class BossMantisAI : MonoBehaviour
     void Start()
     {
         bossHealth = GetComponent<Health>();
-        FindBossSlider();
 
-        bossHealth = GetComponent<Health>();
-        if (bossHealth != null && bossHealthSlider != null)
-        {
-            bossHealthSlider.maxValue = bossHealth.maxHealth;
-            bossHealthSlider.value = bossHealth.currentHealth;
-            bossHealth.onDeath += Die;
-
-            // ✅ Chỉ ẩn nếu là boss CHÍNH (không phải spawn)
-            if (!skipIntro)
-            {
-                bossHealthSlider.gameObject.SetActive(false);
-            }
-            // Nếu là spawn (skipIntro = true), giữ nguyên trạng thái active trong scene
-        }
 
         if (!player)
             player = GameObject.FindGameObjectWithTag("Player")?.transform;
@@ -140,7 +122,7 @@ public class BossMantisAI : MonoBehaviour
     {
         if (combatStarted || isDead || bossHealth?.currentHealth <= 0 || introPlayed) return;
         introPlayed = true;
-
+        BossUIManager.Instance?.Show(bossHealth);
         // ✅ NẾU LÀ SPAWNED → BỎ QUA CINEMATIC, VÀO COMBAT NGAY
         if (skipIntro)
         {
@@ -173,8 +155,6 @@ public class BossMantisAI : MonoBehaviour
         PlayMusic();
 
         combatStarted = true;
-        if (bossHealthSlider != null)
-            bossHealthSlider.gameObject.SetActive(true);
 
         currentState = BossState.Moving;
         StartCoroutine(CombatLoop());
@@ -218,8 +198,6 @@ public class BossMantisAI : MonoBehaviour
         ActivateIntroCam(false); // chuyển về gameplayCam
 
         combatStarted = true;
-        if (bossHealthSlider != null)
-            bossHealthSlider.gameObject.SetActive(true);
 
         currentState = BossState.Moving;
         StartCoroutine(CombatLoop());
@@ -254,8 +232,6 @@ public class BossMantisAI : MonoBehaviour
     void Update()
     {
         if (bossHealth == null || bossHealth.currentHealth <= 0) return;
-        if (bossHealthSlider != null)
-            bossHealthSlider.value = bossHealth.currentHealth;
 
         if (currentState == BossState.Moving)
             MoveToPlayer();
@@ -345,8 +321,7 @@ public class BossMantisAI : MonoBehaviour
 
     void Die()
     {
-        if (bossHealthSlider != null)
-            bossHealthSlider.gameObject.SetActive(false);
+            BossUIManager.Instance?.Hide();
 
         isDead = true;
         currentState = BossState.Dead;
@@ -391,7 +366,7 @@ public class BossMantisAI : MonoBehaviour
 
         if (sliderObj != null)
         {
-            bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
+            //bossHealthSlider = sliderObj.GetComponent<UnityEngine.UI.Slider>();
             // ✅ KHÔNG ẨN Ở ĐÂY NỮA
         }
         else
