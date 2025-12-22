@@ -211,6 +211,7 @@ GameObject:
   - component: {fileID: 8816349345119662259}
   - component: {fileID: 8353044158265397854}
   - component: {fileID: 8218907702521336456}
+  - component: {fileID: 2647911442332449664}
   m_Layer: 6
   m_Name: "ki\u1EBFn"
   m_TagString: Enemy
@@ -257,7 +258,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 9a0e9646a5588c84dbe7cc59f5e27ca1, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -459,6 +460,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c1d3d8ebd4d2894f8505dc132d35732, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enemyId: 
   maxHealth: 3
   currentHealth: 0
   knockbackForce: 0
@@ -474,11 +476,23 @@ MonoBehaviour:
   bloodCount: 5
   bloodForce: 1
   useDissolve: 1
-  _dissolve: {fileID: 0}
-  deathParticle: {fileID: 5774021493654583103, guid: 4109425357e40d4448221cb8e410c14d,
-    type: 3}
+  _dissolve: {fileID: 2647911442332449664}
+  deathParticle: {fileID: 0}
   deathSound: {fileID: 0}
   audioSource: {fileID: 0}
+--- !u!114 &2647911442332449664
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7056222861646307685}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bfd1230e404fe5b4b8e5d182d87d89be, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _dissolveTime: 0.75
 --- !u!1 &7159525337248880108
 GameObject:
   m_ObjectHideFlags: 0

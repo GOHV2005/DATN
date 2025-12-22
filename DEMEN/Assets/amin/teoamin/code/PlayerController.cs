@@ -169,7 +169,7 @@ public class PlayerController : MonoBehaviour
     [Header("Jump Float")]
     public bool useJumpFloat = true;
     public float floatGravityScale = 0.3f;
-
+    public float normalGravity = 4f;
     [Header("Wall Jump")]
     public float wallJumpForceXMultiplier = 1.1f;
     public float wallJumpForceYMultiplier = 1.0f;
@@ -237,6 +237,7 @@ public class PlayerController : MonoBehaviour
     private bool manaMainHealing = false;
     private int currentAttackId = 0;
     private Dissovle _dissovle;
+    private bool wasInputLocked = false;
 
     public float CurrentHealth
     {
@@ -319,6 +320,12 @@ public class PlayerController : MonoBehaviour
 
     void Update()
     {
+        if (!UIManager.IsGameplayInputAllowed)
+        {
+            LockAllPlayerInput();
+            return;
+        }
+
         HandleInvincibilityFlash();
         UpdateTimers();
         RegenerateManaIfNotDashing();
@@ -373,6 +380,34 @@ public class PlayerController : MonoBehaviour
             swordComboStep = 0;
         }
     }
+    void LockAllPlayerInput()
+    {
+        // Reset input
+        horizontalInput = 0f;
+        jumpRequested = false;
+        dashRequested = false;
+        attackRequested = false;
+
+        // Hủy trạng thái hành động
+        isDashing = false;
+        isAttacking = false;
+        isKnockbacked = false;
+
+        // Ngắt wall cling nếu có
+        if (isWallClinging)
+        {
+            isWallClinging = false;
+            rb.gravityScale = defaultGravityScale;
+        }
+
+        // Reset velocity → CHÌA KHÓA
+        rb.linearVelocity = Vector2.zero;
+
+        // Reset animation về Idle
+        if (animator != null)
+            animator.Play("Idle");
+    }
+
     void CheckGroundAndWall()
     {
         // --- Ground check (ưu tiên cao nhất) ---
@@ -460,11 +495,31 @@ public class PlayerController : MonoBehaviour
 
         health.TakeDamage(damage);
     }
+    public void SetDialogueState(bool isTalking)
+    {
+        rb.linearVelocity = Vector2.zero;
+
+        if (isTalking)
+        {
+            rb.gravityScale = 0f;
+            rb.constraints = RigidbodyConstraints2D.FreezeAll;
+        }
+        else
+        {
+            rb.gravityScale = normalGravity;
+            rb.constraints = RigidbodyConstraints2D.FreezeRotation;
+        }
+    }
 
 
     void FixedUpdate()
     {
         if (isDead) { rb.simulated = false; return; }
+        if (!UIManager.IsGameplayInputAllowed)
+        {
+            rb.linearVelocity = Vector2.zero;
+            return;
+        }
 
         if (isDropping)
         {

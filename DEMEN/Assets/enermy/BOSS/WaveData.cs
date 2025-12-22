@@ -4,6 +4,8 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "Wave", menuName = "Game/Wave Data")]
 public class WaveData : ScriptableObject
 {
+    public bool isBossWave = false;
+    public bool usePortalSpawn = false;
     public int enemyCount = 5;
     [Tooltip("Thời gian (giây) giữa mỗi enemy được spawn")]
     public float spawnInterval = 1f;

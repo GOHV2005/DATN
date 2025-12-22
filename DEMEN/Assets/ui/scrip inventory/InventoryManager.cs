@@ -52,6 +52,19 @@ public class InventoryManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    // Trả về tổng số lượng của itemName trong inventory (tổng các slot)
+    public int GetItemCount(string itemName)
+    {
+        if (itemSlots == null) return 0;
+        int total = 0;
+        foreach (var slot in itemSlots)
+        {
+            if (!string.IsNullOrEmpty(slot.itemName) && slot.itemName == itemName)
+                total += slot.quantity;
+        }
+        return total;
+    }
+
     public void RemoveItem(string itemName, int amount)
     {
         if (itemSlots == null) return;

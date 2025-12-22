@@ -4,7 +4,7 @@ using UnityEngine;
 public class Health : MonoBehaviour
 {
     public System.Action onDeath;
-
+    [SerializeField] public string enemyId;
     [Header("🩸 Health Settings")]
     public float maxHealth = 3f;
     public float currentHealth;
@@ -176,6 +176,7 @@ public class Health : MonoBehaviour
             for (int i = 0; i < dropItemCount; i++)
                 SpawnDroppedItem();
         }
+        QuestlineManager.Instance?.OnEnemyKilled(enemyId);
 
         EnemyDeathHandler.OnEnemyDied?.Invoke();
     }

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 2669314145572424363}
   - component: {fileID: 5077426962020374511}
   - component: {fileID: 5997579349700867642}
+  - component: {fileID: 5717300851452387924}
   m_Layer: 17
   m_Name: NPC 1
   m_TagString: Untagged
@@ -61,7 +62,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -179,98 +180,77 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c561aba00b48043439c4cdcd9ac46c4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  enableCameraFocus: 0
+  cameraFocusTarget: {fileID: 0}
+  questDescription: "\xD4ng th\u1EE3 r\xE8n  c\u1EA7n c\u1EE5c th\u1ECBt v\xE0 c\u1ECF
+    t\xF4i kh\xF4ng bi\u1EBFt t\u1EA1i sao"
   requiredItems:
   - "Th\u1ECBt"
-  - "c\u1ECF"
-  enableLookAtPlayer: 0
-  fullDialogue:
-    playerSprite: {fileID: -6615533277706699530, guid: 54213b2d9b125454eb188d547b57af7a,
+  requiredAmounts: 03000000
+  questDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
       type: 3}
     npcSprite: {fileID: -751842068119696605, guid: ec0dd5bb60ab2aa4ba3c44384fcb3cf8,
       type: 3}
     lines:
     - isPlayer: 1
-      text: "xin ch\xE0o th\u1EE3 r\xE8n"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      text: 1
+      enableCameraFocus: 1
+      cameraFocusTarget: {fileID: 0}
     - isPlayer: 0
-      text: "ch\xE0o ch\xE1u hoho"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      text: 2
+      enableCameraFocus: 1
+      cameraFocusTarget: {fileID: 0}
+  missingItemDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
+      type: 3}
+    npcSprite: {fileID: -751842068119696605, guid: ec0dd5bb60ab2aa4ba3c44384fcb3cf8,
+      type: 3}
+    lines:
+    - isPlayer: 0
+      text: 3
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
     - isPlayer: 1
-      text: "ch\xE1u mu\u1ED1n c\xE2y c\xFAp li\u1EC7u \xF4ng c\xF3 th\u1EC3 cho
-        ch\xE1u ko"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      text: 4
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+  completeDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
+      type: 3}
+    npcSprite: {fileID: -751842068119696605, guid: ec0dd5bb60ab2aa4ba3c44384fcb3cf8,
+      type: 3}
+    lines:
     - isPlayer: 0
-      text: "hoho ko n\u1EBFu ch\xE1u cho ta c\u1EE5c th\u1ECBt v\xE0 c\u1ECF"
-      isQuestRequest: 1
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
+      text: 5
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: 6
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+  comebackDialogue:
+    playerSprite: {fileID: 5945871790718036829, guid: ae04c40ca785d07499f40f828afaf685,
+      type: 3}
+    npcSprite: {fileID: -751842068119696605, guid: ec0dd5bb60ab2aa4ba3c44384fcb3cf8,
+      type: 3}
+    lines:
     - isPlayer: 0
-      text: "hoho t\xECm thu\u1EADn l\u1EE3i nhe ch\xE1u"
-      isQuestRequest: 0
-      isAcceptLine: 1
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
-    - isPlayer: 0
-      text: "hoho t\xF9y ch\xE1u"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 1
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
-    - isPlayer: 0
-      text: "hoho thi\u1EBFu k\xECa ch\xE1u \u01A1i"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 1
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 0
-    - isPlayer: 0
-      text: "hoho c\u1EA3m \u01A1n ch\xE1u nh\xE9 cu\u1ED1c ch\u1EE7a ch\xE1u \u0111\xE2y"
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 1
-      isDoneIfPlayerComeBack: 0
-    - isPlayer: 0
-      text: Zzzz
-      isQuestRequest: 0
-      isAcceptLine: 0
-      isRefuseLine: 0
-      isMissingItem: 0
-      isQuestComplete: 0
-      isDoneIfPlayerComeBack: 1
+      text: 7
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+    - isPlayer: 1
+      text: 8
+      enableCameraFocus: 0
+      cameraFocusTarget: {fileID: 0}
+  enableLookAtPlayer: 0
   playerTransform: {fileID: 0}
   interactionRange: 2
-  questDescription: "\xD4ng th\u1EE3 r\xE8n  c\u1EA7n c\u1EE5c th\u1ECBt v\xE0 c\u1ECF
-    t\xF4i kh\xF4ng bi\u1EBFt t\u1EA1i sao"
+  interactionPrompt: {fileID: 2882814249461953225}
   rewardItemPrefab: {fileID: 671203211820296829, guid: 010108823894f7f48960299da5481dc7,
     type: 3}
   dropForce: 8
   dropAngle: 50
-  interactionPrompt: {fileID: 2882814249461953225}
 --- !u!95 &5997579349700867642
 Animator:
   serializedVersion: 7
@@ -293,6 +273,20 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &5717300851452387924
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1348596795838545294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cbdc735ae28aeba46babb6f0e02d4f08, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  vcam: {fileID: 0}
+  playerTarget: {fileID: 0}
 --- !u!1 &2882814249461953225
 GameObject:
   m_ObjectHideFlags: 0
@@ -348,7 +342,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10754, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -366,8 +360,8 @@ SpriteRenderer:
   m_AutoUVMaxDistance: 0.5
   m_AutoUVMaxAngle: 89
   m_LightmapParameters: {fileID: 0}
-  m_SortingLayerID: 0
-  m_SortingLayer: 0
+  m_SortingLayerID: 464071391
+  m_SortingLayer: -7
   m_SortingOrder: -5
   m_Sprite: {fileID: -8506607990533810358, guid: 2a9c73efc4917364a8b6b9d50e82dbd0,
     type: 3}
